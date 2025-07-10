@@ -3,11 +3,10 @@ import { useEffect,useState } from "react";
 
 
 
-    const token=localStorage.getItem("token")
    
  
 
-const URL = "http://192.168.0.210:2512";
+const URL = "https://rex-bk.truet.net";
 
 // admin login api
 export const adminLogin = async (email, password) => {
@@ -23,6 +22,7 @@ export const adminLogin = async (email, password) => {
 };
 // Get user analytics
 export const getAnalytics = async () => {
+     const token=localStorage.getItem("token")
     try {
         const token = localStorage.getItem("token");
         const res = await axios.get(`${URL}/api/analytics/useranalytics`, {
@@ -139,6 +139,7 @@ export const getRetellVoices=async()=>{
 
 // };
 export const createAgent = async (data) => {
+     const token=localStorage.getItem("token")
   const res = await axios.post(`${URL}/api/agent/createAgent`, data, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -149,6 +150,7 @@ export const createAgent = async (data) => {
 
 
 export const fetchAgentDetailById = async (data: { agentId: string; businessId: string }) => {
+     const token=localStorage.getItem("token")
   const res = await axios.post(`${URL}/api/agent/fetchAgentDetailsById`, data, {
     headers: {
       Authorization: `Bearer ${token}`, // ensure token is defined

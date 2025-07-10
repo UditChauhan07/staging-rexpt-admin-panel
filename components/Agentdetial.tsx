@@ -716,7 +716,7 @@ const [hasNoGoogleOrWebsite, setHasNoGoogleOrWebsite] = useState(false);
       }
     }, []);
 
-const URL = "http://192.168.0.210:2512";
+const URL = "https://rex-bk.truet.net";
 
 
 const fetchKnowledgeBaseName = async () => {
@@ -842,202 +842,198 @@ const handleWebsiteBlur = async () => {
  const knowledgebaseName= localStorage.getItem("knowledgebaseName")
   const handlePrevious = () => setStep(step - 1)
 const businessType=localStorage.getItem("businessType")
- const handleSubmit = async () => {
-    try {
+const handleSubmit = async () => {
+  try {
+    const {
+      language,
+      gender,
+      voice,
+      agentname, // ✅ for prompt
+      avatar,
+      userId,
+      businessName,
+      address,
+      email,
+      about,
+      businessType,
+      services,
+      customBuisness,
+    } = form;
 
-      const {
-        language,
-        gender,
-        voice,
-        agentname,
-        avatar,
-        userId,
-        businessName,
-        address,
-        email,
-        about,
-        businessType,
-        services,
-        customBuisness,
-        role
-      } = form
-      console.log(voice,"voice")
+    const knowledgebaseName = localStorage.getItem("knowledgebaseName") || "Virtual Assistant"; // ✅ for Retell agent name
+    const aboutBusinessForm = localStorage.getItem("businessonline") || about || "";
 
-      const promptVars = {
-       agentName: form.selectedVoice?.voice_name || "Virtual Assistant",
-        agentGender: form.gender,
-        business: {
-          businessName: businessName || "Your Business",
-         adress: address,
-         email: email,
-          aboutBusiness:about,
+    const promptVars = {
+      agentName: agentname || "Virtual Assistant", // ✅ this will go in prompt
+      agentGender: gender,
+      business: {
+        businessName: businessName || "Your Business",
+        adress: address,
+        email: email,
+        aboutBusiness: about,
+      },
+      languageSelect: language,
+      businessType,
+      commaSeparatedServices: services?.join(", ") || "",
+    };
+
+    // ✅ PROMPT: Use agentname
+    const filledPrompt = getAgentPrompt({
+      industryKey: businessType === "Other" ? customBuisness : businessType,
+      roleTitle: selectedRole,
+      agentName: agentname || "Virtual Assistant",
+      agentGender: gender,
+      business: {
+        businessName: businessName || "Your Business",
+        email: email || "",
+        aboutBusiness: about || "",
+        address: address || "",
+      },
+      languageSelect: "Multi",
+      businessType,
+      aboutBusinessForm,
+      commaSeparatedServices: services?.join(", ") || "",
+      agentNote: "",
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+
+    // ✅ RAW Prompt (for saving)
+    const filledPrompt2 = getAgentPrompt({
+      industryKey: "{{businessType}}",
+      roleTitle: "{{selectedRole}}",
+      agentName: "{{AgentName}}",
+      agentGender: "{{gender}}",
+      business: {
+        businessName: "{{businessName}}",
+        email: "{{email}}",
+        aboutBusiness: "{{about}}",
+        address: "{{address}}",
+      },
+      languageSelect: "{{language}}",
+      businessType: "{{businessType}}",
+      aboutBusinessForm: {
+        businessUrl: "{{businesssURl}}",
+        about: "{{About Business}}",
+      },
+      commaSeparatedServices: "{{services}}",
+      agentNote: "",
+      timeZone: "{{timeZone}}",
+    });
+
+    console.log("generatePrompt", filledPrompt2);
+
+    // ✅ SEND TO BACKEND LLM CREATION
+    const agentConfig = {
+      version: 0,
+      model: "gemini-2.0-flash-lite",
+      model_temperature: 0,
+      model_high_priority: true,
+      tool_call_strict_mode: true,
+      general_prompt: filledPrompt,
+      general_tools: [],
+      starting_state: "information_collection",
+      default_dynamic_variables: {
+        customer_name: "John Doe",
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      },
+      states: [
+        {
+          name: "information_collection",
+          state_prompt: "## Task\nGreet the user and ask how you can help.",
+          script: `
+            if (wait_for_user_input) {
+              speak("How can I assist you today?");
+              wait_for_user_input();
+            }
+          `,
+          edges: [],
         },
-        languageSelect: language,
-        businessType,
-        commaSeparatedServices: services?.join(", ") || "",
-      }
-      const aboutBusinessForm = localStorage.getItem("businessonline") || form.about || "";
+      ],
+    };
 
+    const llmRes = await axios.post(`${URL}/api/agent/createAdmin/llm`, agentConfig, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+        "Content-Type": "application/json",
+      },
+    });
 
-     const filledPrompt = getAgentPrompt({
-  industryKey: businessType === "Other" ? customBuisness : businessType,
-  roleTitle: selectedRole,
-  agentName: knowledgebaseName,
-  agentGender: gender,
-  business: {
-    businessName: businessName || "Your Business",
-    email: email || "",
-    aboutBusiness: about || "", // this can remain for context
-    address: address || "",
-  },
-  languageSelect: "Multi",
-  businessType,
-  aboutBusinessForm, // this will now work fine
-  commaSeparatedServices: services?.join(", ") || "",
-  agentNote: "",
-  timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-});
- const filledPrompt2 = getAgentPrompt({
-  industryKey: "{{businessType}}",
-  roleTitle: "{{selectedRole}}",
-  agentName: "{{AgentName}}",
-  agentGender: "{{gender}}",
-  business: {
-    businessName: "{{businessName}}" ,
-    email: "{{email}}" ,
-    aboutBusiness: "{{about}}", // this can remain for context
-    address: "{{address}}" ,
-  },
-  languageSelect: "{{language}}",
-  businessType:"{{businessType}}",
-  aboutBusinessForm:
-  {
-    businessUrl:
-    "{{businesssURl}}",
-    about:"{{About Business}}"
-  }, // this will now work fine
-  commaSeparatedServices: "{{services}}",
-  agentNote: "",
-  timeZone: "{{timeZone}}",
-});
+    const llmId = llmRes.data.data.llm_id;
+    console.log("LLM ID", llmId);
 
-      console.log('generatePrompt',filledPrompt2)
+    // ✅ RETELL AGENT CREATION (Use knowledgebaseName here)
+    const finalAgentData = {
+      response_engine: { type: "retell-llm", llm_id: llmId },
+      voice_id: voice,
+      agent_name: knowledgebaseName || "Virtual Assistant", // ✅ This name goes to Retell
+      language: "multi",
+      post_call_analysis_model: "gpt-4o-mini",
+      responsiveness: 1,
+      enable_backchannel: true,
+      interruption_sensitivity: 0.91,
+      normalize_for_speech: true,
+      backchannel_frequency: 0.7,
+      backchannel_words: ["Got it", "Yeah", "Uh-huh", "Understand", "Ok", "hmmm"],
+      post_call_analysis_data: [
+        {
+          type: "string",
+          name: "Detailed Call Summary",
+          description: "Summary of the customer call",
+        },
+        {
+          type: "enum",
+          name: "lead_type",
+          description: "Customer feedback",
+          choices: ["positive", "neutral", "negative"],
+        },
+      ],
+    };
 
-      const agentConfig = {
-  version: 0,
-  model: "gemini-2.0-flash-lite",
-  model_temperature: 0,
-  model_high_priority: true,
-  tool_call_strict_mode: true,
-  general_prompt: filledPrompt,
-  general_tools: [],
-  starting_state: "information_collection",
-  // begin_message: `Hi I’m ${promptVars.agentName}, calling from ${promptVars.business.businessName}. How may I help you?`,
-  default_dynamic_variables: {
-    customer_name: "John Doe",
-    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-  },
-  states: [
-    {
-      name: "information_collection",
-      state_prompt: "## Task\nGreet the user and ask how you can help.",
-      script: `
-        if (wait_for_user_input) {
-          speak("How can I assist you today?");
-          wait_for_user_input();
-        }
-      `,
-      edges: []
+    const agentRes = await axios.post("https://api.retellai.com/create-agent", finalAgentData, {
+      headers: {
+        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+      },
+    });
+
+    const agentId = agentRes.data.agent_id;
+
+    // ✅ SAVE TO DB (Use knowledgebaseName as agentName)
+    const dbPayload = {
+      userId,
+      agent_id: agentId,
+      llmId,
+      avatar,
+      agentVoice: voice,
+      knowledgebaseId: localStorage.getItem("knowledgeBaseId"),
+      agentAccent: form.selectedVoice?.voice_accent || "American",
+      agentRole: selectedRole,
+      agentName: agentname || "Virtual Assistant", // ✅ This matches Retell
+      agentLanguageCode: language,
+      agentLanguage: language,
+      dynamicPromptTemplate: filledPrompt,
+      rawPromptTemplate: filledPrompt2,
+      agentGender: gender,
+      agentPlan: "free",
+      agentStatus: true,
+      businessId: localStorage.getItem("BusinessId"),
+      additionalNote: "",
+    };
+
+    const saveRes = await createAgent(dbPayload);
+    if (saveRes.status === 200 || saveRes.status === 201) {
+      alert("Agent created successfully!");
+      localStorage.removeItem("businessType");
+      localStorage.removeItem("agentCode");
+      onClose();
+    } else {
+      throw new Error("Agent creation failed.");
     }
-  ]
-}
-
-      const llmRes = await axios.post(`${URL}/api/agent/createAdmin/llm`, agentConfig, {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-          "Content-Type": "application/json",
-        },
-      })
-console.log(llmRes)
-      const llmId = llmRes.data.data.llm_id
-      console.log(llmId)
-
-      const finalAgentData = {
-        response_engine: { type: "retell-llm", llm_id: llmId },
-        voice_id: voice,
-        // language,
-       agent_name: form.selectedVoice?.voice_name || "Virtual Assistant",
-        language: "multi",
-        post_call_analysis_model: "gpt-4o-mini",
-        responsiveness: 1,
-        enable_backchannel: true,
-        interruption_sensitivity: 0.91,
-        normalize_for_speech: true,
-        backchannel_frequency: 0.7,
-        backchannel_words: ["Got it", "Yeah", "Uh-huh", "Understand", "Ok", "hmmm"],
-        post_call_analysis_data: [
-          {
-            type: "string",
-            name: "Detailed Call Summary",
-            description: "Summary of the customer call",
-          },
-          {
-            type: "enum",
-            name: "lead_type",
-            description: "Customer feedback",
-            choices: ["positive", "neutral", "negative"],
-          },
-        ],
-      }
-      console.log(finalAgentData)
-
-      const agentRes = await axios.post("https://api.retellai.com/create-agent", finalAgentData, {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-        },
-      })
-
-      const agentId = agentRes.data.agent_id
-
-      const dbPayload = {
-        userId,
-        agent_id: agentId,
-        llmId,
-        avatar,
-        agentVoice: voice,
-        knowledgebaseId:localStorage.getItem('knowledgeBaseId'),
-        agentAccent: form.selectedVoice?.voice_accent|| "American",
-        agentRole: selectedRole,
-        agentName: form.selectedVoice?.voice_name || "Virtual Assistant",
-        agentLanguageCode: language,
-        agentLanguage:  language,
-        dynamicPromptTemplate:filledPrompt,
-        rawPromptTemplate:filledPrompt2,
-        agentGender: gender,
-        agentPlan: "free",
-        agentStatus: true,
-        businessId: localStorage.getItem("BusinessId"),
-        additionalNote: "",
-      }
-
-      const saveRes = await createAgent(dbPayload)
-      if (saveRes.status === 200 || saveRes.status === 201) {
-        alert("Agent created successfully!")
-        localStorage.removeItem('businessType')
-          localStorage.removeItem('agentCode')
-        localStorage.removeItem("")
-        onClose()
-      
-      } else {
-        throw new Error("Agent creation failed.")
-      }
-    } catch (err) {
-      console.error("Error:", err)
-      alert("Agent creation failed. Please check console for details.")
-    } finally {
-      
-    }
+  } catch (err) {
+    console.error("Error:", err);
+    alert("Agent creation failed. Please check console for details.");
   }
+};
+
 
   useEffect(() => {
     const interval = setInterval(() => {
