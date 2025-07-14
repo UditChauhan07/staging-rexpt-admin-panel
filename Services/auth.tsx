@@ -6,12 +6,12 @@ import { useEffect,useState } from "react";
    
  
 
-const URL = "https://rex-bk.truet.net";
-
+// const URL = "https://rex-bk.truet.net";
+console.log(process.env.NEXT_PUBLIC_API_URL)
 // admin login api
 export const adminLogin = async (email, password) => {
     try {
-        const res = await axios.post(`${URL}/api/admin/login`, { email, password });
+        const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, { email, password });
         return res.data;
     } catch (error) {
         if (error.response?.data?.msg) {
@@ -25,7 +25,7 @@ export const getAnalytics = async () => {
      const token=localStorage.getItem("token")
     try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${URL}/api/analytics/useranalytics`, {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/useranalytics`, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -38,7 +38,7 @@ export const getAnalytics = async () => {
 // get all users
 export const retrieveAllRegisteredUsers = async () => {
     try {
-        const response = await axios.get(`${URL}/api/endusers/getAllUsers2`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers2`);
         return response.data.users;
     } catch (error) {
         if (error.response) {
@@ -52,7 +52,7 @@ export const retrieveAllRegisteredUsers = async () => {
 // delete user
 export const deleteUser = async (id) => {
     try {
-        const response = await axios.delete(`${URL}/api/agent/delete-user/db/${id}`)
+        const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/delete-user/db/${id}`)
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -65,7 +65,7 @@ export const deleteUser = async (id) => {
 // get users with agents
 export const retrieveAllRegisteredUsers2 = async () => {
     try {
-        const response = await axios.get(`${URL}/api/endusers/getAllUsers`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers`);
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -80,7 +80,7 @@ export const retrieveAllRegisteredUsers2 = async () => {
 export const addUser=async(userData)=>{
 
   try {
-    const response = await axios.post(`${URL}/api/endusers/createUserByAdmin`, userData);
+    const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/createUserByAdmin`, userData);
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -95,7 +95,7 @@ export const addUser=async(userData)=>{
 // delete agent permanently
 export const deleteAgent = async (id) => {
     try {
-        const response = await axios.delete(`${URL}/api/agent/AgentDelete/hard/${id}`)
+        const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/AgentDelete/hard/${id}`)
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -108,7 +108,7 @@ export const deleteAgent = async (id) => {
 // deactivate agent from retel 
 export const deactivateAgent = async (id) => {
     try {
-        const response = await axios.delete(`${URL}/api/agent/delete-user-agent/${id}`)
+        const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/delete-user-agent/${id}`)
         console.log(response, "backend response")
         return response.data;
     } catch (error) {
@@ -121,7 +121,7 @@ export const deactivateAgent = async (id) => {
 }
 
 export const getRetellVoices=async()=>{
-    const res=await axios.get(`${URL}/api/agent/voicelist/api`)
+    const res=await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/voicelist/api`)
        console.log(res)
         return res.data.voices;
      
@@ -140,7 +140,7 @@ export const getRetellVoices=async()=>{
 // };
 export const createAgent = async (data) => {
      const token=localStorage.getItem("token")
-  const res = await axios.post(`${URL}/api/agent/createAgent`, data, {
+  const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/createAgent`, data, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -151,7 +151,7 @@ export const createAgent = async (data) => {
 
 export const fetchAgentDetailById = async (data: { agentId: string; businessId: string }) => {
      const token=localStorage.getItem("token")
-  const res = await axios.post(`${URL}/api/agent/fetchAgentDetailsById`, data, {
+  const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/fetchAgentDetailsById`, data, {
     headers: {
       Authorization: `Bearer ${token}`, // ensure token is defined
     },
@@ -160,7 +160,7 @@ export const fetchAgentDetailById = async (data: { agentId: string; businessId: 
 };
 export const validateWebsite = async (websiteUrl) => {
   try {
-    const res = await axios.post(`${URL}/api/validate-website`, { website: websiteUrl });
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/validate-website`, { website: websiteUrl });
     return res.data;
   } catch (error) {
     console.error("Error validating website:", error);
@@ -171,7 +171,7 @@ export const validateWebsite = async (websiteUrl) => {
 
 export const countAgentsbyUserId = async (userId) => {
   try {
-    const res = await axios.get(`${URL}/api/agent/listAgents?userId=${userId}`);
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/listAgents?userId=${userId}`);
     console.log('res',res)
     return res.data.length  || 0;
   } catch (error) {

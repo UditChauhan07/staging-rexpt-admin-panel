@@ -19,6 +19,8 @@ import { createAgent, getRetellVoices, validateWebsite } from "@/Services/auth"
 import axios from "axios"
 import { getAgentPrompt } from "@/lib/getAgentPrompt"
 import {getKnowledgeBaseName} from "@/lib/getKnowledgeBaseName"
+import Swal from "sweetalert2"
+import { FadeLoader  } from "react-spinners";
 import dynamic from "next/dynamic"
 
 interface User
@@ -703,6 +705,7 @@ const [voiceError, setVoiceError] = useState("")
     const [isVerifying, setIsVerifying] = useState(false);
 const [isWebsiteValid, setIsWebsiteValid] = useState(null); // true, false, or null
 const [hasNoGoogleOrWebsite, setHasNoGoogleOrWebsite] = useState(false);
+const[loading,setLoading]=useState(false)
     useEffect(() => {
       const storedAgentRole = sessionStorage.getItem("agentRole");
       const storedNote = sessionStorage.getItem("agentNote");
@@ -716,7 +719,7 @@ const [hasNoGoogleOrWebsite, setHasNoGoogleOrWebsite] = useState(false);
       }
     }, []);
 
-const URL = "https://rex-bk.truet.net";
+// const URL = "https://rex-bk.truet.net";
 
 
 const fetchKnowledgeBaseName = async () => {
@@ -801,10 +804,10 @@ const handleWebsiteBlur = async () => {
   // }
 
    const handleNext = async () => {
-    if (step === 1 && !form.userId) return alert("Select a user")
-    if (step === 2 && !form.businessType) return alert("Select at least one business type")
-    if (step === 3 && !form.businessName && !form.businessUrl) return alert("Please fill one of the fields")
-    if (step === 4 && !form.language) return alert("Business name is required")
+    if (step === 1 && !form.userId) return Swal.fire("Select a user")
+    if (step === 2 && !form.businessType) return Swal.fire("Select at least one business type")
+    if (step === 3 && !form.businessName && !form.businessUrl) return Swal.fire("Please fill one of the fields")
+    if (step === 4 && !form.language) return Swal.fire("Language  is required")
 
 //    if (step === 2) {
 //   const payload = {
@@ -843,6 +846,7 @@ const handleWebsiteBlur = async () => {
   const handlePrevious = () => setStep(step - 1)
 const businessType=localStorage.getItem("businessType")
 const handleSubmit = async () => {
+  setLoading(true)
   try {
     const {
       language,
@@ -850,7 +854,7 @@ const handleSubmit = async () => {
       voice,
       agentname, // ✅ for prompt
       avatar,
-      userId,
+      
       businessName,
       address,
       email,
@@ -900,7 +904,8 @@ const handleSubmit = async () => {
     // ✅ RAW Prompt (for saving)
     const filledPrompt2 = getAgentPrompt({
       industryKey: "{{businessType}}",
-      roleTitle: "{{selectedRole}}",
+      roleTitle: selectedRole,
+    
       agentName: "{{AgentName}}",
       agentGender: "{{gender}}",
       business: {
@@ -951,7 +956,7 @@ const handleSubmit = async () => {
       ],
     };
 
-    const llmRes = await axios.post(`${URL}/api/agent/createAdmin/llm`, agentConfig, {
+    const llmRes = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/createAdmin/llm`, agentConfig, {
       headers: {
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
         "Content-Type": "application/json",
@@ -974,6 +979,7 @@ const handleSubmit = async () => {
       normalize_for_speech: true,
       backchannel_frequency: 0.7,
       backchannel_words: ["Got it", "Yeah", "Uh-huh", "Understand", "Ok", "hmmm"],
+      webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgentCall_And_Mins_WebHook`,
       post_call_analysis_data: [
         {
           type: "string",
@@ -996,7 +1002,8 @@ const handleSubmit = async () => {
     });
 
     const agentId = agentRes.data.agent_id;
-
+const userId=localStorage.getItem("AgentForuserId")
+const agentCode=localStorage.getItem("agentCode")
     // ✅ SAVE TO DB (Use knowledgebaseName as agentName)
     const dbPayload = {
       userId,
@@ -1004,7 +1011,7 @@ const handleSubmit = async () => {
       llmId,
       avatar,
       agentVoice: voice,
-      knowledgebaseId: localStorage.getItem("knowledgeBaseId"),
+      knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
       agentAccent: form.selectedVoice?.voice_accent || "American",
       agentRole: selectedRole,
       agentName: agentname || "Virtual Assistant", // ✅ This matches Retell
@@ -1017,19 +1024,31 @@ const handleSubmit = async () => {
       agentStatus: true,
       businessId: localStorage.getItem("BusinessId"),
       additionalNote: "",
+      responsiveness: 1,
+                            enable_backchannel: true,
+                            interruption_sensitivity: 0.7,
+                            backchannel_frequency: 0.7,
+                            backchannel_words: ["Got it", "Yeah", "Uh-huh", "Understand", "Ok", "hmmm"],
+                            // additionalNote: agentNote || "",
+                            agentCode,
     };
 
     const saveRes = await createAgent(dbPayload);
     if (saveRes.status === 200 || saveRes.status === 201) {
+    
       alert("Agent created successfully!");
       localStorage.removeItem("businessType");
       localStorage.removeItem("agentCode");
       onClose();
+      setLoading(false)
+
     } else {
       throw new Error("Agent creation failed.");
+      setLoading(false)
     }
   } catch (err) {
     console.error("Error:", err);
+          setLoading(false)
     alert("Agent creation failed. Please check console for details.");
   }
 };
@@ -1097,7 +1116,27 @@ const voiceAvatar = (provider: string) => {
     setPlayingIdx(idx);
     thisAudio.onended = () => setPlayingIdx(null);
   };
-
+if (loading) {
+  console.log("reachedHere");
+  return (
+    <div
+      style={{
+        position: "fixed", // ✅ overlay entire screen
+        top: 0,
+        left: 0,
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.5)", // ✅ 50% white transparent
+        zIndex: 9999, // ✅ ensure it's on top
+      }}
+    >
+      <FadeLoader size={90} color="#6524EB" speedMultiplier={2} />
+    </div>
+  );
+}
   return (
     <Modal isOpen={isOpen} onClose={onClose}  title="Add Agent" width="max-w-xl">
       <div className="space-y-4">
@@ -1584,13 +1623,18 @@ const voiceAvatar = (provider: string) => {
           };
 
           try {
-            const res= await axios.post(`${URL}/api/businessDetails/create`, payload);
-            console.log(res,"Step 2 business details submitted successfully");
+            // setLoading(true)
+            const res= await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/create`, payload);
+            // console.log(res,"Step 2 business details submitted successfully");
+          
             localStorage.setItem("BusinessId",res.data.record.businessId)
             localStorage.setItem("agentCode",res.data.agentCode)
               setStep((prev) => prev + 1);
+              // setLoading(false)
+              
           } catch (error) {
             console.error("Error submitting business details:", error);
+            // setLoading(false)
           }
         }}
       >
@@ -2051,7 +2095,12 @@ Google: ${form.googleBusiness || "N/A"}`,
       ) : (
         <Select onValueChange={(v) => {
   const selectedVoice = filteredVoices.find(voice => voice.voice_id === v);
-  setForm({ ...form, voice: v, selectedVoice });
+  setForm({
+    ...form,
+    voice: v,
+    selectedVoice,
+    agentname: selectedVoice?.voice_name || "Virtual Assistant" // ✅ Fix: Set agentname based on selected voice
+  });
 }}>
           <SelectTrigger>
             <SelectValue placeholder="Choose voice" />
@@ -2075,7 +2124,7 @@ Google: ${form.googleBusiness || "N/A"}`,
                       </p>
                   
                   </div>
-                  <Button
+                  <div className="w-6 zIndex-999"><Button
                     type="button"
                     size="icon"
                     color="purple"
@@ -2091,6 +2140,7 @@ Google: ${form.googleBusiness || "N/A"}`,
                       <Play className="w-4 h-4 text-muted-foreground" />
                     )}
                   </Button>
+                  </div>
                   <audio
                     ref={(el) => (audioRefs.current[index] = el)}
                     style={{ display: "none" }}

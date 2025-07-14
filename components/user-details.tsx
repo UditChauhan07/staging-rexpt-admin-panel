@@ -15,6 +15,9 @@ interface User {
   registrationDate: string
   phone: string,
   createdAt:string
+  isUserType:string
+  refferBy:string
+  referralCode:string
 }
 
 interface UserDetailsProps {
@@ -31,6 +34,13 @@ export function UserDetails({ user, onBack }: UserDetailsProps) {
     }
     return <Badge className={variants[status]}>{status}</Badge>
   }
+  const roleLabels: { [key: string]: string } = {
+  "0": "User",
+  "1": "SuperAdmin",
+  "2": "PartnerPlus",
+  "3": "Junior Partner",
+  "4": "Affiliate",
+}
 console.log(user, "user");
   return (
     <div className="space-y-6">
@@ -49,6 +59,7 @@ console.log(user, "user");
         {/* Profile Card */}
         <Card className="lg:col-span-1">
           <CardHeader className="text-center">
+            
             <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-2xl font-bold text-purple-600">
                 {user.name
@@ -62,6 +73,12 @@ console.log(user, "user");
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center gap-3 text-gray-600">
+              <Shield className="h-4 w-4" />
+              <span className="text-sm">
+  {roleLabels[String(user.isUserType)] || "User"}
+</span>
+            </div>
+            <div className="flex items-center gap-3 text-gray-600">
               <Mail className="h-4 w-4" />
               <span className="text-sm">{user.email}</span>
             </div>
@@ -69,10 +86,7 @@ console.log(user, "user");
               <Phone className="h-4 w-4" />
               <span className="text-sm">{user.phone}</span>
             </div>
-            <div className="flex items-center gap-3 text-gray-600">
-              <Shield className="h-4 w-4" />
-              <span className="text-sm">{user.role||"User"}</span>
-            </div>
+            
           </CardContent>
         </Card>
 
@@ -101,12 +115,17 @@ console.log(user, "user");
                   <label className="text-sm font-medium text-gray-500">Contact Number</label>
                   <p className="mt-1 text-gray-900">{user.phone}</p>
                 </div>
-                {/* <div>
-                  <label className="text-sm font-medium text-gray-500">Role</label>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Referral Code</label>
                   <p className="mt-1">
-                    <Badge variant="outline">{user.role}</Badge>
+                      <p className="mt-1 text-gray-900">{user.referralCode}</p>
+                    {/* <Badge variant="outline">{user.referralCode}</Badge> */}
                   </p>
-                </div> */}
+                </div>
+                 <div>
+                  <label className="text-sm font-medium text-gray-500">Referred By</label>
+                  <p className="mt-1 text-gray-900">{user.refferBy}</p>
+                </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Status</label>
                   <p className="mt-1">{getStatusBadge(user.status||"Active")}</p>

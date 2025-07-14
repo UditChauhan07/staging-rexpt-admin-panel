@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
+import { FadeLoader  } from "react-spinners"
 
 interface User {
   id: string
   name: string
   email: string
   phone: string
+   role: string 
 }
 
 interface UserModalProps {
@@ -22,21 +24,30 @@ interface UserModalProps {
 }
 
 export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "" })
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", role: ""  })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
-
+const [loading,setloading]=useState(false)
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
+        role:user.role||""
       })
+
     } else {
-      setFormData({ name: "", email: "", phone: "" })
+      setFormData({ name: "", email: "", phone: "" , role: "" })
     }
     setErrors({})
   }, [user, isOpen])
+  const roleOptions = [
+  { label: "User", value: "0" },
+  // { label: "SuperAdmin", value: "1" },
+  { label: "PartnerPlus", value: "2" },
+  { label: "Junior Partner", value: "3" },
+  { label: "Affiliate", value: "4" },
+]
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {}
@@ -57,18 +68,43 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     if (formData.phone.trim() && !/^\d{7,15}$/.test(formData.phone)) {
       newErrors.phone = "Phone must be 7 to 15 digits"
     }
-
+if (!formData.role) {
+  newErrors.role = "Role is required"
+}
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = (e: React.FormEvent) => {
+    
     e.preventDefault()
     if (!validate()) return
     onSave(formData)
   }
 
   if (!isOpen) return null
+  if (loading) {
+  console.log("reachedHere");
+  return (
+    <div
+      style={{
+        position: "fixed", // ✅ overlay entire screen
+        top: 0,
+        left: 0,
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.5)", // ✅ 50% white transparent
+        zIndex: 9999, // ✅ ensure it's on top
+      }}
+    >
+      <FadeLoader size={90} color="#6524EB" speedMultiplier={2} />
+    </div>
+  );
+}
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -83,7 +119,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name (optional, validate only if filled) */}
           <div>
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Name <span className="text-red-500">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -94,7 +130,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
           {/* Email (required) */}
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
             <Input
               id="email"
               type="email"
@@ -114,6 +150,26 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
             />
             {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone}</p>}
           </div>
+          <div>
+  <Label htmlFor="role">
+    Role <span className="text-red-500">*</span>
+  </Label>
+  <select
+    id="role"
+    value={formData.role}
+    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+    className="w-full px-3 py-2 mt-1 border rounded-md text-gray-700 focus:outline-none focus:ring focus:border-blue-300"
+  >
+    <option value="">Select Role</option>
+    {roleOptions.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+  {errors.role && <p className="text-sm text-red-600 mt-1">{errors.role}</p>}
+</div>
+
 
           <div className="flex gap-3 pt-4">
             <Button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-700">

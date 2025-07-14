@@ -28,6 +28,7 @@ import {
 import Swal from "sweetalert2";
 import AddAgentModal from "./Agentdetial";
 import { retrieveAllRegisteredUsers } from "@/Services/auth";
+import { FadeLoader } from "react-spinners";
 
 interface User {
   id: string;
@@ -62,10 +63,15 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [usersList, setuserList] = useState<User[]>([]);
+
+const [loading, setLoading] = useState(false); 
+const [loaders,setLoaders]=useState(false)
   console.log(selectedAgent, "selectedAgent");
 
   async function fetchUsers() {
     try {
+
+      setLoaders(true)
       const apiUsers = await retrieveAllRegisteredUsers();
       if (!Array.isArray(apiUsers)) {
         console.error("API returned error:", apiUsers);
@@ -82,15 +88,19 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       }));
       console.log(mappedUsers, "mappedUsers");
       setuserList(mappedUsers);
+       setLoaders(true)
     } catch (error) {
       console.error("Failed to fetch users", error);
+       setLoaders(false)
     }
   }
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = async () => 
+    {
+       setLoaders(true)
     const res = await retrieveAllRegisteredUsers2();
     console.log(res.length, "response of agents");
     const flatList: AgentBusinessRow[] = [];
@@ -115,6 +125,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       });
     });
     setAgentData(flatList);
+     setLoaders(false)
   };
   useEffect(() => {
     fetchData();
@@ -149,7 +160,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
 
   const handleConfirmDelete = async () => {
     if (!selectedAgent) return;
-    setIsDeleting(true);
+  
     Swal.fire({
       title: "Deleting...",
       text: "Please wait while we delete the agent.",
@@ -160,10 +171,12 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
     });
 
     try {
+       setLoading(true)
       await deleteAgent(selectedAgent.agentId);
       setAgentData((prev) =>
         prev.filter((agent) => agent.agentId !== selectedAgent.agentId)
       );
+      setLoading(false)
       Swal.close();
       await fetchData();
       await Swal.fire({
@@ -213,10 +226,12 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       });
 
       try {
+        setLoading(true)
         const response = await deactivateAgent(agent.agentId);
         Swal.close();
         await fetchData();
         if (response?.status === true) {
+                 setLoading(false)
           await Swal.fire({
             icon: "success",
             title: "Agent Deactivated",
@@ -225,6 +240,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
             showConfirmButton: false,
           });
         } else {
+                 setLoading(false)
           await Swal.fire({
             icon: "error",
             title: "Failed",
@@ -233,6 +249,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
         }
       } catch (err) {
         console.error("Error deactivating agent:", err);
+               setLoading(false)
         Swal.close();
         await Swal.fire({
           icon: "error",
@@ -248,6 +265,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
 
   const handleAgentClick = async (row: AgentBusinessRow) => {
     try {
+             setLoading(true)
       const { agentId, businessId } = row;
       console.log(row);
       const data = await fetchAgentDetailById({
@@ -256,32 +274,59 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       });
       console.log("dsdsdsdsdsdewrerrewrew", data);
       onViewAgent(data?.data?.agent, data?.data?.business,data?.data?.knowledge_base_texts)
+             setLoading(false)
     } catch (err) {
       console.error("Error fetching agent details", err);
+             setLoading(false)
     }
   };
+  if (loading) {
+    console.log("reachedHere");
+    return (
+      <div
+        style={{
+          position: "fixed", // ✅ overlay entire screen
+          top: 0,
+          left: 0,
+          height: "100vh",
+          width: "100vw",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.5)", // ✅ 50% white transparent
+          zIndex: 9999, // ✅ ensure it's on top
+        }}
+      >
+        <FadeLoader size={90} color="#6524EB" speedMultiplier={2} />
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
-      <div>
+      <div style={{display:'flex',justifyContent:'space-between'}}>
+        <div>
         <h1 className="text-3xl font-bold text-gray-900">
-          Agent Business Listsss
+          Agent Business List
         </h1>
         <p className="text-gray-600 mt-2">
           Manage agents across all businesses
         </p>
+        </div>
+        <div>        <Button
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => setIsAgentModalOpen(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Agent
+            </Button></div>
+
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>All Agents</CardTitle>
-            <Button
-              className="bg-purple-600 hover:bg-purple-700"
-              onClick={() => setIsAgentModalOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Agent
-            </Button>
+            
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -323,52 +368,63 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
                 </tr>
               </thead>
               <tbody>
-                {paginatedAgents.map((row) => (
-                  <tr
-                    key={row.agentId}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-3 px-4 text-gray-600">{row.userName}</td>
-                    <td className="py-3 px-4 text-gray-600">{row.userEmail}</td>
-                    <td className="py-3 px-4 font-medium">
-                      {row.businessName}
-                    </td>
-                    <td className="py-3 px-4 font-medium">{row.agentName}</td>
-                    <td className="py-3 px-4 font-medium">
-                      {row.status === 1 ? (
-                        <span className="text-green-600 font-semibold">
-                          Active
-                        </span>
-                      ) : (
-                        <span className="text-red-600 font-semibold">
-                          Inactive
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-gray-600">{row.agentPlan}</td>
-                    <td className="py-3 px-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleAgentClick(row)} 
-                        className="hover:bg-purple-50 hover:text-purple-700"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </td>
-                    <td>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteClick(row)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+  {loaders ? (
+    <tr>
+      <td colSpan={8}>
+        <div className="flex justify-center items-center py-6 " style={{marginTop:"25%",marginBottom:'50%'}}>
+          <FadeLoader height={10} width={3} color="#6524EB" speedMultiplier={1.5} />
+        </div>
+      </td>
+    </tr>
+  ) : paginatedAgents.length === 0 ? (
+    <tr>
+      <td colSpan={8} className="text-center py-6 text-gray-500">
+        No agents found.
+      </td>
+    </tr>
+  ) : (
+    paginatedAgents.map((row) => (
+      <tr
+        key={row.agentId}
+        className="border-b border-gray-100 hover:bg-gray-50"
+      >
+        <td className="py-3 px-4 text-gray-600">{row.userName}</td>
+        <td className="py-3 px-4 text-gray-600">{row.userEmail}</td>
+        <td className="py-3 px-4 font-medium">{row.businessName}</td>
+        <td className="py-3 px-4 font-medium">{row.agentName}</td>
+        <td className="py-3 px-4 font-medium">
+          {row.status === 1 ? (
+            <span className="text-green-600 font-semibold">Active</span>
+          ) : (
+            <span className="text-red-600 font-semibold">Inactive</span>
+          )}
+        </td>
+        <td className="py-3 px-4 text-gray-600">{row.agentPlan}</td>
+        <td className="py-3 px-4">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleAgentClick(row)}
+            className="hover:bg-purple-50 hover:text-purple-700"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+        </td>
+        <td>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleDeleteClick(row)}
+            className="text-red-600 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
             </table>
           </div>
 

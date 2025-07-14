@@ -28,7 +28,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true)
     try {
       await onLogin(email, password)
-      
+
     } finally {
       setIsLoading(false)
     }
@@ -43,10 +43,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8 animate-in fade-in-50 duration-700">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="text-4xl font-bold text-black">rexpt</div>
-            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-full"></div>
+            <div className="text-4xl font-bold text-black">
+              <img src="../images/logomain1.png" alt="hdhhd" className="w-40 h-auto"/>
             </div>
+            
           </div>
           <p className="text-gray-600 text-lg">Admin Dashboard</p>
           <p className="text-gray-500 text-sm mt-1">The AI Receptionist Service</p>
