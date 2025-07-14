@@ -8,6 +8,7 @@ import { UserDetails } from "./components/user-details";
 import { RoleManagement } from "./components/role-management";
 import { AgentBusinessList } from "./components/agent-business-list";
 import { AgentDetailView } from "./components/agent-detail-view";
+import {DataTable} from "./components/DataTable"
 import { fetchAgentDetailById } from "./Services/auth";
 import { languages } from "./components/languageOptions";
 interface User {
@@ -63,6 +64,13 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     agent: false,
     language: false,
   });
+  const handleSectionChange = (section: string) => {
+    setSelectedUser(null);
+    setSelectedAgent(null);
+    setActiveSection(section);
+  };
+
+console.log(selectedAgent,"agent")
   const toggleDropdown = (key: string) => {
     setDropdowns((prev) => ({
       ...prev,
@@ -85,6 +93,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const handleBackToUsers = () => {
     setSelectedUser(null);
   };
+ 
 
   const handleViewAgent = (agent: any, business: any,knowledge_base_texts:any,total_call:any) => {
     setSelectedAgent({ agent, business, knowledge_base_texts,total_call});
@@ -124,24 +133,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         return <RoleManagement />;
       case "agents":
         return <AgentBusinessList onViewAgent={handleViewAgent} />;
-      case "products":
-        return (
-          <div className="space-y-6 animate-in fade-in-50 duration-500">
-            <div className="animate-in slide-in-from-left-5 duration-700">
-              <h1 className="text-3xl font-bold text-gray-900">
-                Product Management
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Manage your products and services
-              </p>
-            </div>
-            <div className="bg-gray-100 rounded-lg p-12 text-center animate-in slide-in-from-bottom-5 duration-700 delay-200">
-              <p className="text-gray-500">
-                Product management features coming soon...
-              </p>
-            </div>
-          </div>
-        );
+      // case "products":
+      //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
         return (
           <div className="space-y-6 animate-in fade-in-50 duration-500">
@@ -165,7 +158,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     <div className="min-h-screen bg-gray-50 transition-all duration-300">
       <Sidebar
         activeSection={activeSection}
-        onSectionChange={setActiveSection}
+      onSectionChange={handleSectionChange}
+
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         onLogout={onLogout}

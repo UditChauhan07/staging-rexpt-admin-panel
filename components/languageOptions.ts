@@ -246,13 +246,13 @@ export const languages = [
         },
 
         /* Universal / Mixed set */
-        // {
-        //     name: "Multilingual",
-        //     locale: "multi",
-        //     flag: "/images/multi.png",
-        //     percentage: "—",
-        //     stats: "—",
-        // },
+        {
+            name: "Multilingual",
+            locale: "multi",
+            flag: "/images/multi.png",
+            percentage: "—",
+            stats: "—",
+        },
 
 
 

@@ -15,7 +15,7 @@ export const getAgentPrompt = ({
 }: GetAgentPromptParams): string => {
   const normalizedIndustry = industryKey.trim();
   console.log("Normalized Industry:", normalizedIndustry, roleTitle);
-
+console.log("neewwwwwww",normalizedIndustry,roleTitle)
   const industryPrompts =
     agentPromptTemplates[normalizedIndustry] || agentPromptTemplates.default;
 

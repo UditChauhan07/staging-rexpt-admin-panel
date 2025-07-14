@@ -15,6 +15,7 @@ const navigationItems = [
   { id: "users", label: "User Management", icon: Users },
   // { id: "roles", label: "Role Management", icon: Shield },
   { id: "agents", label: "Agent Business List", icon: Headphones },
+  {id:"knowledgeBase",label:" Knowledge Base",icon:Shield}
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },
 ]
@@ -28,10 +29,10 @@ export function Sidebar({ activeSection, onSectionChange, isCollapsed, onToggleC
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <div className="text-2xl font-bold text-black">rexpt</div>
-            <div className="w-6 h-6 bg-purple-600 rounded-full flex items-center justify-center">
-              <div className="w-3 h-3 bg-white rounded-full"></div>
+            <div className="text-2xl font-bold text-black">
+              <img src="../images/logomain1.png" alt="" className="w-24 h-auto" />
             </div>
+       
           </div>
         )}
         <Button variant="ghost" size="icon" onClick={onToggleCollapse} className="h-8 w-8">
