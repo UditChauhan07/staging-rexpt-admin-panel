@@ -1,12 +1,14 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect ,useCallback} from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 import { FadeLoader  } from "react-spinners"
+import { debounce } from "lodash"
+import { check_Referral_Name_Exsitence } from "@/Services/auth"
 
 interface User {
   id: string
@@ -14,6 +16,7 @@ interface User {
   email: string
   phone: string
    role: string 
+   referalName?: string // Added referalName
 }
 
 interface UserModalProps {
@@ -24,20 +27,76 @@ interface UserModalProps {
 }
 
 export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "", role: ""  })
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", role: "" ,referalName: "" })
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
 const [loading,setloading]=useState(false)
+const [referralStatus, setReferralStatus] = useState<"checking" | "available" | "taken" | null>(null)
+const [showReferralInput, setShowReferralInput] = useState(false)
+
+  const checkReferralAvailability = useCallback(
+    debounce(async (referalName: string) => {
+      if (!referalName.trim() || (user && user.referalName === referalName)) {
+        setReferralStatus(null)
+        return
+      }
+
+      setReferralStatus("checking")
+      try {
+        const response = await check_Referral_Name_Exsitence(referalName)
+        console.log("Referral check response:", response)
+        setReferralStatus(response.available ? "available" : "taken")
+      } catch (error) {
+        console.error("Error checking referral link:", error)
+        setReferralStatus("taken")
+      }
+    }, 500),
+    [user]
+  )
+
+    useEffect(() => {
+    if (showReferralInput && formData.referalName) {
+      checkReferralAvailability(formData.referalName)
+    } else {
+      setReferralStatus(null)
+    }
+  }, [formData.referalName, showReferralInput, checkReferralAvailability])
+
+useEffect(() => {
+  if (user) {
+    setFormData({
+      name: user.name || "",
+      email: user.email || "",
+      phone: user.phone || "",
+      role: user.role || "",
+      referalName: user.referalName || user.name.toLowerCase().replace(/\s+/g, "-") || ""
+    })
+    setShowReferralInput(user.referalName ? true : ["2", "3"].includes(user.role))
+  } else {
+    setFormData({ name: "", email: "", phone: "", role: "", referalName: "" })
+    setShowReferralInput(false)
+  }
+  setErrors({})
+  setReferralStatus(null)
+}, [user, isOpen])
+
+useEffect(() => {
+  if (!user || (user && user.role !== formData.role)) {
+    setShowReferralInput(["2", "3"].includes(formData.role))
+  }
+}, [formData.role, user])
+
   useEffect(() => {
     if (user) {
       setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role:user.role||""
+        role:user.role||"",
+        referalName: user.referalName || user.name.toLowerCase().replace(/\s+/g, "-") || ""
       })
 
     } else {
-      setFormData({ name: "", email: "", phone: "" , role: "" })
+      setFormData({ name: "", email: "", phone: "" , role: "" ,referalName:""})
     }
     setErrors({})
   }, [user, isOpen])
@@ -68,6 +127,12 @@ const [loading,setloading]=useState(false)
     if (formData.phone.trim() && !/^\d{7,15}$/.test(formData.phone)) {
       newErrors.phone = "Phone must be 7 to 15 digits"
     }
+
+    if (!formData.referalName.trim()) {
+    newErrors.referalName = "Referral link is required"
+  } else if (referralStatus === "taken") {
+    newErrors.referalName = "Referral link is already taken"
+  }
 if (!formData.role) {
   newErrors.role = "Role is required"
 }
@@ -79,6 +144,8 @@ if (!formData.role) {
     
     e.preventDefault()
     if (!validate()) return
+    console.log('formData',formData)
+    // return
     onSave(formData)
   }
 
@@ -123,7 +190,7 @@ if (!formData.role) {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value ,referalName: e.target.value.toupperCase().replace(/\s+/g, "-")})}
             />
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
           </div>
@@ -168,7 +235,34 @@ if (!formData.role) {
     ))}
   </select>
   {errors.role && <p className="text-sm text-red-600 mt-1">{errors.role}</p>}
-</div>
+  </div>
+
+
+        {showReferralInput && (
+          <div>
+  <Label htmlFor="referalName">Referral Code <span className="text-red-500">*</span></Label>
+  <Input
+    id="referalName"
+    value={formData.referalName}
+    onChange={(e) => {setFormData({ ...formData, referalName: e.target.value.toUpperCase().replace(/\s+/g, "-") });setErrors({ ...errors, referalName: "" });}}
+    placeholder="Enter referral Code"
+  />
+  {referralStatus === "checking" && (
+    <p className="text-sm text-gray-600 mt-1">Checking availability...</p>
+  )}
+  {referralStatus === "available" && (<>
+    <p className="text-sm text-green-600 mt-1">Referral Code is available</p>
+    <p className="text-sm mt-2">Referral Link :<b>https://app.rexpt.in/{formData.referalName}</b></p>
+    </>
+  )}
+  {referralStatus === "taken" && (
+    <p className="text-sm text-red-600 mt-1">Referral Code is already taken</p>
+  )}
+  {errors.referalName && (
+    <p className="text-sm text-red-600 mt-1">{errors.referalName}</p>
+  )}
+      </div>
+        )}
 
 
           <div className="flex gap-3 pt-4">

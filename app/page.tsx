@@ -31,8 +31,8 @@ export default function Page() {
 
       // Save token
       localStorage.setItem("token", result.token)
-localStorage.setItem("referalcode",result.referralCode)
-localStorage.setItem("userId",result.userId)
+      localStorage.setItem("referalcode",result.referralCode)
+      localStorage.setItem("userId",result.userId)
       // Update login state
       setUser({ email })
       setIsLoggedIn(true)

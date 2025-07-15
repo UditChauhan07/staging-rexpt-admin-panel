@@ -24,7 +24,7 @@ interface User {
   phone: string
   createdAt:string
   refferedBy:string
-  referralCode:string
+  referalName:string
 }
 
 interface UserManagementProps {
@@ -49,7 +49,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
   "3": "Junior Partner",
   "4": "Affiliate",
 }
-
+  console.log("roleLabels", users)
    async function fetchUsers() {
   try {
     setloader(true);
@@ -78,6 +78,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
       referralCode: u.referralCode ?? "N/A",
       isUserType: u.isUserType ?? "N/A",
       registrationDate: u.createdAt ?? null,
+      referalName: u.referalName ?? "N/A",
     }));
 
     console.log(mappedUsers, "mappedUsers");
@@ -168,12 +169,13 @@ setLoading(false)
 
 
 const handleSaveUser = async (userData: Omit<User, "id">) => {
-  const referredBy=localStorage.getItem("referalcode")
+const referredBy=localStorage.getItem("referalcode")
 const referredId =localStorage.getItem("userId")
   const name = userData.name?.trim();
   const phone = userData.phone?.trim();
   const email = userData.email?.trim();
-  const role=userData.role
+  const role=userData.role;
+  const referalName = userData.referalName?.trim() || "";
 
   // Build payload conditionally
   const finalPayload: any = {
@@ -182,7 +184,8 @@ const referredId =localStorage.getItem("userId")
     ...(phone ? { phone } : {}),
     ...(role ? { isUserType: role } : {}), 
     ...(referredId ? { referredId } : {}),
-    ...(referredBy ? { referredBy } : {})
+    ...(referredBy ? { referredBy } : {}),
+    ...(referalName ? { referalName } : {})
   };
 
   // If editing, add ID
@@ -324,6 +327,7 @@ if (loading) {
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone Number</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Referral Code</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Referred By</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Partner Referral Name</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Assign Role</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                 </tr>
@@ -350,10 +354,12 @@ if (loading) {
         <td className="py-3 px-4 font-medium">{user.name}</td>
         <td className="py-3 px-4 text-gray-600">{user.email}</td>
         <td className="py-3 px-4 text-gray-600">{user.phone}</td>
-          <td className="py-3 px-4 text-gray-600">{user.referralCode}</td>
+        <td className="py-3 px-4 text-gray-600">{user.referralCode}</td>
      <td className="py-3 px-4 text-gray-600">
   {(!user.refferBy || user.refferBy === "null") ? "NA" : user.refferBy}
 </td>
+        <td className="py-3 px-4 text-gray-600">{user.referalName}</td>
+
 
 
     
