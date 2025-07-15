@@ -179,3 +179,16 @@ export const countAgentsbyUserId = async (userId) => {
     return 0;
   }
 };
+
+export const check_Referral_Name_Exsitence = async (referalName) => {
+  try {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/checkReferralNameExsitence?referalName=${encodeURIComponent(referalName)}`);
+    console.log('redsdsds',res)
+    return res.data  
+  } catch (error) {
+    console.error("Error fetching agent count:", error);
+    return 0;
+  }
+};
+
+   
