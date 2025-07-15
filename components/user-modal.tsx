@@ -190,7 +190,7 @@ if (!formData.role) {
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value ,referalName: e.target.value.toupperCase().replace(/\s+/g, "-")})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value ,referalName: e.target.value.toUpperCase().replace(/\s+/g, "-")})}
             />
             {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
           </div>
