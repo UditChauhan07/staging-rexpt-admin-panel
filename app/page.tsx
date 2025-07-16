@@ -6,6 +6,8 @@ import { LoginPage } from "../components/login-page"
 import AdminDashboard from "../admin-dashboard"
 import { adminLogin } from "../Services/auth"
 import Swal from "sweetalert2"
+import { decodeToken, isAdmin } from "../utils/authUtils"
+
 
 export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -17,9 +19,14 @@ export default function Page() {
   useEffect(() => {
     const token = localStorage.getItem("token")
     if (token) {
-      setIsLoggedIn(true)
+      if(!isAdmin(token)) {
+        Swal.fire("Access Denied", "You do not have permission to access this page.", "error")
+      }else{
+        setIsLoggedIn(true)
+      }
     }
     setLoading(false)
+
   }, [])
 
   const handleLogin = async (email: string, password: string) => {
