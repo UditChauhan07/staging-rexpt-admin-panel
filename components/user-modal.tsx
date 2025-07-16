@@ -81,8 +81,16 @@ useEffect(() => {
 
 useEffect(() => {
   if (!user || (user && user.role !== formData.role)) {
-    setShowReferralInput(["2", "3"].includes(formData.role))
+        const shouldShowReferral = ["2", "3"].includes(formData.role)
+
+      setShowReferralInput(["2", "3"].includes(formData.role))
+
+      if (!shouldShowReferral) {
+      setFormData((prev) => ({ ...prev, referalName: "" }))
+      setReferralStatus(null)
+    }
   }
+
 }, [formData.role, user])
 
   useEffect(() => {
@@ -128,10 +136,14 @@ useEffect(() => {
       newErrors.phone = "Phone must be 7 to 15 digits"
     }
 
+if (showReferralInput) {
     if (!formData.referalName.trim()) {
-    newErrors.referalName = "Referral link is required"
-  } else if (referralStatus === "taken") {
-    newErrors.referalName = "Referral link is already taken"
+      newErrors.referalName = "Referral code is required"
+    } else if (referralStatus === "taken") {
+      newErrors.referalName = "Referral code is already taken"
+    } else if (!/^[A-Z0-9-]+$/.test(formData.referalName)) {
+      newErrors.referalName = "Referral code can only contain uppercase letters, numbers, and hyphens"
+    }
   }
 if (!formData.role) {
   newErrors.role = "Role is required"
@@ -247,15 +259,15 @@ if (!formData.role) {
     onChange={(e) => {setFormData({ ...formData, referalName: e.target.value.toUpperCase().replace(/\s+/g, "-") });setErrors({ ...errors, referalName: "" });}}
     placeholder="Enter referral Code"
   />
-  {referralStatus === "checking" && (
+  {referralStatus === "checking" && !errors.referalName && (
     <p className="text-sm text-gray-600 mt-1">Checking availability...</p>
   )}
-  {referralStatus === "available" && (<>
+  {referralStatus === "available"  && !errors.referalName && (<>
     <p className="text-sm text-green-600 mt-1">Referral Code is available</p>
     <p className="text-sm mt-2">Referral Link :<b>https://app.rexpt.in/{formData.referalName}</b></p>
     </>
   )}
-  {referralStatus === "taken" && (
+  {referralStatus === "taken"  && !errors.referalName && (
     <p className="text-sm text-red-600 mt-1">Referral Code is already taken</p>
   )}
   {errors.referalName && (

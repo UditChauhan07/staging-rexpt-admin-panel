@@ -1,11 +1,6 @@
 import axios from "axios";
 import { useEffect,useState } from "react";
 
-
-
-   
- 
-
 // const URL = "https://rex-bk.truet.net";
 console.log(process.env.NEXT_PUBLIC_API_URL)
 // admin login api
