@@ -332,8 +332,8 @@ if (loading) {
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone Number</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Referral Code</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Referred By</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Partner Referral Name</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Assign Role</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Partner Referral Name</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -363,7 +363,6 @@ if (loading) {
      <td className="py-3 px-4 text-gray-600">
   {(!user.refferBy || user.refferBy === "null") ? "NA" : user.refferBy}
 </td>
-        <td className="py-3 px-4 text-gray-600">{user.referalName}</td>
 
 
 
@@ -371,6 +370,8 @@ if (loading) {
         <td className="py-3 px-4 text-gray-600">
   {roleLabels[String(user.isUserType)] || "Unknown"}
 </td>
+        <td className="py-3 px-4 text-gray-600">{user.referalName}</td>
+
 
         <td className="py-3 px-4">
           <div className="flex gap-2">

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 import { FadeLoader } from "react-spinners"
 import { debounce } from "lodash"
-import { check_Referral_Name_Exsitence } from "@/Services/auth"
+import { check_email_Exsitence, check_Referral_Name_Exsitence } from "@/Services/auth"
 
 interface User {
   id: string
@@ -34,6 +34,8 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
   const [referralStatus, setReferralStatus] = useState<"checking" | "available" | "taken" | null>(null)
   const [showReferralInput, setShowReferralInput] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [emailExists, setEmailExists] = useState(false)
+
 
   const checkReferralAvailability = useCallback(
     debounce(async (referalName: string) => {
@@ -245,9 +247,29 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
               type="text"
               value={formData.email}
               onChange={(e) => {
-                setErrors({ ...errors, email: "" });
-                setFormData({ ...formData, email: e.target.value })
-              }}
+  setErrors({ ...errors, email: "" });
+  setEmailExists(false); // 🔁 Clear on change
+  setFormData({ ...formData, email: e.target.value })
+}}
+
+       onBlur={async () => {
+  if (!formData.email?.trim()) return;
+
+  try {
+    const response = await check_email_Exsitence(formData.email);
+    if (response.exists && (!user || user.email !== formData.email)) {
+      setEmailExists(true);
+      setErrors((prev) => ({
+        ...prev,
+        email: "Email already exists",
+      }));
+    }
+  } catch (err) {
+    console.error("Email check failed", err);
+  }
+}}
+
+
             />
             {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
           </div>
@@ -354,9 +376,14 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
 
           <div className="flex gap-3 pt-4">
-            <Button type="submit" className="flex-1 bg-purple-600 hover:bg-purple-700">
-              {user ? "Update User" : "Create User"}
-            </Button>
+            <Button
+  type="submit"
+  className="flex-1 bg-purple-600 hover:bg-purple-700"
+  disabled={emailExists}
+>
+  {user ? "Update User" : "Create User"}
+</Button>
+
             <Button type="button" variant="outline" onClick={onClose} className="flex-1 bg-transparent">
               Cancel
             </Button>
