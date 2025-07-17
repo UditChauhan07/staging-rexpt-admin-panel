@@ -185,4 +185,14 @@ export const check_Referral_Name_Exsitence = async (referalName) => {
   }
 };
 
+export const check_email_Exsitence = async (email) => {
+  try {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/checkEmailExistence?email=${encodeURIComponent(email)}`);
+    return res.data  
+  } catch (error) {
+    console.error("Error fetching agent count:", error);
+    return 0;
+  }
+};
+
    
