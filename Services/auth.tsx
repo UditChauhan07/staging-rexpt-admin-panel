@@ -17,7 +17,6 @@ export const adminLogin = async (email, password) => {
 };
 // Get user analytics
 export const getAnalytics = async () => {
-     const token=localStorage.getItem("token")
     try {
         const token = localStorage.getItem("token");
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/analytics/useranalytics`, {
