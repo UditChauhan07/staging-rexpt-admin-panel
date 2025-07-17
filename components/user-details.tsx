@@ -101,34 +101,34 @@ console.log(user, "user");
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="text-sm font-medium text-gray-500">User ID</label>
-                  <p className="mt-1 text-gray-900 font-mono">{user.id}</p>
+                  <p className="mt-1 text-gray-900 font-mono">{user?.id}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Full Name</label>
-                  <p className="mt-1 text-gray-900">{user.name}</p>
+                  <p className="mt-1 text-gray-900">{user?.name}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Email Address</label>
-                  <p className="mt-1 text-gray-900">{user.email}</p>
+                  <p className="mt-1 text-gray-900">{user?.email}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Contact Number</label>
-                  <p className="mt-1 text-gray-900">{user.phone}</p>
+                  <p className="mt-1 text-gray-900">{user?.phone}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Referral Code</label>
                   <p className="mt-1">
-                      <p className="mt-1 text-gray-900">{user.referralCode}</p>
+                      <p className="mt-1 text-gray-900">{user?.referralCode}</p>
                     {/* <Badge variant="outline">{user.referralCode}</Badge> */}
                   </p>
                 </div>
                  <div>
                   <label className="text-sm font-medium text-gray-500">Referred By</label>
-                  <p className="mt-1 text-gray-900">{user.refferBy}</p>
+                  <p className="mt-1 text-gray-900">{user?.refferBy}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Status</label>
-                  <p className="mt-1">{getStatusBadge(user.status||"Active")}</p>
+                  <p className="mt-1">{getStatusBadge(user?.status||"Active")}</p>
                 </div>
               </div>
             </CardContent>

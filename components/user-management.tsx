@@ -25,6 +25,7 @@ interface User {
   createdAt:string
   refferedBy:string
   referalName:string
+  password:string
 }
 
 interface UserManagementProps {
@@ -175,7 +176,9 @@ const referredId =localStorage.getItem("userId")
   const phone = userData.phone?.trim();
   const email = userData.email?.trim();
   const role=userData.role;
-  const referalName = userData.referalName?.trim() || "";
+  const referalName = userData.referalName?.trim() || "";       
+
+  const password = userData.password || "";
 
   // Build payload conditionally
   const finalPayload: any = {
@@ -185,7 +188,8 @@ const referredId =localStorage.getItem("userId")
     ...(role ? { isUserType: role } : {}), 
     ...(referredId ? { referredId } : {}),
     ...(referredBy ? { referredBy } : {}),
-    ...(referalName ? { referalName } : {})
+    ...(referalName ? { referalName } : {}),
+    ...(password ? { password } : {})
   };
 
   // If editing, add ID
@@ -241,16 +245,17 @@ setLoading(false)
       Swal.fire({
         icon: 'error',
         title: 'Failed to save user',
-        text: response?.msg || 'Something went wrong.'
+        text: response?.error || 'Something went wrong.'
       });
     }
   } catch (error) {
     setLoading(false)
+    console.log("Error saving user:", error);
     console.error(error);
     Swal.fire({
       icon: 'error',
       title: 'Error',
-      text: 'Something went wrong while saving the user.'
+      text:error || 'Something went wrong while saving the user.'
     });
   }
 

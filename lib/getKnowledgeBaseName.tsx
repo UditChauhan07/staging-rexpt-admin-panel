@@ -47,13 +47,10 @@ const businessTypes = [
 
 export const getKnowledgeBaseName = async (): Promise<string | null> => {
   let agentCount = 0;
-  const agentCode = localStorage.getItem("agentCode") || "code";
-  const userId = localStorage.getItem("AgentForuserId") || "";
+  const agentCode = localStorage?.getItem("agentCode") || "code";
+  const userId = localStorage?.getItem("AgentForuserId") || "";
 
-  if (!userId) {
-    console.error("User ID not found in localStorage");
-    return null;
-  }
+ 
 
   try {
     agentCount = await countAgentsbyUserId(userId);
