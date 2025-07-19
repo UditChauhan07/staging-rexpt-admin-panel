@@ -172,7 +172,7 @@ console.log(selectedAgent,"agent")
       >
         {!selectedAgent && (
           <div className="p-6">
-            <div className="max-w-7xl mx-auto">{renderContent()}</div>
+            <div className="max-w-8xl mx-auto">{renderContent()}</div>
           </div>
         )}
         {selectedAgent && renderContent()}
