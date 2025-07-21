@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sidebar } from "./components/sidebar";
 import { AnalyticsSection } from "./components/analytics-section";
-import { UserManagement } from "./components/user-management";
+import  {UserManagement}  from "./components/user-management";
 import { UserDetails } from "./components/user-details";
 import { RoleManagement } from "./components/role-management";
 import { AgentBusinessList } from "./components/agent-business-list";
@@ -11,6 +11,7 @@ import { AgentDetailView } from "./components/agent-detail-view";
 import {DataTable} from "./components/DataTable"
 import { fetchAgentDetailById } from "./Services/auth";
 import { languages } from "./components/languageOptions";
+import UserKnowledgebaseViewer from "./components/UserKnowledgebaseViewer";
 interface User {
   id: string;
   name: string;
@@ -133,6 +134,8 @@ console.log(selectedAgent,"agent")
         return <RoleManagement />;
       case "agents":
         return <AgentBusinessList onViewAgent={handleViewAgent} />;
+        case "knowledgeBase":
+        return<UserKnowledgebaseViewer/>
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":

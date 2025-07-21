@@ -15,7 +15,7 @@ var navigationItems = [
 ];
 function Sidebar(_a) {
     var activeSection = _a.activeSection, onSectionChange = _a.onSectionChange, isCollapsed = _a.isCollapsed, onToggleCollapse = _a.onToggleCollapse, onLogout = _a.onLogout;
-    return (React.createElement("div", { className: "bg-white border-r border-gray-200 transition-all duration-300 " + (isCollapsed ? "w-16" : "w-64") + " flex flex-col h-screen fixed left-0 top-0 z-40" },
+    return (React.createElement("div", { className: "bg-white border-r border-gray-200 transition-all duration-300 " + (isCollapsed ? "w-17" : "w-64") + " flex flex-col h-screen fixed left-0 top-0 z-40" },
         React.createElement("div", { className: "p-4 border-b border-gray-200 flex items-center justify-between" },
             !isCollapsed && (React.createElement("div", { className: "flex items-center gap-2" },
                 React.createElement("div", { className: "text-2xl font-bold text-black" },
