@@ -66,6 +66,28 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
 
 const [loading, setLoading] = useState(false); 
 const [loaders,setLoaders]=useState(false)
+const [sortBy, setSortBy] = useState<keyof AgentBusinessRow | "">("");
+const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+const [statusFilter, setStatusFilter] = useState<string>("all");
+const [planFilter, setPlanFilter] = useState<string>("all");
+const sortedAgents = [...agentData].sort((a, b) => {
+  if (!sortBy) return 0;
+  const aValue = a[sortBy] ?? "";
+  const bValue = b[sortBy] ?? "";
+
+  if (typeof aValue === "string" && typeof bValue === "string") {
+    return sortDirection === "asc"
+      ? aValue.localeCompare(bValue)
+      : bValue.localeCompare(aValue);
+  }
+
+  if (typeof aValue === "number" && typeof bValue === "number") {
+    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+  }
+
+  return 0;
+});
+
   console.log(selectedAgent, "selectedAgent");
 
   async function fetchUsers() {
@@ -132,19 +154,23 @@ const [loaders,setLoaders]=useState(false)
   }, []);
 
   const agentsPerPage = 10;
-  const filteredAgents = agentData.filter((row) => {
-    const name = row.agentName || "";
-    const business = row?.businessName || "";
-    const user = row.userName || "";
-    const email = row.userEmail || "";
+const filteredAgents = sortedAgents.filter((row) => {
+  const name = row.agentName || "";
+  const business = row?.businessName || "";
+  const user = row.userName || "";
+  const email = row.userEmail || "";
 
-    return (
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      business.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  if (statusFilter !== "all" && String(row.status) !== statusFilter) return false;
+  if (planFilter !== "all" && row.agentPlan !== planFilter) return false;
+
+  return (
+    name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    business.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+});
+
 
   const totalPages = Math.ceil(filteredAgents.length / agentsPerPage);
   const startIndex = (currentPage - 1) * agentsPerPage;
@@ -336,6 +362,29 @@ const [loaders,setLoaders]=useState(false)
                 className="pl-10"
               />
             </div>
+            <div className="flex gap-4 mt-4">
+  <select
+    value={planFilter}
+    onChange={(e) => setPlanFilter(e.target.value)}
+    className="border px-3 py-1 rounded-md text-sm"
+  >
+    <option value="all">All </option>
+    {[...new Set(agentData.map((a) => a.agentPlan))].map((plan) => (
+      <option key={plan} value={plan}>{plan}</option>
+    ))}
+  </select>
+
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border px-3 py-1 rounded-md text-sm"
+  >
+    <option value="all">All</option>
+    <option value="1">Active</option>
+    <option value="0">Inactive</option>
+  </select>
+</div>
+
           </div>
         </CardHeader>
         <CardContent>
@@ -355,13 +404,26 @@ const [loaders,setLoaders]=useState(false)
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Agent Name
                   </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Agent Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    {" "}
-                    Plan
-                  </th>
+                 <th
+  onClick={() => {
+    setSortBy("agentPlan");
+    setSortDirection((prev) => (sortBy === "agentPlan" && prev === "asc" ? "desc" : "asc"));
+  }}
+  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
+>
+  Plan {sortBy === "agentPlan" && (sortDirection === "asc" ? "↑" : "↓")}
+</th>
+
+<th
+  onClick={() => {
+    setSortBy("status");
+    setSortDirection((prev) => (sortBy === "status" && prev === "asc" ? "desc" : "asc"));
+  }}
+  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
+>
+  Agent Status {sortBy === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+</th>
+
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Actions
                   </th>
