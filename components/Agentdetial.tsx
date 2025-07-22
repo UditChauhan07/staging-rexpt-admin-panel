@@ -866,7 +866,7 @@ const handleSubmit = async () => {
 
     const knowledgebaseName = localStorage.getItem("knowledgebaseName") || "Virtual Assistant"; // ✅ for Retell agent name
     const aboutBusinessForm = localStorage.getItem("businessonline") || about || "";
-
+  
     const promptVars = {
       agentName: agentname || "Virtual Assistant", // ✅ this will go in prompt
       agentGender: gender,

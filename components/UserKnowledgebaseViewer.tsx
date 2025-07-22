@@ -24,8 +24,9 @@ export default function UserKnowledgebaseViewer() {
   const [selectedKbIds, setSelectedKbIds] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setloading] = useState(false);
+const [selectedUserIds, setSelectedUserIds] = useState([]);
 
-  useEffect(() => {
+  
     const fetchData = async () => {
       setloading(true);
       try {
@@ -66,6 +67,7 @@ export default function UserKnowledgebaseViewer() {
       setloading(false);
     };
 
+useEffect(() => {
     fetchData();
   }, []);
 
@@ -132,6 +134,7 @@ export default function UserKnowledgebaseViewer() {
                 },
               }
             );
+            fetchData()
           } catch (error) {
             if (error?.response?.data?.message !== "Not Found") {
               failedDeletes.push(id);
@@ -163,19 +166,110 @@ export default function UserKnowledgebaseViewer() {
 
     setloading(false);
   };
+const handleDeleteSelectedUsersKbs = async () => {
+  const selectedUsers = users.filter((u) => selectedUserIds.includes(u.userId));
+  let allKbList = [];
+
+  selectedUsers.forEach((u) => {
+    u.agents?.forEach((kb) => {
+      allKbList.push({
+        userId: u.userId,
+        agentName: kb.agentName,
+        kbId: kb.knowledgeBaseId,
+      });
+    });
+  });
+
+  if (allKbList.length === 0) {
+    Swal.fire("No KBs", "No knowledgebases found for selected users.", "info");
+    return;
+  }
+
+  const kbListHTML = allKbList
+    .map((k) => `<b>${k.agentName}</b> (${k.kbId})`)
+    .join("<br>");
+
+  const confirm = await Swal.fire({
+    title: "Confirm Deletion",
+    html: `You're about to delete <b>${allKbList.length}</b> knowledgebases:<br/><div class="text-left mt-2 max-h-[300px] overflow-auto">${kbListHTML}</div>`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, Delete All",
+    cancelButtonText: "Cancel",
+    customClass: {
+      popup: "z-[9999]",
+    },
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  setloading(true);
+
+  const failed = [];
+
+  await Promise.all(
+    allKbList.map(async (item) => {
+      try {
+        await axios.delete(
+          `https://api.retellai.com/delete-knowledge-base/${item.kbId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+            },
+          }
+
+        );
+        fetchData()
+      } catch (err) {
+        failed.push(item.kbId);
+      }
+    })
+  );
+
+  if (failed.length > 0) {
+    Swal.fire(
+      "Partial Success",
+      `Some KBs failed to delete: ${failed.join(", ")}`,
+      "warning"
+    );
+  } else {
+    Swal.fire("Deleted", "All selected users' KBs deleted.", "success");
+  }
+
+  // Remove deleted KBs from state
+  const updatedUsers = users.map((u) => {
+    if (!selectedUserIds.includes(u.userId)) return u;
+    return { ...u, agents: [] }; // Clear KBs
+  });
+
+  setUsers(updatedUsers);
+  setFilteredUsers(updatedUsers);
+  setSelectedUserIds([]);
+  setModalOpen(false);
+  setloading(false);
+};
 
   return (
     <div className="p-4 space-y-6">
       <h2 className="text-2xl font-semibold">Users with Agents</h2>
-    <p className="text-gray-600 mt-2">Manage and monitor Knowledge Bases of each user</p>
+   <div className="flex " style={{justifyContent:'space-between'}}> <p className="text-gray-600 mt-2">Manage and monitor Knowledge Bases of each user</p>
 
       <Input
         placeholder="Search by userId, name or email"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full max-w-md mb-4"
+        className="w-50 max-w-md mb-4"
       />
-
+ {selectedUserIds.length > 0 && (
+  <div className="mb-4">
+    <Button
+      className="bg-red-600 hover:bg-red-700 w-35"
+      onClick={handleDeleteSelectedUsersKbs}
+    >
+      Delete for {selectedUserIds.length}  
+    </Button>
+  </div>
+)}</div>
       {loading ? (
         <div className="flex justify-center py-20">
           <FadeLoader color="#3b82f6" />
@@ -184,28 +278,57 @@ export default function UserKnowledgebaseViewer() {
         <table className="w-full border-collapse border text-sm shadow-md">
           <thead className="bg-gray-100">
             <tr>
+              <th className="p-3 border text-center">
+  <input
+    type="checkbox"
+    checked={selectedUserIds.length === filteredUsers.length}
+    onChange={(e) => {
+      const checked = e.target.checked;
+      setSelectedUserIds(checked ? filteredUsers.map((u) => u.userId) : []);
+    }}
+  />
+</th>
+
               <th className="p-3 border text-left">User ID</th>
               <th className="p-3 border text-left">Name</th>
               <th className="p-3 border text-left">Email</th>
               <th className="p-3 border text-center">Action</th>
             </tr>
           </thead>
-          <tbody>
-            {filteredUsers.map((u) => (
-              <tr key={u.userId} className="hover:bg-gray-50">
-                <td className="p-3 border">{u.userId}</td>
-                <td className="p-3 border capitalize">{u.name}</td>
-                <td className="p-3 border">{u.email}</td>
-                <td className="p-3 border text-center">
-                  <Button size="sm" onClick={() => handleView(u)}>
-                    View
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+        <tbody>
+  {filteredUsers.map((u) => (
+    <tr key={u.userId} className="hover:bg-gray-50">
+      <td className="p-3 border text-center">
+        <input
+          type="checkbox"
+          checked={selectedUserIds.includes(u.userId)}
+          onChange={(e) => {
+            const checked = e.target.checked;
+            setSelectedUserIds((prev) =>
+              checked
+                ? [...prev, u.userId]
+                : prev.filter((id) => id !== u.userId)
+            );
+          }}
+        />
+      </td>
+      <td className="p-3 border">{u.userId}</td>
+      <td className="p-3 border capitalize">{u.name}</td>
+      <td className="p-3 border">{u.email}</td>
+      <td className="p-3 border text-center">
+        <Button size="sm" onClick={() => handleView(u)}>
+          View
+        </Button>
+      </td>
+    </tr>
+  ))}
+</tbody>
+
         </table>
+        
       )}
+     
+
 
       {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
