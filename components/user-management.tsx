@@ -165,13 +165,23 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
     const name = userData.name?.trim();
     const phone = userData.phone?.trim();
     const email = userData.email?.trim();
+    const role= userData.role;
+    const referralCode = userData.referralCode?.trim();
+    const referredByName = userData.referalName?.trim();
+    const password = userData.password?.trim();
+    const referalName = userData.referalName?.trim();
 
     // Build payload conditionally
     const finalPayload: any = {
       email, // always required
       ...(name ? { name } : {}),
       ...(phone ? { phone } : {}),
-      role: null
+      ...(role ? { role } : {}),
+      ...(referralCode ? { referralCode } : {}),
+      ...(referredByName ? { referredByName } : {}),
+      ...(password ? { password } : {}),
+      ...(referalName ? { referalName } : {}),
+ 
     };
 
 
@@ -184,7 +194,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
     } else {
       const referredBy = typeof window !== "undefined" ? localStorage.getItem("referralCode") : null;
       const referredId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-
+      if(role) finalPayload.isUserType=role;
       if (referredBy) finalPayload.referredBy = referredBy;
       if (referredId) finalPayload.referredId = referredId;
     }
