@@ -12,6 +12,7 @@ import {DataTable} from "./components/DataTable"
 import { fetchAgentDetailById } from "./Services/auth";
 import { languages } from "./components/languageOptions";
 import UserKnowledgebaseViewer from "./components/UserKnowledgebaseViewer";
+import RaiseTickets from "./components/RaiseTickets";
 interface User {
   id: string;
   name: string;
@@ -135,7 +136,9 @@ console.log(selectedAgent,"agent")
       case "agents":
         return <AgentBusinessList onViewAgent={handleViewAgent} />;
         case "knowledgeBase":
-        return<UserKnowledgebaseViewer/>
+        return<UserKnowledgebaseViewer/>;
+      case "RaiseTickets":
+          return<RaiseTickets/>;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
