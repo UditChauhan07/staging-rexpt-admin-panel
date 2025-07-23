@@ -1,5 +1,5 @@
 "use client"
-import { BarChart3, Users, Shield, Package, Settings, LogOut, Menu, X, Headphones } from "lucide-react"
+import { BarChart3, Users, Shield, Package, Settings, LogOut, Menu, X, Headphones,Tickets } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SidebarProps {
@@ -15,7 +15,9 @@ const navigationItems = [
   { id: "users", label: "User Management", icon: Users },
   // { id: "roles", label: "Role Management", icon: Shield },
   { id: "agents", label: "Agent Business List", icon: Headphones }, 
-  // {id:"knowledgeBase",label:" Knowledge Base",icon:Shield}
+  {id:"knowledgeBase",label:" Knowledge Base",icon:Shield},
+  {id:"RaiseTickets",label:"Raised Tickets",icon:Tickets},
+
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },
 ]
@@ -23,7 +25,7 @@ const navigationItems = [
 export function Sidebar({ activeSection, onSectionChange, isCollapsed, onToggleCollapse, onLogout }: SidebarProps) {
   return (
     <div
-      className={`bg-white border-r border-gray-200 transition-all duration-300 ${isCollapsed ? "w-16" : "w-64"} flex flex-col h-screen fixed left-0 top-0 z-40`}
+      className={`bg-white border-r border-gray-200 transition-all duration-300 ${isCollapsed ? "w-17" : "w-64"} flex flex-col h-screen fixed left-0 top-0 z-40`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">

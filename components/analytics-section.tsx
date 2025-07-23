@@ -16,7 +16,7 @@ import {
 } from "recharts";
 
 export function AnalyticsSection() {
-  const [analytics, setAnalytics] = useState({ totalUsers: 0, totalAgents: 0 });
+  const [analytics, setAnalytics] = useState({ totalUsers: 0, totalAgents: 0 ,ouragents:0});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +26,7 @@ export function AnalyticsSection() {
         setAnalytics({
           totalUsers: data.totalUsers || 0,
           totalAgents: data.totalAgents || 0,
+          ouragents:data.ouragents||0,
         });
       } catch (err: any) {
         Swal.fire("Error", err.message, "error");
@@ -69,20 +70,69 @@ export function AnalyticsSection() {
         </Card>
 
         {/* Agents */}
-        <Card className="border-l-4 border-l-blue-500 hover:shadow-lg hover:scale-105 transition-all duration-300">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xl font-medium text-blue-600 text-center">Total Agent Count</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900 flex justify-center items-center h-12">
-              {loading ? (
-                <FadeLoader height={10} width={3} color="#6524EB" speedMultiplier={1.5} />
-              ) : (
-                analytics.totalAgents
-              )}
-            </div>
-          </CardContent>
-        </Card>
+ {/* <Card className="border-l-4 border-l-blue-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group cursor-pointer">
+  <CardHeader className="pb-2">
+    <CardTitle className="text-xl font-medium text-blue-600 text-center">
+      Total Agent Count
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent>
+  <div className="relative group flex justify-center">
+    {loading ? (
+      <FadeLoader height={10} width={3} color="#6524EB" speedMultiplier={1.5} />
+    ) : (
+      <div className="text-3xl font-bold text-gray-900 h-16 flex items-center">
+        {analytics.totalAgents}
+      </div>
+    )}
+
+    
+    {!loading && (
+      <div className="absolute bottom-[-70px] bg-white shadow-md border rounded p-2 text-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 w-max text-left">
+        <div><span className="font-semibold text-gray-700">Total from Retell:</span> {analytics.totalAgents}</div>
+        <div><span className="font-semibold text-purple-700">Our Agents:</span> {analytics.ouragents}</div>
+      </div>
+    )}
+  </div>
+</CardContent>
+
+</Card> */}
+
+<Card className="border-l-4 border-l-blue-500 hover:shadow-lg hover:scale-105 transition-all duration-300 relative group">
+  <CardHeader className="pb-2">
+    <CardTitle className="text-xl font-medium text-blue-600 text-center">
+      Total Agent Count
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent>
+    <div className="text-3xl font-bold text-gray-900 flex flex-col items-center justify-center h-16 relative">
+      {loading ? (
+        <FadeLoader height={10} width={3} color="#6524EB" speedMultiplier={1.5} />
+      ) : (
+        <>
+          <span>{analytics.totalAgents}</span>
+          <span className="text-sm text-purple-600 mt-1">
+            Our DB Agents: {analytics.ouragents}
+          </span>
+        </>
+      )}
+    </div>
+
+    {/* Tooltip style info on hover */}
+    {!loading && (
+      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="bg-white text-xs text-gray-700 px-3 py-1 border border-gray-300 rounded shadow-md whitespace-nowrap">
+          Retell: {analytics.totalAgents} <br />
+          Our DB: {analytics.ouragents}
+        </div>
+      </div>
+    )}
+  </CardContent>
+</Card>
+
+
       </div>
       <br/>
       <br/>

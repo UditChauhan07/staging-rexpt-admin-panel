@@ -267,8 +267,8 @@ const handledeleteknowledgebase = async (knowledge_base_id) => {
       Swal.fire("Error", "Could not delete the knowledge base", "error");
     }
   } catch (error) {
-    console.error(error);
-    Swal.fire("Error", "Something went wrong", "error");
+    console.error(error.response.data.error);
+    Swal.fire("Error", error.response.data.error, "error");
   }
 };
 

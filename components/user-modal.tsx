@@ -9,6 +9,10 @@ import { X } from "lucide-react"
 import { FadeLoader } from "react-spinners"
 import { debounce } from "lodash"
 import { check_email_Exsitence, check_Referral_Name_Exsitence } from "@/Services/auth"
+import 'react-phone-input-2/lib/style.css'
+import PhoneInput from 'react-phone-input-2'
+import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js'
+
 
 interface User {
   id: string
@@ -57,6 +61,14 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     [user]
   )
 
+  const validatePhone = (phone: string): boolean => {
+  try {
+    const parsed = parsePhoneNumber(phone)
+    return parsed.isValid()
+  } catch (e) {
+    return false
+  }
+}
   useEffect(() => {
     if (showReferralInput && formData.referalName) {
       checkReferralAvailability(formData.referalName)
@@ -124,7 +136,9 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {}
-
+  if (!formData.phone || !validatePhone(formData.phone)) {
+  newErrors.phone = "Please enter a valid phone number with country code."
+}
     // ✅ Email (always required)
     if (!formData.email?.trim()) {
       newErrors.email = "Email is required"
@@ -172,6 +186,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
     e.preventDefault()
     if (!validate()) return
+    
     console.log('formData', formData)
     // return
     onSave(formData)
@@ -275,15 +290,24 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
           </div>
 
           {/* Phone (optional, validate only if filled) */}
-          <div>
-            <Label htmlFor="contactNumber">Contact Number</Label>
-            <Input
-              id="contactNumber"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
-            {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone}</p>}
-          </div>
+         <div>
+  <Label htmlFor="contactNumber">Contact Number</Label>
+  <PhoneInput
+    country={'in'} // default country
+    value={formData.phone}
+    onChange={(phone) => setFormData({ ...formData, phone })}
+    inputClass="!w-full  !text-sm !rounded !border !border-gray-300"
+    containerClass="!w-full"
+    inputProps={{
+      name: 'phone',
+      required: true,
+      id: 'contactNumber',
+    }}
+    specialLabel={''}
+  />
+  {errors.phone && <p className="text-sm text-red-600 mt-1">{errors.phone}</p>}
+</div>
+
           <div>
             <Label htmlFor="role">
               Role <span className="text-red-500">*</span>
