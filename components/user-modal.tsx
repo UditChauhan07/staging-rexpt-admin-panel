@@ -11,7 +11,7 @@ import { debounce } from "lodash"
 import { check_email_Exsitence, check_Referral_Name_Exsitence } from "@/Services/auth"
 import 'react-phone-input-2/lib/style.css'
 import PhoneInput from 'react-phone-input-2'
-import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js'
+import { isValidPhoneNumber, parsePhoneNumber,parsePhoneNumberFromString } from 'libphonenumber-js'
 
 
 interface User {
@@ -63,7 +63,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   const validatePhone = (phone: string): boolean => {
   try {
-    const parsed = parsePhoneNumber(phone)
+    const parsed = parsePhoneNumberFromString("+"+phone)
     return parsed.isValid()
   } catch (e) {
     return false
