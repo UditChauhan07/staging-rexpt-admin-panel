@@ -259,7 +259,7 @@ const [newKnowledgeName, setNewKnowledgeName] = useState("");
 
 const handledeleteknowledgebase = async (knowledge_base_id) => {
   try {
-    const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/knowledgeBase/deleteKnowledgeBase/${knowledge_base_id}`);
+    const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/agents/inactiveknowledegeBase/${knowledge_base_id}`);
     if (res.data?.status === true) {
       Swal.fire("Deleted!", "Knowledge base deleted successfully", "success");
       setKnowledgeBases(prev => prev.filter(id => id !== knowledge_base_id));

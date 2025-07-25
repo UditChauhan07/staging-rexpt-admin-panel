@@ -18,7 +18,7 @@ interface User {
   id: string
   name: string
   email: string
-  // role: string
+  role: string
   // status: "Active" | "Inactive" | "Suspended"
   // lastLogin: string
   registrationDate: string
@@ -57,7 +57,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
         id: u.userId ?? `USR${String(index + 1).padStart(3, "0")}`,
         name: u.name ?? "N/A",
         email: u.email ?? "No Email",
-        // role: u.userType ?? "User",
+        role: u.isUserType ?? "User",
         // status: "Active",
         // lastLogin: "-",
         registrationDate: u.createdAt ?? null,
@@ -96,6 +96,19 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
   const startIndex = (currentPage - 1) * usersPerPage
   const paginatedUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage)
 
+   const roleOptions = [
+    { label: "User", value: "0" },
+    // { label: "SuperAdmin", value: "1" },
+    { label: "PartnerPlus", value: "2" },
+    { label: "Junior Partner", value: "3" },
+    { label: "Affiliate", value: "4" },
+  ]
+
+
+  const getRoleLabel = (value: string) => {
+  const role = roleOptions.find((r) => r.value === value)
+  return role?.label || "Unknown"
+}
   // Handlers unchanged
   const handleAddUser = () => {
     setEditingUser(null)
@@ -166,6 +179,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
     const phone = userData.phone?.trim();
     const email = userData.email?.trim();
     const role= userData.role;
+    const isUserType=userData.role;
     const referralCode = userData.referralCode?.trim();
     const referredByName = userData.referalName?.trim();
     const password = userData.password?.trim();
@@ -187,6 +201,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
 
     if (editingUser?.id) {
       finalPayload.id = editingUser.id;
+      finalPayload.isUserType=role;
     }
 
     if (editingUser?.id) {
@@ -330,6 +345,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone Number</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Role</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Referred By</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
@@ -349,7 +365,10 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
                           <td className="py-3 px-4 font-medium">{user.name}</td>
                           <td className="py-3 px-4 text-gray-600">{user.email}</td>
                           <td className="py-3 px-4 text-gray-600">{user.phone}</td>
+                         <td className="py-3 px-4 text-gray-600">{getRoleLabel(String(user.isUserType))}</td>
+
                           <td className="py-3 px-4 text-gray-600">{user.referredBy}</td>
+                        
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => onViewUser(user)}>
