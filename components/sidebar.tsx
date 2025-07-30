@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "Dashboard", label: "Dashboard", icon: BarChart3 },
   { id: "users", label: "User Management", icon: Users },
   // { id: "roles", label: "Role Management", icon: Shield },
   { id: "agents", label: "Agent Business List", icon: Headphones }, 

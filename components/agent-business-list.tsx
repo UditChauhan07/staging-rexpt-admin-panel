@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  Edit,
 } from "lucide-react";
 import {
   retrieveAllRegisteredUsers2,
@@ -29,6 +30,7 @@ import Swal from "sweetalert2";
 import AddAgentModal from "./Agentdetial";
 import { retrieveAllRegisteredUsers } from "@/Services/auth";
 import { FadeLoader } from "react-spinners";
+import EditAgentModal from "./EditAgent";
 
 interface User {
   id: string;
@@ -46,10 +48,12 @@ interface AgentBusinessRow {
   agentPlan: string;
   status?: number;
   businessId: string;
+  agentCreatedBy:string;
+  userId:string
 }
 
 interface AgentBusinessListProps {
-  onViewAgent: (agent: any, business: any,knowledge_base_texts:any,total_call:any) => void; // ✅ Accepts both agent & business
+  onViewAgent: (agent: any, business: any,knowledge_base_texts:any,total_call:any) => void; 
 }
 export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,6 +67,13 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [usersList, setuserList] = useState<User[]>([]);
+  const [userDetails,setUserdetails]=useState<User[]>([])
+  const [selectedAgentInfo, setSelectedAgentInfo] = useState<{
+  agentId: string;
+  businessId: string;
+  userId:string;
+} | null>(null);
+console.log(selectedAgentInfo,"selectAgentinfo")
 
 const [loading, setLoading] = useState(false); 
 const [loaders,setLoaders]=useState(false)
@@ -70,6 +81,7 @@ const [sortBy, setSortBy] = useState<keyof AgentBusinessRow | "">("");
 const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 const [statusFilter, setStatusFilter] = useState<string>("all");
 const [planFilter, setPlanFilter] = useState<string>("all");
+const [isEditAgentModalOpen,setEditAgentModal]=useState(false)
 const sortedAgents = [...agentData].sort((a, b) => {
   if (!sortBy) return 0;
   const aValue = a[sortBy] ?? "";
@@ -110,7 +122,7 @@ const sortedAgents = [...agentData].sort((a, b) => {
       }));
       console.log(mappedUsers, "mappedUsers");
       setuserList(mappedUsers);
-       setLoaders(true)
+       setLoading(false)
     } catch (error) {
       console.error("Failed to fetch users", error);
        setLoaders(false)
@@ -125,7 +137,9 @@ const sortedAgents = [...agentData].sort((a, b) => {
        setLoaders(true)
     const res = await retrieveAllRegisteredUsers2();
     console.log(res.length, "response of agents");
+    console.log(res,"resres")
     const flatList: AgentBusinessRow[] = [];
+    console.log(agentData,"agentdata")
 
     res?.data?.forEach((user: any) => {
       user.businesses?.forEach((business: any) => {
@@ -138,10 +152,12 @@ const sortedAgents = [...agentData].sort((a, b) => {
             agentId: agent.agentId || agent.agent_id || "-",
             agentName: agent.agentName || "-",
             agentPlan: agent.agentPlan || "-",
+            agentCreatedBy:agent.agentCreatedBy||"-",
             businessName: business.businessName || "-",
             userName: user.userName || "-",
             userEmail: user.userEmail || "-",
             status: agent.agentStatus ?? 1,
+            userId:user?.userId || agent?.userId||"-"
           });
         });
       });
@@ -213,6 +229,7 @@ const filteredAgents = sortedAgents.filter((row) => {
       });
     } catch (err) {
       console.error("Failed to delete agent:", err);
+       setLoading(false)
       Swal.close();
       await Swal.fire({
         icon: "error",
@@ -224,6 +241,7 @@ const filteredAgents = sortedAgents.filter((row) => {
       setIsDeleting(false);
       setShowConfirm(false);
       setSelectedAgent(null);
+       setLoading(false)
     }
   };
 
@@ -291,7 +309,7 @@ const filteredAgents = sortedAgents.filter((row) => {
 
   const handleAgentClick = async (row: AgentBusinessRow) => {
     try {
-             setLoading(true)
+            //  setLoading(true)
       const { agentId, businessId } = row;
       console.log(row);
       const data = await fetchAgentDetailById({
@@ -300,7 +318,7 @@ const filteredAgents = sortedAgents.filter((row) => {
       });
       console.log("dsdsdsdsdsdewrerrewrew", data);
       onViewAgent(data?.data?.agent, data?.data?.business,data?.data?.knowledge_base_texts)
-             setLoading(false)
+            //  setLoading(false)
     } catch (err) {
       console.error("Error fetching agent details", err);
              setLoading(false)
@@ -327,6 +345,7 @@ const filteredAgents = sortedAgents.filter((row) => {
       </div>
     );
   }
+  console.log(paginatedAgents)
   return (
     <div className="space-y-6">
       <div style={{display:'flex',justifyContent:'space-between'}}>
@@ -404,6 +423,18 @@ const filteredAgents = sortedAgents.filter((row) => {
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Agent Name
                   </th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                    Agent Type
+                  </th>
+                  <th
+  onClick={() => {
+    setSortBy("status");
+    setSortDirection((prev) => (sortBy === "status" && prev === "asc" ? "desc" : "asc"));
+  }}
+  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
+>
+  Agent Status {sortBy === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+</th>
                  <th
   onClick={() => {
     setSortBy("agentPlan");
@@ -414,15 +445,8 @@ const filteredAgents = sortedAgents.filter((row) => {
   Plan {sortBy === "agentPlan" && (sortDirection === "asc" ? "↑" : "↓")}
 </th>
 
-<th
-  onClick={() => {
-    setSortBy("status");
-    setSortDirection((prev) => (sortBy === "status" && prev === "asc" ? "desc" : "asc"));
-  }}
-  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
->
-  Agent Status {sortBy === "status" && (sortDirection === "asc" ? "↑" : "↓")}
-</th>
+
+
 
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Actions
@@ -446,6 +470,7 @@ const filteredAgents = sortedAgents.filter((row) => {
     </tr>
   ) : (
     paginatedAgents.map((row) => (
+      
       <tr
         key={row.agentId}
         className="border-b border-gray-100 hover:bg-gray-50"
@@ -454,6 +479,7 @@ const filteredAgents = sortedAgents.filter((row) => {
         <td className="py-3 px-4 text-gray-600">{row.userEmail}</td>
         <td className="py-3 px-4 font-medium">{row.businessName}</td>
         <td className="py-3 px-4 font-medium">{row.agentName}</td>
+        <td className="py-3 px-4 font-medium">{row.agentCreatedBy}</td>
         <td className="py-3 px-4 font-medium">
           {row.status === 1 ? (
             <span className="text-green-600 font-semibold">Active</span>
@@ -462,7 +488,7 @@ const filteredAgents = sortedAgents.filter((row) => {
           )}
         </td>
         <td className="py-3 px-4 text-gray-600">{row.agentPlan}</td>
-        <td className="py-3 px-4">
+        <td className="py-3">
           <Button
             size="sm"
             variant="outline"
@@ -471,7 +497,31 @@ const filteredAgents = sortedAgents.filter((row) => {
           >
             <Eye className="h-4 w-4" />
           </Button>
-        </td>
+      </td>
+      <td  className="py-3 ">
+  <Button
+    size="sm"
+    variant="outline"
+    disabled={row.agentCreatedBy === "partner"}
+    className={`hover:bg-purple-50 hover:text-purple-700 ${
+      row.agentCreatedBy === "partner" ? "cursor-not-allowed opacity-50" : ""
+    }`}
+    onClick={() => {
+      if (row.agentCreatedBy !== "partner") {
+        setSelectedAgentInfo({
+          agentId: row.agentId,
+          businessId: row.businessId,
+          userId:row.userId
+        });
+        setEditAgentModal(true);
+      }
+    }}
+  >
+    <Edit className="h-4 w-4" />
+  </Button>
+</td>
+
+
         <td>
           <Button
             size="sm"
@@ -524,20 +574,38 @@ const filteredAgents = sortedAgents.filter((row) => {
         </CardContent>
       </Card>
 
+<EditAgentModal
+isOpen={isEditAgentModalOpen}
+onClose={()=>{
+  setEditAgentModal(false)
+  setUserSearch("")
+}}
+UserData={usersList}
+agentId={selectedAgentInfo?.agentId}
+  businessId={selectedAgentInfo?.businessId}
+  userId={selectedAgentInfo?.userId}
+
+ onSubmit={(formData) => {
+          console.log("Final Form Data:", formData);
+          // 🚀 Call your backend API here
+          
+          setEditAgentModal(false); // close modal after submit
+ }}/>
+
       <AddAgentModal
         isOpen={isAgentModalOpen}
         onClose={() => {
           setIsAgentModalOpen(false);
           setUserSearch("");
         }}
-        allUsers={usersList} // 🔄 list of all users for step 1 dropdown
+        allUsers={usersList} 
         onSubmit={(formData) => {
           console.log("Final Form Data:", formData);
-          // 🚀 Call your backend API here
-          setIsAgentModalOpen(false); // close modal after submit
+         
+          setIsAgentModalOpen(false); 
         }}
       />
-      {/* delete agent dialog */}
+    
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
           <DialogHeader>

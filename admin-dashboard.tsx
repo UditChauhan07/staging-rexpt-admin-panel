@@ -127,7 +127,7 @@ console.log(selectedAgent,"agent")
     }
 
     switch (activeSection) {
-      case "analytics":
+      case "Dashboard":
         return <AnalyticsSection />;
       case "users":
         return <UserManagement onViewUser={handleViewUser} />;
