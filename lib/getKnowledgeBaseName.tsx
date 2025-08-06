@@ -48,7 +48,7 @@ const businessTypes = [
 export const getKnowledgeBaseName = async (): Promise<string | null> => {
   let agentCount = 0;
   const agentCode = localStorage?.getItem("agentCode") || "code";
-  const userId = localStorage?.getItem("AgentForuserId") || "";
+  const userId = localStorage?.getItem("AgentForUserId") || "";
 
  
 
