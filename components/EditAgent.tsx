@@ -765,7 +765,7 @@ localStorage.setItem("agentCode", res.data.data.agent.agentCode)
         (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
       );
 
-      const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
+      const parsedCustomServices = JSON.parse(businessData.customServices || []);
       const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
 
       // Set custom business if it's not in default list
