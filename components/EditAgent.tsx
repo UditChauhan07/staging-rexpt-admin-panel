@@ -757,128 +757,115 @@ localStorage.setItem("agentCode", res.data.data.agent.agentCode)
   useEffect(() => {
     fetchMergedAgentData();
   }, [agentId, businessId]);
-  useEffect(() => {
-    if (agentData && businessData) {
-      const businessTypeRaw = businessData.businessType || "";
-
-      const matchedType = allBusinessTypes.find(
-        (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
-      );
-
-      const parsedCustomServices = JSON.parse(businessData.customServices || []);
-      const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
-
-      // Set custom business if it's not in default list
-      if (!matchedType && businessTypeRaw) {
-        const newCustom = {
-          type: businessTypeRaw,
-          subtype: "Custom",
-          icon: "svg/Web-Design-Agency-icon.svg",
-        };
-
-        setBusinessTypes((prev) => [...prev, newCustom]);
-        setAllServices((prev) => ({
-          ...prev,
-          [businessTypeRaw]: flatCustomServiceList,
-        }));
-        setSelectedType(businessTypeRaw);
-      } else if (matchedType) {
-        setSelectedType(matchedType.type);
+useEffect(() => {
+  if (agentData && businessData) {
+    // Safely parse customServices
+    let parsedCustomServices = [];
+    try {
+      parsedCustomServices = businessData.customServices
+        ? JSON.parse(businessData.customServices)
+        : [];
+      if (!Array.isArray(parsedCustomServices)) {
+        parsedCustomServices = [];
       }
+    } catch (error) {
+      console.error("Error parsing customServices:", error);
+      parsedCustomServices = [];
+    }
 
-      // Fix avatar path
-      const fixAvatarPath = (avatar) => {
-        if (!avatar) return "";
-        return avatar.startsWith("/") ? avatar : `/${avatar}`;
+    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
+
+    // Find matched business type
+    const businessTypeRaw = businessData.businessType || "";
+    const matchedType = allBusinessTypes.find(
+      (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
+    );
+
+    // Set custom business if it's not in default list
+    if (!matchedType && businessTypeRaw) {
+      const newCustom = {
+        type: businessTypeRaw,
+        subtype: "Custom",
+        icon: "svg/Web-Design-Agency-icon.svg",
       };
 
-      const capitalize = (str) =>
-        str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
-
-      // Set form state
-      setForm((prev) => ({
+      setBusinessTypes((prev) => [...prev, newCustom]);
+      setAllServices((prev) => ({
         ...prev,
-         CallRecording : ["1", 1, true, "true"].includes(agentData?.CallRecording),
-        userId: agentData.userId,
-        agentName: agentData.agentName,
-        language: agentData.agentLanguageCode || agentData.agentLanguage,
-        avatar: fixAvatarPath(agentData.avatar),
-        gender: capitalize(agentData.agentGender),
-        voice: agentData.agentVoice,
-        selectedVoice: { voice_accent: agentData.agentAccent },
-        businessName: businessData.businessName,
-        businessUrl: businessData.webUrl,
-        email: businessData.buisnessEmail,
-        about: businessData.aboutBusiness || "",
-        address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
-       phone: agentData?.phone
-  || "", // not provided
-        businessType: businessTypeRaw,
-        services: flatCustomServiceList,
-        customServices: flatCustomServiceList,
-        customBuisness: !matchedType ? businessTypeRaw : "",
-        googleBusiness: businessData.googleBusinessName || "",
+        [businessTypeRaw]: flatCustomServiceList,
       }));
-
-      setBusinessSize(businessData.businessSize || "");
-      setSelectedRole(agentData.agentRole);
+      setSelectedType(businessTypeRaw);
+    } else if (matchedType) {
+      setSelectedType(matchedType.type);
     }
-  }, [agentData, businessData, allBusinessTypes]);
 
+    // Fix avatar path
+    const fixAvatarPath = (avatar) => {
+      if (!avatar) return "";
+      return avatar.startsWith("/") ? avatar : `/${avatar}`;
+    };
 
+    const capitalize = (str) =>
+      str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
+    // Set form state
+    setForm((prev) => ({
+      ...prev,
+      CallRecording: ["1", 1, true, "true"].includes(agentData?.CallRecording),
+      userId: agentData.userId,
+      agentName: agentData.agentName,
+      language: agentData.agentLanguageCode || agentData.agentLanguage,
+      avatar: fixAvatarPath(agentData.avatar),
+      gender: capitalize(agentData.agentGender),
+      voice: agentData.agentVoice,
+      selectedVoice: { voice_accent: agentData.agentAccent },
+      businessName: businessData.businessName,
+      businessUrl: businessData.webUrl,
+      email: businessData.buisnessEmail,
+      about: businessData.aboutBusiness || "",
+      address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
+      phone: agentData?.phone || "",
+      businessType: businessTypeRaw,
+      services: flatCustomServiceList,
+      customServices: flatCustomServiceList,
+      customBuisness: !matchedType ? businessTypeRaw : "",
+      googleBusiness: businessData.googleBusinessName || "",
+    }));
 
-  // useEffect(() => {
-  //   if (agentData && businessData) {
-  //     const parsedServices = JSON.parse(businessData.customServices || "[]").map(s => s.service);
-  //     const matchedType = allBusinessTypes.includes(businessData.businessType);
+    setBusinessSize(businessData.businessSize || "");
+    setSelectedRole(agentData.agentRole);
+  }
+}, [agentData, businessData, allBusinessTypes]);
 
-  //     setForm({
-  //       userId: agentData.userId,
-  //       agentname: agentData.agentName,
-  //       language: agentData.agentLanguageCode || agentData.agentLanguage,
-  //       gender: agentData.agentGender,
-  //       voice: agentData.agentVoice,
-  //       selectedVoice: { voice_accent: agentData.agentAccent },
-  //       avatar: agentData.avatar,
-  //       agentRole: agentData.agentRole,
-  //       businessName: businessData.businessName,
-  //       businessUrl: businessData.webUrl,
-  //       email: businessData.buisnessEmail,
-  //       about: businessData.aboutBusiness || "",
-  //       address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
-  //       phone: "",
-  //       businessType: businessData.businessType,
-  //       services: parsedServices,
-  //       customServices: parsedServices,
-  //       customBuisness: matchedType ? "" : businessData.businessType,
-  //       googleBusiness: businessData.googleBusinessName || "",
-  //     });
-  //   }
-  // }, [agentData, businessData]);
-
-
-
-  useEffect(() => {
-    if (businessData) {
-      const parsedServices = businessData.buisnessService
+useEffect(() => {
+  if (businessData) {
+    // Safely parse buisnessService
+    let parsedServices = [];
+    try {
+      parsedServices = businessData.buisnessService
         ? JSON.parse(businessData.buisnessService)
         : [];
-
-      setForm((prev) => ({
-        ...prev,
-        services: parsedServices,
-        customServices: [], // you can populate this too if you store custom separately
-      }));
+      if (!Array.isArray(parsedServices)) {
+        parsedServices = [];
+      }
+    } catch (error) {
+      console.error("Error parsing buisnessService:", error);
+      parsedServices = [];
     }
 
-    const serviceMap: { [key: string]: string[] } = {};
-    businessServices.forEach((b) => {
-      serviceMap[b.type] = b.services;
-    });
-    setAllServices(serviceMap);
-  }, [businessData]);
+    setForm((prev) => ({
+      ...prev,
+      services: parsedServices,
+      customServices: [], // Populate if needed
+    }));
+  }
 
+  const serviceMap = {};
+  businessServices.forEach((b) => {
+    serviceMap[b.type] = b.services;
+  });
+  setAllServices(serviceMap);
+}, [businessData]);
 
 
   const fetchKnowledgeBaseName = async () => {
