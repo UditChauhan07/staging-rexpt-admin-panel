@@ -765,8 +765,18 @@ localStorage.setItem("agentCode", res.data.data.agent.agentCode)
         (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
       );
 
-      const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
-      const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
+      // const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
+      // const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
+
+let flatCustomServiceList = [];
+try {
+  const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
+  flatCustomServiceList = Array.isArray(parsedCustomServices)
+    ? parsedCustomServices.map((s) => s.service)
+    : [];
+} catch (error) {
+  console.error("Invalid JSON in customServices:", error);
+}
 
       // Set custom business if it's not in default list
       if (!matchedType && businessTypeRaw) {
@@ -859,18 +869,34 @@ localStorage.setItem("agentCode", res.data.data.agent.agentCode)
 
 
 
-  useEffect(() => {
-    if (businessData) {
-      const parsedServices = businessData.buisnessService
+  // useEffect(() => {
+  //   if (businessData) {
+  //     const parsedServices = businessData.buisnessService
+  //       ? JSON.parse(businessData.buisnessService)
+  //       : [];
+
+  //     setForm((prev) => ({
+  //       ...prev,
+  //       services: parsedServices,
+  //       customServices: [], // you can populate this too if you store custom separately
+  //     }));
+  //   }
+
+useEffect(() => {
+  if (businessData) {
+    let parsedServices = [];
+    try {
+      parsedServices = businessData.buisnessService
         ? JSON.parse(businessData.buisnessService)
         : [];
-
-      setForm((prev) => ({
-        ...prev,
-        services: parsedServices,
-        customServices: [], // you can populate this too if you store custom separately
-      }));
+    } catch (error) {
+      console.error("Invalid JSON in buisnessService:", error);
     }
+
+    // Now you can use parsedServices safely
+  }
+}, [businessData]);
+
 
     const serviceMap: { [key: string]: string[] } = {};
     businessServices.forEach((b) => {
