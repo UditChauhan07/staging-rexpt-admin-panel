@@ -953,11 +953,15 @@ const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
       : form.agentLanguage;
            const addressFields = extractAddressFields(addressComponents);
 const currentState =  addressFields?.state || "";
+console.log(currentState,"currentState")
  const timeZone = await getTimezoneFromState(currentState);
-      const currentTime = new Date().toLocaleString("en-US", { timeZone });
+ console.log(timeZone,"timeZone")
+const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.timezoneId });
+
+
       const aboutBusinessForm =
         localStorage.getItem("businessonline") || form.about || "";
-    
+    //  console.log(currentTime,"currentTime")
 
     const statesRequiringCallRecording = [
         "Washington",
