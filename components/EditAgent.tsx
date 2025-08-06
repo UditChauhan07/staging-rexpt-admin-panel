@@ -773,7 +773,23 @@ useEffect(() => {
       parsedCustomServices = [];
     }
 
+    // Safely parse buisnessService
+    let parsedServices = [];
+    try {
+      parsedServices = businessData.buisnessService
+        ? JSON.parse(businessData.buisnessService)
+        : [];
+      if (!Array.isArray(parsedServices)) {
+        parsedServices = [];
+      }
+    } catch (error) {
+      console.error("Error parsing buisnessService:", error);
+      parsedServices = [];
+    }
+
+    // Combine services and customServices for form.services
     const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
+    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])]; // Merge and remove duplicates
 
     // Find matched business type
     const businessTypeRaw = businessData.businessType || "";
@@ -792,7 +808,7 @@ useEffect(() => {
       setBusinessTypes((prev) => [...prev, newCustom]);
       setAllServices((prev) => ({
         ...prev,
-        [businessTypeRaw]: flatCustomServiceList,
+        [businessTypeRaw]: combinedServices, // Include combined services
       }));
       setSelectedType(businessTypeRaw);
     } else if (matchedType) {
@@ -808,7 +824,7 @@ useEffect(() => {
     const capitalize = (str) =>
       str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
-    // Set form state
+    // Set form state with combined services
     setForm((prev) => ({
       ...prev,
       CallRecording: ["1", 1, true, "true"].includes(agentData?.CallRecording),
@@ -826,7 +842,7 @@ useEffect(() => {
       address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
       phone: agentData?.phone || "",
       businessType: businessTypeRaw,
-      services: flatCustomServiceList,
+      services: combinedServices, // Auto-select combined services
       customServices: flatCustomServiceList,
       customBuisness: !matchedType ? businessTypeRaw : "",
       googleBusiness: businessData.googleBusinessName || "",
@@ -838,8 +854,50 @@ useEffect(() => {
 }, [agentData, businessData, allBusinessTypes]);
 
 useEffect(() => {
+  // Update allServices with available services for the business type
+  const serviceMap = {};
+  businessServices.forEach((b) => {
+    serviceMap[b.type] = b.services;
+  });
+
+  // If the business type is custom, ensure its services are included
+  if (businessData && businessData.businessType) {
+    let parsedServices = [];
+    let parsedCustomServices = [];
+    try {
+      parsedServices = businessData.buisnessService
+        ? JSON.parse(businessData.buisnessService)
+        : [];
+      if (!Array.isArray(parsedServices)) {
+        parsedServices = [];
+      }
+    } catch (error) {
+      console.error("Error parsing buisnessService:", error);
+      parsedServices = [];
+    }
+
+    try {
+      parsedCustomServices = businessData.customServices
+        ? JSON.parse(businessData.customServices)
+        : [];
+      if (!Array.isArray(parsedCustomServices)) {
+        parsedCustomServices = [];
+      }
+    } catch (error) {
+      console.error("Error parsing customServices:", error);
+      parsedCustomServices = [];
+    }
+
+    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
+    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])];
+
+    serviceMap[businessData.businessType] = combinedServices;
+  }
+
+  setAllServices(serviceMap);
+
+  // Update form services
   if (businessData) {
-    // Safely parse buisnessService
     let parsedServices = [];
     try {
       parsedServices = businessData.buisnessService
@@ -853,18 +911,28 @@ useEffect(() => {
       parsedServices = [];
     }
 
+    let parsedCustomServices = [];
+    try {
+      parsedCustomServices = businessData.customServices
+        ? JSON.parse(businessData.customServices)
+        : [];
+      if (!Array.isArray(parsedCustomServices)) {
+        parsedCustomServices = [];
+      }
+    } catch (error) {
+      console.error("Error parsing customServices:", error);
+      parsedCustomServices = [];
+    }
+
+    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
+    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])];
+
     setForm((prev) => ({
       ...prev,
-      services: parsedServices,
-      customServices: [], // Populate if needed
+      services: combinedServices, // Ensure services are set
+      customServices: flatCustomServiceList,
     }));
   }
-
-  const serviceMap = {};
-  businessServices.forEach((b) => {
-    serviceMap[b.type] = b.services;
-  });
-  setAllServices(serviceMap);
 }, [businessData]);
 
 
