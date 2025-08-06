@@ -757,183 +757,128 @@ localStorage.setItem("agentCode", res.data.data.agent.agentCode)
   useEffect(() => {
     fetchMergedAgentData();
   }, [agentId, businessId]);
-useEffect(() => {
-  if (agentData && businessData) {
-    // Safely parse customServices
-    let parsedCustomServices = [];
-    try {
-      parsedCustomServices = businessData.customServices
-        ? JSON.parse(businessData.customServices)
-        : [];
-      if (!Array.isArray(parsedCustomServices)) {
-        parsedCustomServices = [];
+  useEffect(() => {
+    if (agentData && businessData) {
+      const businessTypeRaw = businessData.businessType || "";
+
+      const matchedType = allBusinessTypes.find(
+        (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
+      );
+
+      const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
+      const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
+
+      // Set custom business if it's not in default list
+      if (!matchedType && businessTypeRaw) {
+        const newCustom = {
+          type: businessTypeRaw,
+          subtype: "Custom",
+          icon: "svg/Web-Design-Agency-icon.svg",
+        };
+
+        setBusinessTypes((prev) => [...prev, newCustom]);
+        setAllServices((prev) => ({
+          ...prev,
+          [businessTypeRaw]: flatCustomServiceList,
+        }));
+        setSelectedType(businessTypeRaw);
+      } else if (matchedType) {
+        setSelectedType(matchedType.type);
       }
-    } catch (error) {
-      console.error("Error parsing customServices:", error);
-      parsedCustomServices = [];
-    }
 
-    // Safely parse buisnessService
-    let parsedServices = [];
-    try {
-      parsedServices = businessData.buisnessService
-        ? JSON.parse(businessData.buisnessService)
-        : [];
-      if (!Array.isArray(parsedServices)) {
-        parsedServices = [];
-      }
-    } catch (error) {
-      console.error("Error parsing buisnessService:", error);
-      parsedServices = [];
-    }
-
-    // Combine services and customServices for form.services
-    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
-    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])]; // Merge and remove duplicates
-
-    // Find matched business type
-    const businessTypeRaw = businessData.businessType || "";
-    const matchedType = allBusinessTypes.find(
-      (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
-    );
-
-    // Set custom business if it's not in default list
-    if (!matchedType && businessTypeRaw) {
-      const newCustom = {
-        type: businessTypeRaw,
-        subtype: "Custom",
-        icon: "svg/Web-Design-Agency-icon.svg",
+      // Fix avatar path
+      const fixAvatarPath = (avatar) => {
+        if (!avatar) return "";
+        return avatar.startsWith("/") ? avatar : `/${avatar}`;
       };
 
-      setBusinessTypes((prev) => [...prev, newCustom]);
-      setAllServices((prev) => ({
+      const capitalize = (str) =>
+        str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
+      // Set form state
+      setForm((prev) => ({
         ...prev,
-        [businessTypeRaw]: combinedServices, // Include combined services
+         CallRecording : ["1", 1, true, "true"].includes(agentData?.CallRecording),
+        userId: agentData.userId,
+        agentName: agentData.agentName,
+        language: agentData.agentLanguageCode || agentData.agentLanguage,
+        avatar: fixAvatarPath(agentData.avatar),
+        gender: capitalize(agentData.agentGender),
+        voice: agentData.agentVoice,
+        selectedVoice: { voice_accent: agentData.agentAccent },
+        businessName: businessData.businessName,
+        businessUrl: businessData.webUrl,
+        email: businessData.buisnessEmail,
+        about: businessData.aboutBusiness || "",
+        address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
+       phone: agentData?.phone
+  || "", // not provided
+        businessType: businessTypeRaw,
+        services: flatCustomServiceList,
+        customServices: flatCustomServiceList,
+        customBuisness: !matchedType ? businessTypeRaw : "",
+        googleBusiness: businessData.googleBusinessName || "",
       }));
-      setSelectedType(businessTypeRaw);
-    } else if (matchedType) {
-      setSelectedType(matchedType.type);
+
+      setBusinessSize(businessData.businessSize || "");
+      setSelectedRole(agentData.agentRole);
     }
+  }, [agentData, businessData, allBusinessTypes]);
 
-    // Fix avatar path
-    const fixAvatarPath = (avatar) => {
-      if (!avatar) return "";
-      return avatar.startsWith("/") ? avatar : `/${avatar}`;
-    };
 
-    const capitalize = (str) =>
-      str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
-    // Set form state with combined services
-    setForm((prev) => ({
-      ...prev,
-      CallRecording: ["1", 1, true, "true"].includes(agentData?.CallRecording),
-      userId: agentData.userId,
-      agentName: agentData.agentName,
-      language: agentData.agentLanguageCode || agentData.agentLanguage,
-      avatar: fixAvatarPath(agentData.avatar),
-      gender: capitalize(agentData.agentGender),
-      voice: agentData.agentVoice,
-      selectedVoice: { voice_accent: agentData.agentAccent },
-      businessName: businessData.businessName,
-      businessUrl: businessData.webUrl,
-      email: businessData.buisnessEmail,
-      about: businessData.aboutBusiness || "",
-      address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
-      phone: agentData?.phone || "",
-      businessType: businessTypeRaw,
-      services: combinedServices, // Auto-select combined services
-      customServices: flatCustomServiceList,
-      customBuisness: !matchedType ? businessTypeRaw : "",
-      googleBusiness: businessData.googleBusinessName || "",
-    }));
 
-    setBusinessSize(businessData.businessSize || "");
-    setSelectedRole(agentData.agentRole);
-  }
-}, [agentData, businessData, allBusinessTypes]);
+  // useEffect(() => {
+  //   if (agentData && businessData) {
+  //     const parsedServices = JSON.parse(businessData.customServices || "[]").map(s => s.service);
+  //     const matchedType = allBusinessTypes.includes(businessData.businessType);
 
-useEffect(() => {
-  // Update allServices with available services for the business type
-  const serviceMap = {};
-  businessServices.forEach((b) => {
-    serviceMap[b.type] = b.services;
-  });
+  //     setForm({
+  //       userId: agentData.userId,
+  //       agentname: agentData.agentName,
+  //       language: agentData.agentLanguageCode || agentData.agentLanguage,
+  //       gender: agentData.agentGender,
+  //       voice: agentData.agentVoice,
+  //       selectedVoice: { voice_accent: agentData.agentAccent },
+  //       avatar: agentData.avatar,
+  //       agentRole: agentData.agentRole,
+  //       businessName: businessData.businessName,
+  //       businessUrl: businessData.webUrl,
+  //       email: businessData.buisnessEmail,
+  //       about: businessData.aboutBusiness || "",
+  //       address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
+  //       phone: "",
+  //       businessType: businessData.businessType,
+  //       services: parsedServices,
+  //       customServices: parsedServices,
+  //       customBuisness: matchedType ? "" : businessData.businessType,
+  //       googleBusiness: businessData.googleBusinessName || "",
+  //     });
+  //   }
+  // }, [agentData, businessData]);
 
-  // If the business type is custom, ensure its services are included
-  if (businessData && businessData.businessType) {
-    let parsedServices = [];
-    let parsedCustomServices = [];
-    try {
-      parsedServices = businessData.buisnessService
+
+
+  useEffect(() => {
+    if (businessData) {
+      const parsedServices = businessData.buisnessService
         ? JSON.parse(businessData.buisnessService)
         : [];
-      if (!Array.isArray(parsedServices)) {
-        parsedServices = [];
-      }
-    } catch (error) {
-      console.error("Error parsing buisnessService:", error);
-      parsedServices = [];
+
+      setForm((prev) => ({
+        ...prev,
+        services: parsedServices,
+        customServices: [], // you can populate this too if you store custom separately
+      }));
     }
 
-    try {
-      parsedCustomServices = businessData.customServices
-        ? JSON.parse(businessData.customServices)
-        : [];
-      if (!Array.isArray(parsedCustomServices)) {
-        parsedCustomServices = [];
-      }
-    } catch (error) {
-      console.error("Error parsing customServices:", error);
-      parsedCustomServices = [];
-    }
+    const serviceMap: { [key: string]: string[] } = {};
+    businessServices.forEach((b) => {
+      serviceMap[b.type] = b.services;
+    });
+    setAllServices(serviceMap);
+  }, [businessData]);
 
-    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
-    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])];
-
-    serviceMap[businessData.businessType] = combinedServices;
-  }
-
-  setAllServices(serviceMap);
-
-  // Update form services
-  if (businessData) {
-    let parsedServices = [];
-    try {
-      parsedServices = businessData.buisnessService
-        ? JSON.parse(businessData.buisnessService)
-        : [];
-      if (!Array.isArray(parsedServices)) {
-        parsedServices = [];
-      }
-    } catch (error) {
-      console.error("Error parsing buisnessService:", error);
-      parsedServices = [];
-    }
-
-    let parsedCustomServices = [];
-    try {
-      parsedCustomServices = businessData.customServices
-        ? JSON.parse(businessData.customServices)
-        : [];
-      if (!Array.isArray(parsedCustomServices)) {
-        parsedCustomServices = [];
-      }
-    } catch (error) {
-      console.error("Error parsing customServices:", error);
-      parsedCustomServices = [];
-    }
-
-    const flatCustomServiceList = parsedCustomServices.map((s) => s.service) || [];
-    const combinedServices = [...new Set([...parsedServices, ...flatCustomServiceList])];
-
-    setForm((prev) => ({
-      ...prev,
-      services: combinedServices, // Ensure services are set
-      customServices: flatCustomServiceList,
-    }));
-  }
-}, [businessData]);
 
 
   const fetchKnowledgeBaseName = async () => {
