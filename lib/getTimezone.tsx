@@ -1,6 +1,7 @@
 // lib/timeZone.js
 import axios from "axios"; 
-const GOOGLE_API_KEY =process.env.REACT_APP_GOOGLE_API_KEY;
+const GOOGLE_API_KEY =process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
+console.log(GOOGLE_API_KEY,"google api key")
 const getTimezoneFromState = async (state) => {
   try {
     const geoRes = await axios.get(
