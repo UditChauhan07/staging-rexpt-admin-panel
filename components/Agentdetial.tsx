@@ -22,6 +22,7 @@ import { getKnowledgeBaseName } from "@/lib/getKnowledgeBaseName";
 import dynamic from "next/dynamic";
 import Swal from "sweetalert2";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
+import getTimezoneFromState from "@/lib/getTimezone";
 
 interface User {
   id: string;
@@ -950,12 +951,14 @@ console.log(url,"url")
 const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
       ? "multi"
       : form.agentLanguage;
-const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+           const addressFields = extractAddressFields(addressComponents);
+const currentState =  addressFields?.state || "";
+ const timeZone = await getTimezoneFromState(currentState);
       const currentTime = new Date().toLocaleString("en-US", { timeZone });
       const aboutBusinessForm =
         localStorage.getItem("businessonline") || form.about || "";
-         const addressFields = extractAddressFields(addressComponents);
-const currentState = `${addressFields}?.state || ""`;
+    
+
     const statesRequiringCallRecording = [
         "Washington",
         "Vermont",
@@ -976,6 +979,7 @@ const currentState = `${addressFields}?.state || ""`;
     const CallRecording = statesRequiringCallRecording.includes(currentState)
         ? true
         : false;
+       
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: selectedRole,
@@ -992,7 +996,7 @@ const currentState = `${addressFields}?.state || ""`;
         aboutBusinessForm, // this will now work fine
         commaSeparatedServices: services?.join(", ") || "",
         agentNote: "",
-       timeZone,
+      timeZone: timeZone?.timezoneId,
        currentTime,
         languageAccToPlan,
       plan,
@@ -1225,6 +1229,7 @@ const currentState = `${addressFields}?.state || ""`;
           customer_name: "John Doe",
           timeZone: timeZone,
           business_Phone: `${form.phone}`||"", business_email: `${form.email}`||"", 
+          timeZone:timeZone?.timezoneId
         },
       //   states: [
       //     {
