@@ -195,4 +195,12 @@ export const check_email_Exsitence = async (email) => {
   }
 };
 
-   
+export const updateAgent = async (agentId, updateData) => {
+  const token=localStorage.getItem("token")
+  const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgent/${agentId}`, updateData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};

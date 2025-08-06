@@ -44,6 +44,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [sortOption, setSortOption] = useState("newest");
   const usersPerPage = 20
   async function fetchUsers() {
     try {
@@ -81,17 +82,33 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
   // Filter and paginat
   const currentReferredBy = typeof window !== "undefined" ? localStorage.getItem("referralCode") : null;
 
-  const filteredUsers = users
-    .filter(
-      (user) =>
-        (user.referredBy === currentReferredBy || user.isUserType === 0) && (user.isUserType !== 1)
-    )
-    .filter(
-      (user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.id.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
+const filteredUsers = users
+  .filter(
+    (user) =>
+      (user.referredBy === currentReferredBy || user.isUserType === 0) &&
+      user.isUserType !== 1
+  )
+  .filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  .sort((a, b) => {
+    switch (sortOption) {
+      case "newest":
+        return new Date(b.registrationDate).getTime() - new Date(a.registrationDate).getTime();
+      case "oldest":
+        return new Date(a.registrationDate).getTime() - new Date(b.registrationDate).getTime();
+      case "az":
+        return a.name.localeCompare(b.name);
+      case "za":
+        return b.name.localeCompare(a.name);
+      default:
+        return 0;
+    }
+  });
+
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
   const startIndex = (currentPage - 1) * usersPerPage
   const paginatedUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage)
@@ -165,13 +182,23 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
     const name = userData.name?.trim();
     const phone = userData.phone?.trim();
     const email = userData.email?.trim();
+    const role= userData.role;
+    const referralCode = userData.referralCode?.trim();
+    const referredByName = userData.referalName?.trim();
+    const password = userData.password?.trim();
+    const referalName = userData.referalName?.trim();
 
     // Build payload conditionally
     const finalPayload: any = {
       email, // always required
       ...(name ? { name } : {}),
       ...(phone ? { phone } : {}),
-      role: null
+      ...(role ? { role } : {}),
+      ...(referralCode ? { referralCode } : {}),
+      ...(referredByName ? { referredByName } : {}),
+      ...(password ? { password } : {}),
+      ...(referalName ? { referalName } : {}),
+ 
     };
 
 
@@ -184,7 +211,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
     } else {
       const referredBy = typeof window !== "undefined" ? localStorage.getItem("referralCode") : null;
       const referredId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-
+      if(role) finalPayload.isUserType=role;
       if (referredBy) finalPayload.referredBy = referredBy;
       if (referredId) finalPayload.referredId = referredId;
     }
@@ -300,15 +327,29 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>All Users</CardTitle>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+               <div className="flex gap-4 items-center">
+  <div className="relative w-64">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+    <Input
+      placeholder="Search users..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="pl-10"
+    />
+  </div>
+
+  <select
+    value={sortOption}
+    onChange={(e) => setSortOption(e.target.value)}
+    className="border border-gray-300 rounded px-2 py-1 text-sm"
+  >
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="az">Name A → Z</option>
+    <option value="za">Name Z → A</option>
+  </select>
+</div>
+
               </div>
             </CardHeader>
             <CardContent>
@@ -339,7 +380,9 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
                           <td className="py-3 px-4 font-medium">{user.name}</td>
                           <td className="py-3 px-4 text-gray-600">{user.email}</td>
                           <td className="py-3 px-4 text-gray-600">{user.phone}</td>
-                          <td className="py-3 px-4 text-gray-600">{user.referredBy}</td>
+                          <td className="py-3 px-4 text-gray-600">
+  {user?.referredBy?.trim() ? user.referredBy : "N/A"}
+</td>
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => onViewUser(user)}>

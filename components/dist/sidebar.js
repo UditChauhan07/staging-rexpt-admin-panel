@@ -5,7 +5,7 @@ exports.Sidebar = void 0;
 var lucide_react_1 = require("lucide-react");
 var button_1 = require("@/components/ui/button");
 var navigationItems = [
-    { id: "analytics", label: "Analytics", icon: lucide_react_1.BarChart3 },
+    { id: "Dashboard", label: "Dashboard", icon: lucide_react_1.BarChart3 },
     { id: "users", label: "User Management", icon: lucide_react_1.Users },
     // { id: "roles", label: "Role Management", icon: Shield },
     { id: "agents", label: "Agent Business List", icon: lucide_react_1.Headphones },
