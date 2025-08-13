@@ -32,7 +32,13 @@ export const getAnalytics = async () => {
 // get all users
 export const retrieveAllRegisteredUsers = async () => {
     try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers2`);
+        const response = await axios.get(${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers2,
+          {
+            headers: {
+                Authorization: Bearer ${localStorage.getItem("token")},
+            },
+        }
+        );
         return response.data.users;
     } catch (error) {
         if (error.response) {
