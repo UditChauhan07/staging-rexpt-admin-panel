@@ -1,5 +1,5 @@
 "use client"
-import { BarChart3, Users, Shield, Package, Settings, LogOut, Menu, X, Headphones,Tickets, HelpCircleIcon, BadgeHelp } from "lucide-react"
+import { BarChart3, Users, Shield, Package, Settings, LogOut, Menu, X, Headphones,Tickets, HelpCircleIcon, BadgeHelp,BellRing } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SidebarProps {
@@ -17,9 +17,10 @@ const navigationItems = [
   { id: "agents", label: "Agent Business List", icon: Headphones }, 
 
    {id:"PricingEnquiry",label:"Pricing Enquiry",icon:HelpCircleIcon},
-    {id:"ContactUs",label:"Contact Us Queries",icon:BadgeHelp},
+  {id:"ContactUs",label:"Contact Us Queries",icon:BadgeHelp},
   {id:"RaiseTickets",label:"Raised Tickets",icon:Tickets},
-    {id:"knowledgeBase",label:" Knowledge Base",icon:Shield},
+  {id:"knowledgeBase",label:" Knowledge Base",icon:Shield},
+  {id:"Notifications",label:"Admin Notifications",icon:BellRing},
  
 
   // { id: "products", label: "Product Management", icon: Package },

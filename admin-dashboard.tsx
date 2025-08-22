@@ -16,6 +16,8 @@ import RaiseTickets from "./components/RaiseTickets";
 import PricingQueries from "./components/PricingQueries";
 import ContactUsForm from "./components/ContactUsForm";
 import ContactMessages from "./components/ContactUsForm";
+import NotificationList from "./components/Notifications/NotificationList";
+import ManualNotification from "./components/Notifications/ManualNotification";
 interface User {
   id: string;
   name: string;
@@ -146,6 +148,10 @@ console.log(selectedAgent,"agent")
             return <ContactMessages/>
       case "RaiseTickets":
           return<RaiseTickets/>;
+      case "Notifications":
+          return<NotificationList/>;
+      case "createNotifications":
+          return<ManualNotification/>;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
@@ -171,7 +177,7 @@ console.log(selectedAgent,"agent")
     <div className="min-h-screen bg-gray-50 transition-all duration-300">
       <Sidebar
         activeSection={activeSection}
-      onSectionChange={handleSectionChange}
+        onSectionChange={handleSectionChange}
 
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
