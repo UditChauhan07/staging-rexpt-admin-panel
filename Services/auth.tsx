@@ -33,10 +33,10 @@ export const getAnalytics = async () => {
 // get all users
 export const retrieveAllRegisteredUsers = async () => {
     try {
-        const response = await axios.get(${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers2,
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers2`,
           {
             headers: {
-                Authorization: Bearer ${localStorage.getItem("token")},
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         }
         );
@@ -66,7 +66,11 @@ export const deleteUser = async (id) => {
 // get users with agents
 export const retrieveAllRegisteredUsers2 = async () => {
     try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers`);
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllUsers`,{
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -201,5 +205,12 @@ export const check_email_Exsitence = async (email) => {
     return 0;
   }
 };
-
-   
+export const updateAgent = async (agentId, updateData) => {
+  const token=localStorage.getItem("token")
+  const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgent/${agentId}`, updateData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};

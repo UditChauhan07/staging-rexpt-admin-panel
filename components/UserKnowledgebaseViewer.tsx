@@ -275,10 +275,10 @@ const handleDeleteSelectedUsersKbs = async () => {
           <FadeLoader color="#3b82f6" />
         </div>
       ) : (
-        <table className="w-full border-collapse border text-sm shadow-md">
-          <thead className="bg-gray-100">
+        <table className="w-full border-collapse border text-sm  " style={{background:'white'}}>
+          <thead >
             <tr>
-              <th className="p-3 border text-center">
+              <th className="p-3  text-center">
   <input
     type="checkbox"
     checked={selectedUserIds.length === filteredUsers.length}
@@ -289,16 +289,16 @@ const handleDeleteSelectedUsersKbs = async () => {
   />
 </th>
 
-              <th className="p-3 border text-left">User ID</th>
-              <th className="p-3 border text-left">Name</th>
-              <th className="p-3 border text-left">Email</th>
-              <th className="p-3 border text-center">Action</th>
+              <th className="p-3  text-left">User ID</th>
+              <th className="p-3  text-left">Name</th>
+              <th className="p-3  text-left">Email</th>
+              <th className="p-3  text-center">Action</th>
             </tr>
           </thead>
-        <tbody>
+        <tbody  style={{background:'white'}}>
   {filteredUsers.map((u) => (
     <tr key={u.userId} className="hover:bg-gray-50">
-      <td className="p-3 border text-center">
+      <td className="p-3  text-center">
         <input
           type="checkbox"
           checked={selectedUserIds.includes(u.userId)}
@@ -312,10 +312,10 @@ const handleDeleteSelectedUsersKbs = async () => {
           }}
         />
       </td>
-      <td className="p-3 border">{u.userId}</td>
-      <td className="p-3 border capitalize">{u.name}</td>
-      <td className="p-3 border">{u.email}</td>
-      <td className="p-3 border text-center">
+      <td className="p-3 ">{u.userId}</td>
+      <td className="p-3  capitalize">{u.name}</td>
+      <td className="p-3 ">{u.email}</td>
+      <td className="p-3  text-center">
         <Button size="sm" onClick={() => handleView(u)}>
           View
         </Button>

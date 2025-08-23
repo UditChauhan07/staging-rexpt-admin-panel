@@ -1,33 +1,31 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useRef } from "react";
-import Modal from "@/components/ui/modal";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect, useRef } from "react"
+import Modal from "@/components/ui/modal"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, Play, Pause } from "lucide-react";
-import { languages } from "./languageOptions";
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { CheckCircle, Play, Pause } from "lucide-react"
+import { languages } from "./languageOptions"
 
-import { createAgent, getRetellVoices, validateWebsite } from "@/Services/auth";
-import axios from "axios";
-import { getAgentPrompt } from "@/lib/getAgentPrompt";
-import { getKnowledgeBaseName } from "@/lib/getKnowledgeBaseName";
-import dynamic from "next/dynamic";
-import Swal from "sweetalert2";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
-import getTimezoneFromState from "@/lib/getTimezone";
+import { createAgent, getRetellVoices, updateAgent, validateWebsite } from "@/Services/auth"
+import axios from "axios"
+import { getAgentPrompt } from "@/lib/getAgentPrompt"
+import { getKnowledgeBaseName } from "@/lib/getKnowledgeBaseName"
+import Swal from "sweetalert2"
+import { FadeLoader } from "react-spinners";
 
 interface User {
-  id: string;
-  name: string;
-  email: string;
+  id: string
+  name: string
+  email: string
 }
 declare global {
   interface Window {
@@ -35,20 +33,23 @@ declare global {
   }
 }
 
-interface AddAgentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  allUsers: User[];
-  onSubmit: (data: any) => void;
+interface EditAgentModalProps {
+  isOpen: boolean
+  onClose: () => void
+  UserData: User[]
+  agentId?: string;
+
+  userId?: string;
+  businessId?: string;
+  onSubmit: (data: any) => void
 }
 
 interface BusinessType {
-  type: string;
-  subtype: string;
-  icon: string;
+  type: string
+  subtype: string
+  icon: string
 }
-const HTTPS_PREFIX = "https://";
-const PREFIX_LEN = HTTPS_PREFIX.length;
+
 const allBusinessTypes = [
   {
     type: "Real Estate Broker",
@@ -187,29 +188,31 @@ const allBusinessTypes = [
   //   icon: "svg/Marketing Agency.svg",
   // },
 
+
   {
     type: "Other",
     subtype: "More Ideas, More Impact",
     icon: "svg/Web-Design-Agency-icon.svg",
-  },
+  }
 ];
 const avatars = {
   Male: [
-    { img: "/images/Male-01.png" },
-    { img: "/images/Male-02.png" },
-    { img: "/images/Male-03.png" },
-    { img: "/images/Male-04.png" },
-    { img: "/images/Male-05.png" },
+    { img: '/images/Male-01.png' },
+    { img: '/images/Male-02.png' },
+    { img: '/images/Male-03.png' },
+    { img: '/images/Male-04.png' },
+    { img: '/images/Male-05.png' },
   ],
   Female: [
-    { img: "/images/Female-01.png" },
-    { img: "/images/Female-02.png" },
-    { img: "/images/Female-03.png" },
-    { img: "/images/Female-04.png" },
-    { img: "/images/Female-05.png" },
-    { img: "/images/Female-06.png" },
+    { img: '/images/Female-01.png' },
+    { img: '/images/Female-02.png' },
+    { img: '/images/Female-03.png' },
+    { img: '/images/Female-04.png' },
+    { img: '/images/Female-05.png' },
+    { img: '/images/Female-06.png' },
   ],
 };
+
 
 const businessServices = [
   {
@@ -222,7 +225,7 @@ const businessServices = [
       "Home Delivery",
       "Event Catering",
       "Online Ordering",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -235,7 +238,7 @@ const businessServices = [
       "Property Viewings",
       "Price Valuation",
       "Legal Help",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -248,7 +251,7 @@ const businessServices = [
       "Hair Straightening",
       "Nail Extensions",
       "Facials",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -261,7 +264,7 @@ const businessServices = [
       "Vaccinations",
       "Blood Tests",
       "Health Screenings",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -273,7 +276,7 @@ const businessServices = [
       "Stain Removal",
       "Clothing Alterations",
       "Leather & Suede Cleaning",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -286,7 +289,7 @@ const businessServices = [
       "SEO Services",
       "Website Maintenance",
       "E-commerce Setup",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -298,7 +301,7 @@ const businessServices = [
       "Weight Training Equipment",
       "Cardio Workouts",
       "Personal Training Sessions",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -311,7 +314,7 @@ const businessServices = [
       "Email Marketing",
       "PPC Ads",
       "Branding Strategy",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -323,7 +326,7 @@ const businessServices = [
       "One-on-One Training",
       "Nutrition Guidance",
       "Fitness Assessments",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -337,7 +340,7 @@ const businessServices = [
       "Permit Drawings",
       "Site Planning",
       "Project Management",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -350,7 +353,7 @@ const businessServices = [
       "Color Consultation",
       "Lighting Design",
       "Home Makeovers",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -362,7 +365,7 @@ const businessServices = [
       "Home Renovations",
       "Project Supervision",
       "Structural Repairs",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -375,7 +378,7 @@ const businessServices = [
       "Window Washing",
       "Floor Polishing",
       "Regular Maintenance",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -388,7 +391,7 @@ const businessServices = [
       "Courier Services",
       "Vehicle Rentals",
       "Logistics Management",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -400,7 +403,7 @@ const businessServices = [
       "Garden Design",
       "Tree Pruning & Removal",
       "Irrigation Installation",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -413,7 +416,7 @@ const businessServices = [
       "Car Insurance",
       "Home Insurance",
       "Business Insurance",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -426,7 +429,7 @@ const businessServices = [
       "Retirement Planning",
       "Wealth Management",
       "Loan Consulting",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -439,7 +442,7 @@ const businessServices = [
       "Payroll Services",
       "Financial Auditing",
       "Business Financial Reports",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -452,7 +455,7 @@ const businessServices = [
       "Engine Diagnostics",
       "Tire Replacement",
       "Battery Service",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -465,7 +468,7 @@ const businessServices = [
       "Electrical System Repairs",
       "Boat Cleaning",
       "Winterizing Services",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -479,7 +482,7 @@ const businessServices = [
       "Braces & Aligners",
       "Root Canal",
       "Tooth Extraction",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -491,7 +494,7 @@ const businessServices = [
       "Lease Agreement Preparation",
       "Rent Collection",
       "Property Maintenance Coordination",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -505,7 +508,7 @@ const businessServices = [
       "Recreational Activities",
       "Physiotherapy",
       "Emergency Support",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -522,7 +525,7 @@ const businessServices = [
       "Cruise Bookings",
       "Local Tours & Sightseeing",
       "Car Rentals",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -538,9 +541,10 @@ const businessServices = [
       "Amusement Park Tickets",
       "Concert & Show Tickets",
       "Sports Tickets",
-      "Other",
+      "Other"
     ],
-  },
+  }
+  ,
   {
     type: "Financial Planners",
     subtype: "Wealth Management Advice",
@@ -554,7 +558,7 @@ const businessServices = [
       "Insurance Planning",
       "Education Planning",
       "Debt Management",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -571,7 +575,7 @@ const businessServices = [
       "Skin Treatments",
       "Makeup for Events",
       "Spa & Massage Services",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -588,9 +592,10 @@ const businessServices = [
       "Cuticle Care",
       "Nail Repair & Removal",
       "Hand & Foot Spa",
-      "Other",
+      "Other"
     ],
-  },
+  }
+  ,
   {
     type: "Barber Studio/Shop",
     subtype: "Men's Hair Grooming",
@@ -605,9 +610,10 @@ const businessServices = [
       "Scalp Treatment",
       "Hair Wash & Styling",
       "Kids Haircut",
-      "Other",
+      "Other"
     ],
-  },
+  }
+  ,
   {
     type: "Hair Stylist",
     subtype: "Professional Hair Care",
@@ -622,9 +628,10 @@ const businessServices = [
       "Hair Extensions",
       "Scalp Treatments",
       "Bridal & Occasion Hairstyles",
-      "Other",
+      "Other"
     ],
-  },
+  }
+  ,
   {
     type: "Bakery",
     subtype: "Baked Goods Producer",
@@ -639,7 +646,7 @@ const businessServices = [
       "Eggless & Sugar-Free Items",
       "Bulk & Party Orders",
       "Online Ordering & Delivery",
-      "Other",
+      "Other"
     ],
   },
   {
@@ -656,10 +663,13 @@ const businessServices = [
       "Disinfection & Sanitization",
       "Post-Construction Cleaning",
       "Restroom Cleaning & Maintenance",
-      "Other",
+      "Other"
     ],
-  },
-];
+  }
+
+
+
+]
 const roles = [
   {
     title: "General Receptionist",
@@ -672,46 +682,44 @@ const roles = [
       "A LEAD Qualifier handles inbound sales queries and helps identify potential leads for your business.",
   },
 ];
-const AddAgentModal = ({
-  isOpen,
-  onClose,
-  allUsers,
-  onSubmit,
-}: AddAgentModalProps) => {
-  const [step, setStep] = useState(1);
-  const [userSearch, setUserSearch] = useState("");
-  const [businessSearch, setBusinessSearch] = useState("");
-  const [businessTypes, setBusinessTypes] =
-    useState<BusinessType[]>(allBusinessTypes);
-  const [allServices, setAllServices] = useState<{ [key: string]: string[] }>(
-    {}
-  );
-  const [selectedType, setSelectedType] = useState("");
-  const [newBusinessType, setNewBusinessType] = useState("");
-  const [newService, setNewService] = useState("");
-  const [useWebsite, setUseWebsite] = useState(false);
+const EditAgentModal = ({ isOpen, onClose, allUsers, agentId, userId,
+  businessId, onSubmit }: EditAgentModalProps) => {
+  const [step, setStep] = useState(2)
+  const [agentData, setAgentData] = useState(null);
+  const [businessData, setBusinessData] = useState(null);
+  const [userSearch, setUserSearch] = useState("")
+  const [businessSearch, setBusinessSearch] = useState("")
+  const [Agentdetial, setagentdetail] = useState("")
+  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>(allBusinessTypes)
+  const [allServices, setAllServices] = useState<{ [key: string]: string[] }>({})
+  const [selectedType, setSelectedType] = useState("")
+  console.log(selectedType, "selectedtype")
+  const [newBusinessType, setNewBusinessType] = useState("")
+  const [newService, setNewService] = useState("")
+  const [useWebsite, setUseWebsite] = useState(false)
   const [listVoices, setListVoices] = useState([]);
-  const [form, setForm] = useState<any>({});
-  const [retellVoices, setRetellVoices] = useState<
-    { name: string; language: string }[]
-  >([]);
-  const [loadingVoices, setLoadingVoices] = useState(false);
-  const [voiceError, setVoiceError] = useState("");
+  const [form, setForm] = useState<any>({})
+  const [retellVoices, setRetellVoices] = useState<{ name: string; language: string }[]>([])
+  const [loadingVoices, setLoadingVoices] = useState(false)
+  const [voiceError, setVoiceError] = useState("")
   const [filteredVoices, setFilteredVoices] = useState([]);
   const audioRefs = useRef([]);
   const [playingIdx, setPlayingIdx] = useState(null);
 
-  const [businessSize, setBusinessSize] = useState("");
+  const [businessSize, setBusinessSize] = useState();
   const [agentNote, setAgentNote] = useState("");
   const [selectedRole, setSelectedRole] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [isWebsiteValid, setIsWebsiteValid] = useState(null); // true, false, or null
   const [hasNoGoogleOrWebsite, setHasNoGoogleOrWebsite] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState("US");
-  const [addressComponents, setAddressComponents] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(false)
+  console.log("userId", userId)
+  localStorage.setItem("AgentForUserId",userId)
   useEffect(() => {
     const storedAgentRole = sessionStorage.getItem("agentRole");
     const storedNote = sessionStorage.getItem("agentNote");
+
 
     if (storedAgentRole) {
       setSelectedRole(storedAgentRole);
@@ -721,38 +729,181 @@ const AddAgentModal = ({
     }
   }, []);
 
-  // const URL = "https://rex-bk.truet.net";
-  const URL = process.env.NEXT_PUBLIC_API_URL
-  // ||"https://rexptin.truet.net";
+  const capitalize = (str) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
+
+
+  const fetchMergedAgentData = async () => {
+    if (!agentId || !businessId) return;
+
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/agent/getUserAgentMergedDataForAgentUpdate/${agentId}`,
+        {
+          params: { businessId }
+        }
+      );
+      const { agent, business } = res.data.data;
+      console.log(res.data.data)
+localStorage.setItem("agentCode", res.data.data.agent.agentCode)
+      setAgentData(agent);
+      setBusinessData(business);
+      // set default form values here
+    } catch (error) {
+      console.error("Error fetching agent data", error);
+    }
+  };
+  useEffect(() => {
+    fetchMergedAgentData();
+  }, [agentId, businessId]);
+  useEffect(() => {
+    if (agentData && businessData) {
+      const businessTypeRaw = businessData.businessType || "";
+
+      const matchedType = allBusinessTypes.find(
+        (b) => b.type.toLowerCase() === businessTypeRaw.toLowerCase()
+      );
+
+      const parsedCustomServices = JSON.parse(businessData.customServices || "[]");
+      const flatCustomServiceList = parsedCustomServices.map((s) => s.service); // if it's array of objects
+
+      // Set custom business if it's not in default list
+      if (!matchedType && businessTypeRaw) {
+        const newCustom = {
+          type: businessTypeRaw,
+          subtype: "Custom",
+          icon: "svg/Web-Design-Agency-icon.svg",
+        };
+
+        setBusinessTypes((prev) => [...prev, newCustom]);
+        setAllServices((prev) => ({
+          ...prev,
+          [businessTypeRaw]: flatCustomServiceList,
+        }));
+        setSelectedType(businessTypeRaw);
+      } else if (matchedType) {
+        setSelectedType(matchedType.type);
+      }
+
+      // Fix avatar path
+      const fixAvatarPath = (avatar) => {
+        if (!avatar) return "";
+        return avatar.startsWith("/") ? avatar : `/${avatar}`;
+      };
+
+      const capitalize = (str) =>
+        str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
+      // Set form state
+      setForm((prev) => ({
+        ...prev,
+         CallRecording : ["1", 1, true, "true"].includes(agentData?.CallRecording),
+        userId: agentData.userId,
+        agentName: agentData.agentName,
+        language: agentData.agentLanguageCode || agentData.agentLanguage,
+        avatar: fixAvatarPath(agentData.avatar),
+        gender: capitalize(agentData.agentGender),
+        voice: agentData.agentVoice,
+        selectedVoice: { voice_accent: agentData.agentAccent },
+        businessName: businessData.businessName,
+        businessUrl: businessData.webUrl,
+        email: businessData.buisnessEmail,
+        about: businessData.aboutBusiness || "",
+        address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
+       phone: agentData?.phone
+  || "", // not provided
+        businessType: businessTypeRaw,
+        services: flatCustomServiceList,
+        customServices: flatCustomServiceList,
+        customBuisness: !matchedType ? businessTypeRaw : "",
+        googleBusiness: businessData.googleBusinessName || "",
+      }));
+
+      setBusinessSize(businessData.businessSize || "");
+      setSelectedRole(agentData.agentRole);
+    }
+  }, [agentData, businessData, allBusinessTypes]);
+
+
+
+
+  // useEffect(() => {
+  //   if (agentData && businessData) {
+  //     const parsedServices = JSON.parse(businessData.customServices || "[]").map(s => s.service);
+  //     const matchedType = allBusinessTypes.includes(businessData.businessType);
+
+  //     setForm({
+  //       userId: agentData.userId,
+  //       agentname: agentData.agentName,
+  //       language: agentData.agentLanguageCode || agentData.agentLanguage,
+  //       gender: agentData.agentGender,
+  //       voice: agentData.agentVoice,
+  //       selectedVoice: { voice_accent: agentData.agentAccent },
+  //       avatar: agentData.avatar,
+  //       agentRole: agentData.agentRole,
+  //       businessName: businessData.businessName,
+  //       businessUrl: businessData.webUrl,
+  //       email: businessData.buisnessEmail,
+  //       about: businessData.aboutBusiness || "",
+  //       address: `${businessData.address1 || ""}, ${businessData.city || ""}, ${businessData.state || ""}`,
+  //       phone: "",
+  //       businessType: businessData.businessType,
+  //       services: parsedServices,
+  //       customServices: parsedServices,
+  //       customBuisness: matchedType ? "" : businessData.businessType,
+  //       googleBusiness: businessData.googleBusinessName || "",
+  //     });
+  //   }
+  // }, [agentData, businessData]);
+
+
+
+  useEffect(() => {
+    if (businessData) {
+      const parsedServices = businessData.buisnessService
+        ? JSON.parse(businessData.buisnessService)
+        : [];
+
+      setForm((prev) => ({
+        ...prev,
+        services: parsedServices,
+        customServices: [], // you can populate this too if you store custom separately
+      }));
+    }
+
+    const serviceMap: { [key: string]: string[] } = {};
+    businessServices.forEach((b) => {
+      serviceMap[b.type] = b.services;
+    });
+    setAllServices(serviceMap);
+  }, [businessData]);
+
+
 
   const fetchKnowledgeBaseName = async () => {
     const name = await getKnowledgeBaseName();
     console.log("Knowledge base name:", name);
-    localStorage.setItem("knowledgebaseName", name);
-    // use `name` here safely
+    localStorage.setItem("knowledgebaseName", name)
+
   };
 
   useEffect(() => {
-    console.log("fdfdfdfdfdfdff");
     fetchKnowledgeBaseName();
-  }, [localStorage.getItem("BusinessId")]);
-  const handleBusinessSizeChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  }, [businessId]);
+
+  const handleBusinessSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSize = e.target.value;
-    setBusinessSize(selectedSize);
-    setForm({ ...form, businessSize: selectedSize });
+    setForm(prev => ({ ...prev, businessSize: selectedSize }));
+
   };
-  const HTTPS_PREFIX = "https://";
-  const PREFIX_LEN = HTTPS_PREFIX.length;
-const handleWebsiteBlur = async () => {
+  const handleWebsiteBlur = async () => {
     const url = form.businessUrl;
     if (!url) return;
-console.log(url,"url")
+
     setIsVerifying(true);
     try {
-      const result = await validateWebsite(url);
-      console.log(url,"url")
+      const result = await validateWebsite(url); // Make sure to import this
       setIsWebsiteValid(result.valid);
     } catch (err) {
       console.error("Website verification error:", err);
@@ -761,158 +912,65 @@ console.log(url,"url")
       setIsVerifying(false);
     }
   };
-  const validateWebsite = async (url) => {
-    try {
-        const res = await axios.post(`${URL}/api/validate-website`, { website: url });
-        return res.data;
-    } catch (error) {
-        console.error("Error validating website:", error);
-        return { valid: false, reason: 'Error validating website' };
-    }
-};
 
-  
 
-  const validatePhoneNumber = (phone: string) => {
-    const phoneNumberObj = parsePhoneNumberFromString(phone, selectedCountry);
-    return phoneNumberObj && phoneNumberObj.isValid();
-  };
 
-  function extractPromptVariables(template, dataObject) {
-    const matches = [...template.matchAll(/{{(.*?)}}/g)];
-    const uniqueVars = new Set(matches.map(m => m[1].trim()));
 
-    // Flatten dataObject to a key-value map
-    const flatData = {};
-
-    function flatten(obj) {
-      for (const key in obj) {
-        const val = obj[key];
-        if (typeof val === "object" && val !== null && 'key' in val && 'value' in val) {
-          flatData[val.key.trim()] = val.value;
-        } else if (typeof val === "object" && val !== null) {
-          flatten(val); // Recursively flatten nested objects
-        }
-      }
-    }
-
-    flatten(dataObject);
-
-    return Array.from(uniqueVars).map(variable => ({
-      name: variable,
-      value: flatData[variable] ?? null,
-      status: true
-    }));
-  }
-  useEffect(() => {
-    const serviceMap: { [key: string]: string[] } = {};
-    businessServices.forEach((b) => {
-      serviceMap[b.type] = b.services;
-    });
-    setAllServices(serviceMap);
-  }, []);
+  //   useEffect(() => {
+  //     const serviceMap: { [key: string]: string[] } = {}
+  //     businessServices.forEach((b) => {
+  //       serviceMap[b.type] = b.services
+  //     })
+  //     setAllServices(serviceMap)
+  //   }, [])
   useEffect(() => {
     if (step === 4) {
       const fetchVoices = async () => {
-        setLoadingVoices(true);
-        setVoiceError("");
+        setLoadingVoices(true)
+        setVoiceError("")
         try {
-          const data = await getRetellVoices();
+          const data = await getRetellVoices()
 
-          setRetellVoices(data);
+          setRetellVoices(data)
         } catch (err) {
-          setVoiceError("Failed to load voices");
-          console.error("Error fetching voices:", err);
+          setVoiceError("Failed to load voices")
+          console.error("Error fetching voices:", err)
         } finally {
-          setLoadingVoices(false);
+          setLoadingVoices(false)
         }
-      };
+      }
 
-      fetchVoices();
+      fetchVoices()
     }
-  }, [step]);
+  }, [step])
 
   useEffect(() => {
     if (!isOpen) {
-      setStep(1);
-      setForm({});
-      setSelectedType("");
-      setUserSearch("");
-      setBusinessSearch("");
+      setStep(2)
+      setForm({})
+      setSelectedType("")
+      setUserSearch("")
+      setBusinessSearch("")
     }
-  }, [isOpen]);
+  }, [isOpen])
 
-  // const handleNext = () => {
-  //   if (step === 1 && !form.userId) return alert("Please select a user")
-  //   if (step === 2 && !form.businessType) return alert("Please select business type")
-  //   if (step === 3 && !form.businessName && !form.website) return alert("Enter business name or website")
-  //   if (step === 4 && !form.language) return alert("Please select a language")
-  //   setStep(step + 1)
-  // }
+
 
   const handleNext = async () => {
-    if (step === 1) {
-      if (!form.userId) return alert("Select a user");
+    // if (step === 1 && !form.userId) return Swal.fire("Select a user")
+    if (step === 2 && !form.businessType) return Swal.fire("Select at least one business type")
+    if (step === 3 && !form.businessName && !form.businessUrl) return Swal.fire("Please fill one of the fields")
+    if (step === 4 && !form.language) return Swal.fire("Language  is required")
 
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/agent/check_user_free_agent/${form.userId}`
-        );
 
-        if (res.data.hasFreeAgent) {
-          return Swal.fire("This user already has a free agent.");
-        }
 
-        // ✅ Move to next step
-        // or your logic to move next
-      } catch (err) {
-        console.error("Error checking free agent:", err);
-        Swal.fire("Error", "Something went wrong while checking agent status.", "error");
-      }
-    }
-
-    if (step === 2 && !form.businessType)
-      return alert("Select at least one business type");
-    if (step === 3 && !form.businessName && !form.businessUrl)
-      return alert("Please fill one of the fields");
-    if (step === 4 && !form.language && !form.voice) return alert("language and voice are required");
-
-    //    if (step === 2) {
-    //   const payload = {
-    //     userId: form.userId,
-    //     businessType: form.businessType || "Other",
-    //     businessName: form.businessName || "",
-    //     businessSize: businessSize || "",
-    //     customBuisness:
-    //       selectedType === "Other" ? newBusinessType || "Business" : "",
-    //     buisnessService: form.services || [],
-    //     customServices: form.customServices || [],
-    //     buisnessEmail: form.email || "",
-    //   };
-
-    //   try {
-    //     await axios.post(`${URL}/api/business/setup`, payload);
-    //     console.log("Step 2 business details submitted successfully");
-    //   } catch (error) {
-    //     console.error("Error submitting business details:", error);
-    //   }
-    // }
-
-    // if (step === 4) {
-    //   await axios.post(`${URL}/api/business/details`, {
-    //     userId: form.userId,
-    //     googleBusiness,
-    //     websiteUrl,
-    //     ...manualBusinessDetails,
-    //   })
-    // }
-
-    setStep((prev) => prev + 1);
-  };
-  const knowledgebaseName = localStorage.getItem("knowledgebaseName");
-  const handlePrevious = () => setStep(step - 1);
-  const businessType = localStorage.getItem("businessType");
+    setStep((prev) => prev + 1)
+  }
+  const knowledgebaseName = localStorage.getItem("knowledgebaseName")
+  const handlePrevious = () => setStep(step - 1)
+  const businessType = localStorage.getItem("businessType")
   const handleSubmit = async () => {
+    setLoading(true)
     try {
       const {
         language,
@@ -930,60 +988,24 @@ console.log(url,"url")
         services,
         customBuisness,
         role,
+        CallRecording
       } = form;
-      console.log(voice, "voice");
-      console.log(form.agentName,"agentname")
-      const getLeadTypeChoices = () => {
-        const fixedChoices = ["Spam Caller", "Irrelvant Call", "Angry Old Customer"];
-       
-        const cleanedServices = services
-            .map(service => service?.trim()) // remove extra whitespace
-            .filter(service => service && service?.toLowerCase() !== "other")
-            .map(service => {
-                const normalized = service?.replace(/\s+/g, " ")?.trim();
-                return `Customer for ${normalized}`;
-            });
-        const combinedChoices = Array.from(new Set([...fixedChoices, ...cleanedServices]));
-        return combinedChoices;
-    }
-      // return
- const plan= "free";
+      
+
+
+
+      console.log("forrrmmm", form)
+      // return 
+      const plan= agentData.agentPlan;
 const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
       ? "multi"
       : form.agentLanguage;
-           const addressFields = extractAddressFields(addressComponents);
-const currentState =  addressFields?.state || "";
-console.log(currentState,"currentState")
- const timeZone = await getTimezoneFromState(currentState);
- console.log(timeZone,"timeZone")
-const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.timezoneId });
 
-
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const currentTime = new Date().toLocaleString("en-US", { timeZone });
       const aboutBusinessForm =
         localStorage.getItem("businessonline") || form.about || "";
-    //  console.log(currentTime,"currentTime")
 
-    const statesRequiringCallRecording = [
-        "Washington",
-        "Vermont",
-        "Pennsylvania",
-        "Oregon",
-        "New Hampshire",
-        "Nevada",
-        "Montana",
-        "Michigan",
-        "Massachusetts",
-        "Maryland",
-        "Illinois",
-        "Florida",
-        "Delaware",
-        "Connecticut",
-        "California",
-    ];
-    const CallRecording = statesRequiringCallRecording.includes(currentState)
-        ? true
-        : false;
-       
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: selectedRole,
@@ -1000,85 +1022,110 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
         aboutBusinessForm, // this will now work fine
         commaSeparatedServices: services?.join(", ") || "",
         agentNote: "",
-      timeZone: timeZone?.timezoneId,
-       currentTime,
+        timeZone,
+        currentTime,
         languageAccToPlan,
       plan,
       CallRecording,
       });
       const filledPrompt2 = getAgentPrompt({
- 
-  industryKey: businessType === "Other" ? customBuisness : businessType,
-  roleTitle: selectedRole,
-  agentName: "{{AGENT NAME}}",
-  agentGender: "{{AGENT GENDER}}",
-  business: {
-    businessName: "{{BUSINESS NAME}}",
-    email: "{{BUSINESS EMAIL ID}}",
-    aboutBusiness: "{{MORE ABOUT YOUR BUSINESS}}",
-    address: "{{BUSINESS ADDRESS}}"
-  },
-  languageSelect: "{{LANGUAGE}}",
-  businessType: "{{BUSINESSTYPE}}",
-  aboutBusinessForm: {
-    businessUrl: "{{BUSINESS WEBSITE URL}}", // give unique name
-    about: "{{MORE ABOUT YOUR BUSINESS}}"     // can reuse or separate
-  },
-  commaSeparatedServices: "{{SERVICES}}",
-  agentNote: "{{AGENTNOTE}}",
-  timeZone: "{{TIMEZONE}}"
-});
 
+        industryKey: businessType === "Other" ? customBuisness : businessType,
+        roleTitle: selectedRole,
+        agentName: "{{AGENT NAME}}",
+        agentGender: "{{AGENT GENDER}}",
+        business: {
+          businessName: "{{BUSINESS NAME}}",
+          email: "{{BUSINESS EMAIL ID}}",
+          aboutBusiness: "{{MORE ABOUT YOUR BUSINESS}}",
+          address: "{{BUSINESS ADDRESS}}"
+        },
+        languageSelect: "{{LANGUAGE}}",
+        businessType: "{{BUSINESSTYPE}}",
+        aboutBusinessForm: {
+          businessUrl: "{{BUSINESS WEBSITE URL}}", // give unique name
+          about: "{{MORE ABOUT YOUR BUSINESS}}"     // can reuse or separate
+        },
+        commaSeparatedServices: "{{SERVICES}}",
+        agentNote: "{{AGENTNOTE}}",
+        timeZone: "{{TIMEZONE}}"
+      });
 
+      function extractPromptVariables(template, dataObject) {
+        const matches = [...template.matchAll(/{{(.*?)}}/g)];
+        const uniqueVars = new Set(matches.map(m => m[1].trim()));
 
-     const promptVariablesList = extractPromptVariables(filledPrompt2, {
-  industryKey: businessType === "Other" ? customBuisness : businessType,
-  roleTitle: sessionStorage.getItem("agentRole"),
-  agentName: { key: "AGENT NAME", value: form?.agentName || "" },
-  agentGender: { key: "AGENT GENDER", value:gender || "" },
-  business: {
-    businessName: { key: "BUSINESS NAME", value: form.businessName || "" },
-    email: { key: "BUSINESS EMAIL ID", value: form.email || "" },
-    aboutBusiness: {
-      key: "MORE ABOUT YOUR BUSINESS",
-      value: form.aboutBusiness || ""
-    },
-    address: { key: "BUSINESS ADDRESS", value: form.address || "" }
-  },
-  languageSelect: { key: "LANGUAGE", value: agentLanguage || "" },
-  businessType: { key: "BUSINESSTYPE", value: businessType || "" },
-  commaSeparatedServices: {
-    key: "SERVICES",
-    value: services?.join(", ") || ""
-  },
-  timeZone: {
-    key: "TIMEZONE",
-    value: timeZone || ""
-  },
-  aboutBusinessForm: {
-    businessUrl: {
-      key: "BUSINESS WEBSITE URL",
-      value: form.businessUrl || ""
-    }
-  },
-  currentTime:{
-    key:"current_time_[timezone]",
-    value:currentTime||""
-  },
-  agentNote: {
-    key: "AGENTNOTE",
-    value: form.agentNote || ""
-  }
-});
+        // Flatten dataObject to a key-value map
+        const flatData = {};
+
+        function flatten(obj) {
+          for (const key in obj) {
+            const val = obj[key];
+            if (typeof val === "object" && val !== null && 'key' in val && 'value' in val) {
+              flatData[val.key.trim()] = val.value;
+            } else if (typeof val === "object" && val !== null) {
+              flatten(val); // Recursively flatten nested objects
+            }
+          }
+        }
+
+        flatten(dataObject);
+
+        return Array.from(uniqueVars).map(variable => ({
+          name: variable,
+          value: flatData[variable] ?? null,
+          status: true
+        }));
+      }
+
+      const promptVariablesList = extractPromptVariables(filledPrompt2, {
+        industryKey: businessType === "Other" ? customBuisness : businessType,
+        roleTitle: sessionStorage.getItem("agentRole"),
+        agentName: { key: "AGENT NAME", value: form?.agentName || "" },
+        agentGender: { key: "AGENT GENDER", value: gender || "" },
+        business: {
+          businessName: { key: "BUSINESS NAME", value: form.businessName || "" },
+          email: { key: "BUSINESS EMAIL ID", value: form.email || "" },
+          aboutBusiness: {
+            key: "MORE ABOUT YOUR BUSINESS",
+            value: form.aboutBusiness || ""
+          },
+          address: { key: "BUSINESS ADDRESS", value: form.address || "" }
+        },
+        languageSelect: { key: "LANGUAGE", value: agentLanguage || "" },
+        businessType: { key: "BUSINESSTYPE", value: businessType || "" },
+        commaSeparatedServices: {
+          key: "SERVICES",
+          value: services?.join(", ") || ""
+        },
+        timeZone: {
+          key: "TIMEZONE",
+          value: timeZone || ""
+        },
+        aboutBusinessForm: {
+          businessUrl: {
+            key: "BUSINESS WEBSITE URL",
+            value: form.businessUrl || ""
+          }
+        },
+        currentTime: {
+          key: "current_time_[timezone]",
+          value: currentTime || ""
+        },
+        agentNote: {
+          key: "AGENTNOTE",
+          value: form.agentNote || ""
+        }
+      });
 
 
 
       console.log("generatePrompt", filledPrompt2);
-      console.log(promptVariablesList)
-
+      console.log(promptVariablesList,"dddddddd")
+console.log(form.agentName,"formagentname1")
       const agentConfig = {
         version: 0,
-        model: "gemini-2.0-flash",
+        model: "gemini-2.0-flash-lite",
         model_temperature: 0,
         model_high_priority: true,
         tool_call_strict_mode: true,
@@ -1183,7 +1230,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
             tools: []
           },
 
-         
+          // 🌟 State: Call Transfer
           {
             name: "call_transfer",
             state_prompt: `
@@ -1232,48 +1279,45 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
         default_dynamic_variables: {
           customer_name: "John Doe",
           timeZone: timeZone,
-          business_Phone: `${form.phone}`||"", business_email: `${form.email}`||"", 
-          timeZone:timeZone?.timezoneId
         },
-      //   states: [
-      //     {
-      //       name: "information_collection",
-      //       state_prompt: "## Task\nGreet the user and ask how you can help.",
-      //       script: `
-      //   if (wait_for_user_input) {
-      //     speak("How can I assist you today?");
-      //     wait_for_user_input();
-      //   }
-      // `,
-      //       edges: [],
-      //     },
-      //   ],
+        states: [
+          {
+            name: "information_collection",
+            state_prompt: "## Task\nGreet the user and ask how you can help.",
+            script: `
+        if (wait_for_user_input) {
+          speak("How can I assist you today?");
+          wait_for_user_input();
+        }
+      `,
+            edges: [],
+          },
+        ],
       };
       const knowledgeBaseId = localStorage.getItem("knowledgeBaseId");
 
       agentConfig.knowledge_base_ids = [knowledgeBaseId];
 
 
-      const llmRes = await axios.post(
-        `${URL}/api/agent/createAdmin/llm`,
-        agentConfig,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      console.log(llmRes);
-      const llmId = llmRes.data.data.llm_id;
-      console.log(llmId);
 
+      const llmRes = await axios.patch(`https://api.retellai.com/update-retell-llm/${agentData.llmId}`, agentConfig, {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+          "Content-Type": "application/json",
+        },
+      });
+console.log(form.agentName,"formagentname2")
+      const llmId = agentData.llmId;
+      console.log("LLM ID", llmId);
+
+      // ✅ RETELL AGENT CREATION (Use knowledgebaseName here)age
       const finalAgentData = {
         response_engine: { type: "retell-llm", llm_id: llmId },
         voice_id: voice,
         // language,
-        agent_name:  knowledgebaseName|| "Virtual Assistant",
+        agent_name: form.agentName || "Virtual Assistant",
        language: languages.find((l) => l.name === languageAccToPlan)?.locale || "multi",
+
         post_call_analysis_model: "gpt-4o-mini",
         responsiveness: 1,
         enable_backchannel: true,
@@ -1288,81 +1332,35 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
           "Ok",
           "hmmm",
         ],
-         post_call_analysis_data: [
-                        {
-                            type: "enum",
-                            name: "lead_type",
-                            description: "Feedback given by the customer about the call.",
-                            choices: getLeadTypeChoices(),
-                        },
-                        {
-                            type: "string",
-                            name: "name",
-                            description: "Extract the user's name from the conversation",
-                            examples: [
-                                "Ajay Sood",
-                                "John Wick",
-                                "Adam Zampa",
-                                "Jane Doe",
-                                "Nitish Kumar",
-                                "Ravi Shukla",
-                            ],
-                        },
-                        {
-                            type: "string",
-                            name: "email",
-                            description: "Extract the user's email from the conversation",
-                            examples: [
-                                "john.doe@example.com",
-                                "nitish@company.in",
-                                "12@gmail.com",
-                            ],
-                        },
-                        {
-                            type: "string",
-                            name: "reason",
-                            description:
-                                "The reason the user is calling or their inquiry. If provided in Hindi, translate to English. Summarize if it's long.",
-                            examples: [
-                                "Schedule an appointment",
-                                "Ask about services",
-                                "Request for accounting help",
-                            ],
-                        },
-                        {
-                            type: "string",
-                            name: "address",
-                            description: "The user's address or business location. If spoken in Hindi, translate to English. Format it for use in CRM or contact forms.",
-                            examples: ["123 Main St, Delhi", "42 Wallaby Way, Sydney", "1490 Aandhar Eleven"],
-                        },
-                        {
-                            type: "number",
-                            name: "phone_number",
-                            description:
-                                "The user's phone number in numeric format. If digits are spoken in words (e.g., 'seven eight seven six one two'), convert them to digits (e.g., '787612'). Ensure it's a valid number when possible.",
-
-                        },
-                    ],
-                     end_call_after_silence_ms: 30000,
-                    normalize_for_speech: true,
-                    webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/agent/updateAgentCall_And_Mins_WebHook`,
-      };
-      console.log(finalAgentData);
-
-      const agentRes = await axios.post(
-        "https://api.retellai.com/create-agent",
-        finalAgentData,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+        post_call_analysis_data: [
+          {
+            type: "string",
+            name: "Detailed Call Summary",
+            description: "Summary of the customer call",
           },
-        }
-      );
+          {
+            type: "enum",
+            name: "lead_type",
+            description: "Customer feedback",
+            choices: ["positive", "neutral", "negative"],
+          },
+        ],
+      };
+      console.log("finalagentdata",finalAgentData)
+      const agentRes = await axios.patch(`https://api.retellai.com/update-agent/${agentData.agent_id}`, finalAgentData, {
+        headers: {
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+        },
+      });
 
-      const agentId = agentRes.data.agent_id;
+      const agentId = agentData?.agent_id;
+      // const userId=localStorage.getItem("AgentForuserId")
+      const agentCode = localStorage.getItem("agentCode")
+      // ✅ SAVE TO DB (Use knowledgebaseName as agentName)
+      // const agentId = agentRes.data.agent_id;
+console.log(form.agentName,"formagentname3")
+      const updatedData = {
 
-      const dbPayload = {
-        userId:form.userId ||localStorage.getItem("AgentForUserId")||"",
         agent_id: agentId,
         llmId,
         avatar,
@@ -1370,200 +1368,69 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
         knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
         agentAccent: form.selectedVoice?.voice_accent || "American",
         agentRole: selectedRole,
-        agentName: form.agentName|| form.selectedVoice?.voice_name||"Virtual Assistant",
+        agentName: form.agentName || "Virtual Assistant",
         agentLanguageCode: languages.find((l) => l.name === languageAccToPlan)?.locale || "multi",
         agentLanguage: agentLanguage,
         dynamicPromptTemplate: filledPrompt,
         rawPromptTemplate: filledPrompt2,
         promptVariablesList: JSON.stringify(promptVariablesList),
         agentGender: gender,
-        agentCode:localStorage.getItem("agentCode"),
-        agentPlan: "free",
+        phone:[`${form?.phone}`],
+        agentPlan: agentData.agentPlan,
         agentStatus: true,
-        businessId: localStorage.getItem("BusinessId"),
+        businessId: businessId,
         additionalNote: "",
-         responsiveness: 1,
-         enable_backchannel: true,
-         CallRecording:CallRecording,
-       interruption_sensitivity: 0.7,
- backchannel_frequency: 0.7,
-      backchannel_words: ["Got it", "Yeah", "Uh-huh", "Understand", "Ok", "hmmm"],
-       post_call_analysis_data: [
-                            {
-                                type: "enum",
-                                name: "lead_type",
-                                description: "Feedback given by the customer about the call.",
-                                choices: getLeadTypeChoices(),
-                            },
-                            {
-                                type: "string",
-                                name: "name",
-                                description: "Extract the user's name from the conversation",
-                                examples: [
-                                    "Ajay Sood",
-                                    "John Wick",
-                                    "Adam Zampa",
-                                    "Jane Doe",
-                                    "Nitish Kumar",
-                                    "Ravi Shukla",
-                                ],
-                            },
-                            {
-                                type: "string",
-                                name: "email",
-                                description: "Extract the user's email from the conversation",
-                                examples: [
-                                    "john.doe@example.com",
-                                    "nitish@company.in",
-                                    "12@gmail.com",
-                                ],
-                            },
-                            {
-                                type: "string",
-                                name: "reason",
-                                description:
-                                    "The reason the user is calling or their inquiry. If provided in Hindi, translate to English. Summarize if it's long.",
-                                examples: [
-                                    "Schedule an appointment",
-                                    "Ask about services",
-                                    "Request for accounting help",
-                                ],
-                            },
-                            {
-                                type: "string",
-                                name: "address",
-                                description: "The user's address or business location. If spoken in Hindi, translate to English. Format it for use in CRM or contact forms.",
-                                examples: ["123 Main St, Delhi", "42 Wallaby Way, Sydney", "1490 Aandhar Eleven"],
-                            },
-                            {
-                                type: "number",
-                                name: "phone_number",
-                                description:
-                                    "The user's phone number in numeric format. If digits are spoken in words (e.g., 'seven eight seven six one two'), convert them to digits (e.g., '787612'). Ensure it's a valid number when possible.",
-
-                            },
-                        ],
+        CallRecording:form.CallRecording
       };
+console.log(form.agentName,"formagentname4")
+console.log("updateddat",updatedData)
 
-      const saveRes = await createAgent(dbPayload);
+      const saveRes = await updateAgent(agentData.agent_id, updatedData);
       if (saveRes.status === 200 || saveRes.status === 201) {
-        alert("Agent created successfully!");
+
+        Swal.fire("Agent Updated successfully!");
+        fetchMergedAgentData()
         localStorage.removeItem("businessType");
         localStorage.removeItem("agentCode");
-        localStorage.removeItem("");
+
         onClose();
+        setLoading(false)
+
       } else {
         throw new Error("Agent creation failed.");
+        setLoading(false)
       }
     } catch (err) {
       console.error("Error:", err);
+      setLoading(false)
       alert("Agent creation failed. Please check console for details.");
-    } finally {
     }
   };
 
-  const extractAddressFields = (components: any[]) => {
-    const getComponent = (primaryType: string, fallbackType: string | null = null, useShort = false) => {
-      const comp = components.find(
-        (c) =>
-          c.types.includes(primaryType) ||
-          (fallbackType && c.types.includes(fallbackType))
-      );
-      return comp ? (useShort ? comp.short_name : comp.long_name) : "";
-    };
 
-    return {
-      city: getComponent("locality", "sublocality_level_1"),
-      state: getComponent("administrative_area_level_1"),
-      state_code: getComponent("administrative_area_level_1", null, true),
-      country: getComponent("country"),
-      country_code: getComponent("country", null, true),
-      postal_code: getComponent("postal_code"),
-      street_number: getComponent("street_number"),
-      route: getComponent("route"),
-    };
-  };
-
-  // Updated useEffect for Google Places API
   useEffect(() => {
-    if (!isOpen || !window.google?.maps?.places) return;
-
     const interval = setInterval(() => {
-      if (
-        document.getElementById("google-autocomplete") &&
-        document.getElementById("google-address-autocomplete")
-      ) {
-        // Business autocomplete
-        const businessAutocomplete = new window.google.maps.places.Autocomplete(
+      if (window.google?.maps?.places && document.getElementById("google-autocomplete")) {
+        const autocomplete = new window.google.maps.places.Autocomplete(
           document.getElementById("google-autocomplete") as HTMLInputElement,
-          {
-            types: ["establishment"],
-            fields: [
-              "place_id",
-              "name",
-              "url",
-              "formatted_address",
-              "formatted_phone_number",
-              "rating",
-              "user_ratings_total",
-              "opening_hours",
-              "business_status",
-              "types",
-              "address_components",
-            ],
-          }
-        );
+          { types: ["establishment"], fields: ["place_id", "name", "url", "formatted_address", "formatted_phone_number"] }
+        )
 
-        businessAutocomplete.addListener("place_changed", () => {
-          const place = businessAutocomplete.getPlace();
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace()
           setForm({
             ...form,
-            googleBusiness: place.name || "",
-            businessName: place.name || "",
-            address: place.formatted_address || "",
-            phone: place.formatted_phone_number || "",
-            businessUrl: place.url || "",
-            rating: place.rating || "N/A",
-            totalRatings: place.user_ratings_total || "N/A",
-            hours: place.opening_hours
-              ? place.opening_hours.weekday_text.join(", ")
-              : "N/A",
-            businessStatus: place.business_status || "N/A",
-            categories: place.types ? place.types.join(", ") : "N/A",
-          });
-          setAddressComponents(place.address_components || []);
-          setSelectedCountry(
-            place.address_components?.find((c) => c.types.includes("country"))?.short_name || "US"
-          );
-        });
 
-        // Address autocomplete
-        const addressAutocomplete = new window.google.maps.places.Autocomplete(
-          document.getElementById("google-address-autocomplete") as HTMLInputElement,
-          {
-            types: ["geocode"],
-            fields: ["address_components", "formatted_address"],
-          }
-        );
+            businessName: place.name,
+            address: place.formatted_address,
+            phone: place.formatted_phone_number,
+          })
+        })
 
-        addressAutocomplete.addListener("place_changed", () => {
-          const place = addressAutocomplete.getPlace();
-          setForm({
-            ...form,
-            address: place.formatted_address || "",
-          });
-          setAddressComponents(place.address_components || []);
-          setSelectedCountry(
-            place.address_components?.find((c) => c.types.includes("country"))?.short_name || "US"
-          );
-        });
-
-        clearInterval(interval);
+        clearInterval(interval)
       }
-    }, 300);
-
-    return () => clearInterval(interval);
-  }, [isOpen, form]);
+    }, 300)
+  }, [form])
   const voiceAvatar = (provider: string) => {
     switch (provider?.toLowerCase()) {
       case "elevenlabs":
@@ -1603,67 +1470,30 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
     setPlayingIdx(idx);
     thisAudio.onended = () => setPlayingIdx(null);
   };
-
+  if (loading) {
+    console.log("reachedHere");
+    return (
+      <div
+        style={{
+          position: "fixed", // ✅ overlay entire screen
+          top: 0,
+          left: 0,
+          height: "100vh",
+          width: "100vw",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "rgba(255, 255, 255, 0.5)", // ✅ 50% white transparent
+          zIndex: 9999, // ✅ ensure it's on top
+        }}
+      >
+        <FadeLoader size={90} color="#6524EB" speedMultiplier={2} />
+      </div>
+    );
+  }
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Add Agent" width="max-w-xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Updating Agent" width="max-w-xl">
       <div className="space-y-4">
-       {step === 1 && (
-  <div>
-    <label htmlFor="user-select" className="block text-sm font-medium text-gray-700">
-      Select User
-    </label>
-    <Select
-      onValueChange={(value) => {
-        setForm((prev) => ({ ...prev, userId: value }));
-        localStorage.setItem("AgentForUserId", value); // Consistent camelCase
-      }}
-      value={form.userId || ""} // Ensure controlled component
-    >
-      <SelectTrigger id="user-select" aria-label="Select user">
-        <SelectValue placeholder="Choose user" />
-      </SelectTrigger>
-      <SelectContent>
-        <div className="px-2 py-1">
-          <Input
-            id="user-search"
-            placeholder="Search user..."
-            value={userSearch}
-            onChange={(e) => setUserSearch(e.target.value)}
-            className="mb-2"
-            aria-label="Search users by name or email"
-          />
-        </div>
-        {allUsers.length === 0 ? (
-          <div className="px-2 py-1 text-sm text-gray-500">
-            No users available
-          </div>
-        ) : (
-          allUsers
-            .filter((user) =>
-              `${user.name || ""} ${user.email || ""}`
-                .toLowerCase()
-                .includes(userSearch.toLowerCase().trim())
-            )
-            .map((user) => (
-              <SelectItem key={user.id} value={user.id}>
-                {user.name || "No Name"} ({user.email || "No Email"})
-              </SelectItem>
-            ))
-        )}
-        {allUsers.length > 0 &&
-          allUsers.filter((user) =>
-            `${user.name || ""} ${user.email || ""}`
-              .toLowerCase()
-              .includes(userSearch.toLowerCase().trim())
-          ).length === 0 && (
-            <div className="px-2 py-1 text-sm text-gray-500">
-              No users match your search
-            </div>
-          )}
-      </SelectContent>
-    </Select>
-  </div>
-)}
 
 
         {step === 2 && (
@@ -1700,7 +1530,8 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={selectedType}>{selectedType}</SelectValue>
+
                 </SelectTrigger>
                 <SelectContent>
                   <div className="px-2 py-1">
@@ -1714,9 +1545,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
 
                   {businessTypes
                     .filter((b) =>
-                      `${b.type} ${b.subtype}`
-                        .toLowerCase()
-                        .includes(businessSearch.toLowerCase())
+                      `${b.type} ${b.subtype}`.toLowerCase().includes(businessSearch.toLowerCase())
                     )
                     .map((b) => (
                       <SelectItem key={b.type} value={b.type}>
@@ -1724,9 +1553,9 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                       </SelectItem>
                     ))}
 
-                  {!businessTypes.some(
-                    (b) => b.type.toLowerCase() === "other"
-                  ) && <SelectItem value="Other">Other</SelectItem>}
+                  {!businessTypes.some((b) => b.type.toLowerCase() === "other") && (
+                    <SelectItem value="Other">Other</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
@@ -1739,9 +1568,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                     const trimmed = newBusinessType.trim();
                     if (
                       trimmed &&
-                      !businessTypes.some(
-                        (b) => b.type.toLowerCase() === trimmed.toLowerCase()
-                      )
+                      !businessTypes.some((b) => b.type.toLowerCase() === trimmed.toLowerCase())
                     ) {
                       const newBusiness = {
                         type: trimmed,
@@ -1771,6 +1598,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                     }
                     setNewBusinessType("");
                   }}
+
                   className="mt-2"
                 />
               )}
@@ -1778,29 +1606,19 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
 
             {/* BUSINESS SIZE */}
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Business Size
-              </label>
+              <label className="block text-sm font-medium mb-1">Business Size</label>
               <select
                 className="w-full border rounded px-3 py-2 text-sm"
                 value={businessSize}
                 onChange={(e) => setBusinessSize(e.target.value)}
               >
-                <option value="" disabled>
-                  Select Business Size
-                </option>
+                <option value="" disabled>Select Business Size</option>
                 <option value="1 to 10 employees">1 to 10 employees</option>
                 <option value="10 to 50 employees">10 to 50 employees</option>
                 <option value="50 to 100 employees">50 to 100 employees</option>
-                <option value="100 to 250 employees">
-                  100 to 250 employees
-                </option>
-                <option value="250 to 500 employees">
-                  250 to 500 employees
-                </option>
-                <option value="500 to 1000 employees">
-                  500 to 1000 employees
-                </option>
+                <option value="100 to 250 employees">100 to 250 employees</option>
+                <option value="250 to 500 employees">250 to 500 employees</option>
+                <option value="500 to 1000 employees">500 to 1000 employees</option>
                 <option value="1000+ employees">1000+ employees</option>
               </select>
             </div>
@@ -1808,11 +1626,9 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
             {/* SERVICES */}
             {/* SERVICES */}
             <div>
-              <label className="block text-sm font-medium">
-                Select Services
-              </label>
+              <label className="block text-sm font-medium">Select Services</label>
 
-              {(allServices[selectedType] || []).map((service) => (
+              {(allServices[selectedType] || [])?.map((service) => (
                 <div key={service}>
                   <input
                     type="checkbox"
@@ -1829,7 +1645,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                 </div>
               ))}
 
-              {/* ✅ If custom business type, show add-service input directly */}
+
               {selectedType && !allServices[selectedType]?.length && (
                 <div className="mt-2 flex items-center gap-2">
                   <Input
@@ -1842,30 +1658,18 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                     type="button"
                     onClick={() => {
                       const trimmed = newService.trim();
-                      if (
-                        trimmed &&
-                        !(allServices[selectedType] || []).includes(trimmed)
-                      ) {
-                        const updatedServices = [
-                          ...(allServices[selectedType] || []),
-                          trimmed,
-                        ];
+                      if (trimmed && !(allServices[selectedType] || []).includes(trimmed)) {
+                        const updatedServices = [...(allServices[selectedType] || []), trimmed];
                         setAllServices((prev) => ({
                           ...prev,
                           [selectedType]: updatedServices,
                         }));
 
-                        const updatedFormServices = [
-                          ...(form.services || []),
-                          trimmed,
-                        ];
+                        const updatedFormServices = [...(form.services || []), trimmed];
                         setForm((prev) => ({
                           ...prev,
                           services: updatedFormServices,
-                          customServices: [
-                            ...(prev.customServices || []),
-                            trimmed,
-                          ],
+                          customServices: Array.from(new Set([...(prev.customServices || []), trimmed])), // prevent duplicates
                         }));
                       }
                       setNewService("");
@@ -1896,8 +1700,6 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                     click for add more
                   </div>
                 )}
-
-              {/* Add new service if "Other" checkbox is checked */}
               {form.services?.includes("Other") && (
                 <div className="mt-2 flex items-center gap-2">
                   <Input
@@ -1930,10 +1732,7 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                         setForm((prev) => ({
                           ...prev,
                           services: updatedFormServices,
-                          customServices: [
-                            ...(prev.customServices || []),
-                            trimmed,
-                          ],
+                          customServices: [...(prev.customServices || []), trimmed],
                         }));
                       }
                       setNewService("");
@@ -1946,8 +1745,6 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                 </div>
               )}
             </div>
-
-            {/* SUBMIT BUTTON FOR STEP 2 */}
             <div className="pt-4">
               <button
                 type="button"
@@ -1958,47 +1755,52 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                     businessType: form.businessType || "Other",
                     businessName: form.businessName || "",
                     businessSize: businessSize || "",
-                    customBuisness:
-                      selectedType === "Other"
-                        ? newBusinessType || "Business"
-                        : "",
+                    customBuisness: selectedType === "Other" ? newBusinessType || "Business" : "",
                     buisnessService: form.services || [],
                     customServices: form.customServices || [],
                     buisnessEmail: form.email || "",
                   };
 
                   try {
-                    const res = await axios.post(
-                      `${URL}/api/businessDetails/create`,
-                      payload
+                    // setLoading(true)
+                    const res = await axios.patch(
+                      `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateBusinessDetailsByUserIDandBuisnessID/${userId}?businessId=${businessId}`, {
+                      businessType: form.businessType || "Other",
+                      businessName: form.businessName || "",
+                      businessSize: businessSize || "",
+                      customBuisness: selectedType === "Other" ? newBusinessType || "Business" : "",
+                      buisnessService: form.services || [],
+                      customServices: form.customServices || [],
+                      buisnessEmail: form.email || "",
+                    }
                     );
-                    console.log(
-                      res,
-                      "Step 2 business details submitted successfully"
-                    );
-                    localStorage.setItem(
-                      "BusinessId",
-                      res.data.record.businessId
-                    );
-                    localStorage.setItem("agentCode", res.data.agentCode);
+                    // console.log(res,"Step 2 business details submitted successfully");
+
+                    // localStorage.setItem("BusinessId",res.data.record.businessId)/
+                    
                     setStep((prev) => prev + 1);
+                    // setLoading(false)
+
                   } catch (error) {
                     console.error("Error submitting business details:", error);
+                    // setLoading(false)
                   }
                 }}
               >
                 Save Business Details
               </button>
+
             </div>
           </div>
         )}
 
 
-       {step === 3 && (
+
+        {step === 3 && (
           <div className="space-y-4 border rounded-xl p-4 shadow">
             <Input
               id="google-autocomplete"
-              placeholder="Search business via Google (e.g., DesignersX)"
+              placeholder="Search business via Google"
               className="w-full"
               value={form.googleBusiness || ""}
               onChange={(e) => {
@@ -2009,51 +1811,11 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
 
             <div className="relative w-full">
               <Input
-                placeholder="Website URL include https://"
+                placeholder="Website URL"
                 value={form.businessUrl || ""}
                 onChange={(e) => {
                   setForm({ ...form, businessUrl: e.target.value });
                   setIsWebsiteValid(null);
-                }}
-                onKeyDown={(e) => {
-                  const input = e.currentTarget;
-                  const { key } = e;
-                  const { selectionStart, selectionEnd, value } = input;
-                  const fullSelection = selectionStart === 0 && selectionEnd === value.length;
-
-                  if (key === "Backspace" || key === "Delete") {
-                    if (fullSelection) {
-                      e.preventDefault();
-                      setForm((prev) => ({ ...prev, businessUrl: HTTPS_PREFIX }));
-                      requestAnimationFrame(() => {
-                        input.setSelectionRange(PREFIX_LEN, PREFIX_LEN);
-                      });
-                      return;
-                    }
-
-                    if (selectionStart <= PREFIX_LEN) {
-                      e.preventDefault();
-                      input.setSelectionRange(PREFIX_LEN, PREFIX_LEN);
-                    }
-                  }
-                }}
-                onClick={(e) => {
-                  const input = e.currentTarget;
-                  if (input.selectionStart < PREFIX_LEN) {
-                    input.setSelectionRange(PREFIX_LEN, PREFIX_LEN);
-                  }
-                }}
-                onFocus={(e) => {
-                  const input = e.currentTarget;
-                  if (!input.value.startsWith(HTTPS_PREFIX)) {
-                    setForm((prev) => ({
-                      ...prev,
-                      businessUrl: HTTPS_PREFIX + input.value,
-                    }));
-                    requestAnimationFrame(() => {
-                      input.setSelectionRange(PREFIX_LEN, PREFIX_LEN);
-                    });
-                  }
                 }}
                 onBlur={handleWebsiteBlur}
               />
@@ -2069,7 +1831,6 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                 </div>
               )}
             </div>
-
             <label className="inline-flex items-center gap-2 text-sm text-gray-700">
               <input
                 type="checkbox"
@@ -2095,9 +1856,9 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
               placeholder="Business Name"
               value={form.businessName}
               onChange={(e) => setForm({ ...form, businessName: e.target.value })}
+
             />
             <Input
-              id="google-address-autocomplete"
               placeholder="Address"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -2106,28 +1867,30 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
               placeholder="Phone"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
+
             />
             <Input
               placeholder="Email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+
             />
             <Textarea
               placeholder="About your business"
               value={form.about}
               onChange={(e) => setForm({ ...form, about: e.target.value })}
+
             />
             <button
               className="bg-purple-600 text-white px-4 py-2 rounded w-full"
               onClick={async () => {
                 const hasGoogle = form.googleBusiness?.trim();
                 const hasWebsite = form.businessUrl?.trim();
-                const manuallyFilled = form.businessName && form.address && form.phone && form.email;
+                const manuallyFilled =
+                  form.businessName && form.address && form.phone ;
 
                 if (!hasNoGoogleOrWebsite && (!hasGoogle || !hasWebsite)) {
-                  alert(
-                    "Please enter both Google Business and Website URL, or check the 'I don't have...' option."
-                  );
+                  alert("Please enter both Google Business and Website URL, or check the 'I don't have...' option.");
                   return;
                 }
 
@@ -2136,243 +1899,174 @@ const currentTime = new Date().toLocaleString("en-US", { timeZone: timeZone.time
                   return;
                 }
 
-                if (form.phone && !validatePhoneNumber(form.phone)) {
-                  alert("Please enter a valid phone number.");
-                  return;
-                }
-
-                const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-                if (form.email && !isValidEmail(form.email)) {
-                  alert("Please enter a valid email address.");
-                  return;
-                }
-
-                const containsSpecialChars = (str: string) => /[!@#$%^&*(),.?":{}|<>]/.test(str);
-                const containsEmoji = (str: string) =>
-                  /([\u2700-\u27BF]|[\uE000-\uF8FF]|[\uD83C-\uDBFF\uDC00-\uDFFF])/g.test(str);
-                if (form.about && (containsSpecialChars(form.about) || containsEmoji(form.about))) {
-                  alert("About Business cannot contain special characters or emojis.");
-                  return;
-                }
-
-                const addressFields = extractAddressFields(addressComponents);
-
-                const urls = [];
-                if (hasWebsite) {
-                  urls.push(hasWebsite);
-                }
+                const urls: string[] = [];
+                if (hasWebsite) urls.push(hasWebsite);
                 if (hasGoogle) {
-                  const query = encodeURIComponent(`${form.businessName || "N/A"} ${form.address || "N/A"}`);
-                  const googleSearchUrl = `https://www.google.com/search?q=${query}`;
-                  urls.push(googleSearchUrl);
+                  const query = encodeURIComponent(form.googleBusiness);
+                  urls.push(`https://www.google.com/search?q=${query}`);
                 }
 
                 const textContent = [
                   {
                     title: "Business Details",
-                    text: `Business Name: ${form.businessName || "N/A"}
+                    text: `Name: ${form.businessName || "N/A"}
 Address: ${form.address || "N/A"}
 Phone: ${form.phone || "N/A"}
-International Phone: ${form.phone || "N/A"}
 Website: ${form.businessUrl || "N/A"}
-Rating: ${form.rating || "N/A"}
-Total Ratings: ${form.totalRatings || "N/A"}
-Hours: ${form.hours || "N/A"}
-Business Status: ${form.businessStatus || "N/A"}
-Categories: ${form.categories || "N/A"}
-Address components: ${JSON.stringify(addressComponents)}
 Email: ${form.email || "N/A"}
-About Bussiness: ${form.about || "N/A"}
-City: ${addressFields.city || "N/A"}
-State: ${addressFields.state || "N/A"}
-Country: ${addressFields.country || "N/A"}
-Postal code: ${addressFields.postal_code || "N/A"}
-Street number: ${addressFields.street_number || "N/A"}
-Country code: ${addressFields.country_code || "N/A"}
-State code: ${addressFields.state_code || "N/A"}`,
+About: ${form.about || "N/A"}
+Google: ${form.googleBusiness || "N/A"}`
                   },
                 ];
 
                 const knowledgeBaseName = localStorage.getItem("knowledgebaseName") || "My Business KB";
-                const businessId = localStorage.getItem("BusinessId");
+
 
                 try {
-                  const formData = new FormData();
-                  formData.append("knowledge_base_name", knowledgeBaseName);
-                  formData.append("enable_auto_refresh", "true");
-                  formData.append("knowledge_base_texts", JSON.stringify(textContent));
-                  if (urls.length > 0) {
-                    formData.append("knowledge_base_urls", JSON.stringify(urls));  
-                  }
-
-                  const res = await axios.post(
-                    "https://api.retellai.com/create-knowledge-base",
-                    formData,
-                    {
-                      headers: {
-                        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-                        "Content-Type": "multipart/form-data",
-                      },
-                    }
-                  );
-
-                  const knowledgeBaseId = res?.data?.knowledge_base_id;
-                  if (knowledgeBaseId) {
-                    localStorage.setItem("knowledgeBaseId", knowledgeBaseId);
-
-                    // await axios.patch(
-                    //   `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
-                    //   {
-                    //     knowledge_base_texts: {
-                    //       businessName: form.businessName || "",
-                    //       address: form.address || "",
-                    //       businessphone: form.phone || "",
-                    //       website: form.businessUrl || "",
-                    //       rating: form.rating || "",
-                    //       totalRatings: form.totalRatings || "",
-                    //       hours: form.hours || "",
-                    //       businessStatus: form.businessStatus || "",
-                    //       categories: form.categories || "",
-                    //       email: form.email || "",
-                    //       aboutBussiness: form.about || "",
-                    //       city: addressFields.city || "",
-                    //       state: addressFields.state || "",
-                    //       country: addressFields.country || "",
-                    //       postal_code: addressFields.postal_code || "",
-                    //       street_number: addressFields.street_number || "",
-                    //       country_code: addressFields.country_code || "",
-                    //       state_code: addressFields.state_code || "",
-                    //     },
-                    //     knowledge_base_urls: urls,
-                    //     googleUrl: form.googleBusiness || "",
-                    //     webUrl: form.businessUrl || "",
-                    //     aboutBusiness: form.about || "",
-                    //     additionalInstruction: "",
-                    //     agentId: localStorage.getItem("agent_id") || null,
-                    //     googleBusinessName: form.businessName || "",
-                    //     address1: form.address || "",
-                    //     buisnessEmail: form.email || "",
-                    //     businessName: form.businessName || "",
-                    //     phoneNumber: form.phone || "",
-                    //     isGoogleListing: !hasNoGoogleOrWebsite,
-                    //     isWebsiteUrl: !!hasWebsite,
-                    //     knowledge_base_id: knowledgeBaseId,
-                    //     knowledge_base_name: knowledgeBaseName,
-                    //   },
-                    //   {
-                    //     headers: {
-                    //       Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-                    //       "Content-Type": "application/json",
-                    //     },
-                    //   }
-                    // );
-try {
-  const response = await axios.patch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
-    {
-      knowledge_base_name: knowledgeBaseName,
-      knowledge_base_urls: JSON.stringify(urls), // Stringify if backend expects JSON string
-      knowledge_base_texts: JSON.stringify(
-        {
-          businessName: form.businessName || "",
-          address: form.address || "",
-          phone: form.phone || "",
-          website: form.businessUrl || "",
-          rating: form.rating || "",
-          totalRatings: form.totalRatings || "",
-          hours: form.hours || "",
-          businessStatus: form.businessStatus || "",
-          categories: form.categories || "",
-          email: form.email || "",
-          aboutBussiness: form.about || "",
-          city: addressFields.city || "",
-          state: addressFields.state || "",
-          country: addressFields.country || "",
-          postal_code: addressFields.postal_code || "",
-          street_number: addressFields.street_number || "",
-          country_code: addressFields.country_code || "",
-          state_code: addressFields.state_code || "",
-          buisnessEmail: form.email || "",
-        },
-      ),
-      buisnessEmail: form.email || "",
-      // buisnessEmail: form.email || "",
-      googleUrl: form.googleBusiness || "",
-      webUrl: form.businessUrl || "",
-      aboutBusiness: JSON.stringify(form.about || ""), // Stringify if backend expects JSON string
-      additionalInstruction: JSON.stringify(""), // Stringify if backend expects JSON string
-      agentId: localStorage.getItem("agent_id") || null,
-      googleBusinessName: form.businessName || "",
-      address1: form.address || "",
-      businessName: form.businessName || "",
-      city: addressFields.city || "",
-      state: addressFields.state || "",
-      country: addressFields.country || "",
-      postal_code: addressFields.postal_code || "",
-      street_number: addressFields.street_number || "",
-      country_code: addressFields.country_code || "",
-      state_code: addressFields.state_code || "",
-      knowledge_base_id: knowledgeBaseId,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  console.log("Knowledge base updated successfully:", response.data);
-} catch (error) {
-  console.error("Error updating knowledge base:", error.response?.data || error.message);
-}
-                    sessionStorage.setItem(
-                      "placeDetailsExtract",
-                      JSON.stringify({
-                        businessName: form.businessName,
-                        address: form.address,
-                        phone: form.phone,
-                        email: form.email,
-                        aboutBussiness: form.about,
-                        address_components: addressComponents,
-                        rating: form.rating,
-                        totalRatings: form.totalRatings,
-                        hours: form.hours,
-                        businessStatus: form.businessStatus,
-                        categories: form.categories,
-                      })
+                  // Step 1: Delete existing knowledge base
+                  let shouldCreate = false;
+                  try {
+                    const del = await axios.delete(
+                      `https://api.retellai.com/delete-knowledge-base/${agentData.knowledgeBaseId}`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+                        },
+                      }
                     );
+
+                    if (del?.data?.status === true || del?.data?.message?.toLowerCase()?.includes("not found")) {
+                      shouldCreate = true;
+                    } 
+                    // else {
+                    //   alert("Failed to delete existing knowledge base.");
+                    //   return;
+                    // }
+                  } catch (delErr) {
+                    // In case delete fails with 404 or other "not found" message
+                    const msg = delErr?.response?.data?.message || "";
+                    if (msg.toLowerCase().includes("not found")) {
+                      shouldCreate = true;
+                    } else {
+                      console.error("Delete error:", delErr);
+                      alert("Error deleting previous knowledge base.");
+                      return;
+                    }
                   }
 
-                  setStep((prev) => prev + 1);
-                } catch (err) {
-                  console.error("Failed to create knowledge base:", err);
-                  if (err.response?.status === 422) {
-                    alert("Knowledge base is currently updating. Try again later.");
-                  } else {
-                    alert("Error creating knowledge base. Try again later.");
+                  // Step 2: Create new knowledge base
+                  if (shouldCreate) {
+                    const formData = new FormData();
+                    formData.append("knowledge_base_name", knowledgeBaseName);
+                    formData.append("enable_auto_refresh", "true");
+                    formData.append("knowledge_base_texts", JSON.stringify(textContent));
+                    if (urls.length > 0) {
+                      formData.append("knowledge_base_urls", JSON.stringify(urls));
+                    }
+
+                    const res = await axios.post(
+                      "https://api.retellai.com/create-knowledge-base",
+                      formData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+                          "Content-Type": "multipart/form-data",
+                        },
+                      }
+                    );
+
+                    const knowledgeBaseId = res?.data?.knowledge_base_id;
+                    // console.log
+                    if (knowledgeBaseId) {
+                      localStorage.setItem("knowledgeBaseId", knowledgeBaseId);
+
+                      // Step 3: PATCH to backend
+                      await axios.patch(
+                        `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
+                        {
+                          knowledge_base_texts: {
+                            businessName: form.businessName || "",
+                            address: form.address || "",
+                            phone: form.phone || "",
+                            website: form.businessUrl || "",
+                            rating: "",
+                            totalRatings: "",
+                            hours: "",
+                            businessStatus: "",
+                            categories: "",
+                            email: form.email || "",
+                            aboutBussiness: form.about || "",
+                          },
+                          googleUrl: form.googleBusiness || "",
+                          webUrl: form.businessUrl || "",
+                          aboutBusiness: form.about || "",
+                          additionalInstruction: "",
+                          agentId: localStorage.getItem("agent_id") || null,
+                          googleBusinessName: form.businessName || "",
+                          address1: form.address || "",
+                          buisnessEmail: form.email || "",
+                          businessName: form.businessName || "",
+                        
+                          isGoogleListing: !hasNoGoogleOrWebsite,
+                          isWebsiteUrl: !!hasWebsite,
+                          knowledge_base_id: knowledgeBaseId,
+                          knowledge_base_name: knowledgeBaseName,
+                        },
+                        {
+                          headers: {
+                            Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+                            "Content-Type": "application/json",
+                          },
+                        }
+                      );
+                      setStep((prev) => prev + 1);
+                    }
                   }
+                } catch (err) {
+                  console.error("Failed to create or update knowledge base:", err);
+                  alert("Error creating knowledge base. Try again later.");
                 }
               }}
             >
               Save & Continue
             </button>
+
+
+
           </div>
         )}
 
+
+
+
         {step === 4 && (
           <div className="space-y-4">
-              <label className="block text-sm font-medium">Agent Name</label>
-                        <Input
-                          placeholder="Agent Name"
-                          value={form.agentName}
-                          onChange={(e) => setForm({ ...form, agentName: e.target.value })}
-            
-                        />
+            <label className="block text-sm font-medium">Agent Name</label>
+            <Input
+              placeholder="Agent Name"
+              value={form.agentName}
+              onChange={(e) => setForm({ ...form, agentName: e.target.value })}
+
+            />
+            {/* Language */}
             <label className="block text-sm font-medium">Select Language</label>
-               <Select onValueChange={(v) => setForm({ ...form, language: v ,agentLanguage:languages?.find((lang) => lang?.locale == v)?.name || v})} value={form.language}>
+            <Select
+              value={form.language}
+              
+            onValueChange={(locale) => {
+  const selectedLang = languages.find(lang => lang.locale === locale);
+  setForm({
+    ...form,
+    agentLanguage: selectedLang?.name || "",
+    language: locale
+  });
+}}
+
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Choose language" />
+                <SelectValue placeholder="Select language">
+                  {languages.find((l) => l.locale === form.language)?.name}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {languages.map((lang) => (
@@ -2381,8 +2075,9 @@ try {
                       <img
                         src={
                           lang.locale
-                            ? `https://flagcdn.com/w20/${lang.locale.split("-")[1]?.toLowerCase() || "us"
-                            }.png`
+                            ? `https://flagcdn.com/w20/${lang.locale
+                              .split("-")[1]
+                              ?.toLowerCase() || "us"}.png`
                             : "https://flagcdn.com/w20/us.png"
                         }
                         alt="flag"
@@ -2395,8 +2090,10 @@ try {
               </SelectContent>
             </Select>
 
+            {/* Gender */}
             <label className="block text-sm font-medium">Gender</label>
             <Select
+              value={form.gender}
               onValueChange={(v) =>
                 setForm((prev) => ({
                   ...prev,
@@ -2406,7 +2103,7 @@ try {
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Choose gender" />
+                <SelectValue>{form.gender || "Select gender"}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Male">Male</SelectItem>
@@ -2414,6 +2111,8 @@ try {
               </SelectContent>
             </Select>
 
+
+            {/* Voice */}
             <div>
               <label className="block text-sm font-medium mb-1">Voice</label>
               {filteredVoices.length === 0 ? (
@@ -2422,29 +2121,31 @@ try {
                 </p>
               ) : (
                 <Select
+                  value={form.voice}
                   onValueChange={(v) => {
                     const selectedVoice = filteredVoices.find(
                       (voice) => voice.voice_id === v
                     );
-                    setForm({ ...form, voice: v, selectedVoice, });
+                    setForm({
+                      ...form,
+                      voice: v,
+                      selectedVoice,
+                      // agentName: v.voice_name,
+                    });
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose voice" />
+                    <SelectValue>
+                      {
+                        filteredVoices.find((v) => v.voice_id === form.voice)
+                          ?.voice_name || "Select voice"
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px] overflow-y-auto">
                     {filteredVoices.map((voice, index) => (
-                      <SelectItem
-                        key={index}
-                        value={voice.voice_id}
-                        className="py-2"
-                      >
+                      <SelectItem key={index} value={voice.voice_id} className="py-2">
                         <div className="flex items-center justify-between gap-2">
-                          {/* <img
-                      src={voiceAvatar(voice.provider)}
-                      alt={voice.voice_name}
-                      className="w-6 h-6 rounded-full object-cover"
-                    /> */}
                           <div>
                             <p className="text-sm font-medium leading-tight">
                               {voice.voice_name}
@@ -2455,22 +2156,24 @@ try {
                                 : voice.provider}
                             </p>
                           </div>
-                          <Button
-                            type="button"
-                            size="icon"
-                            color="purple"
-                            variant="ghost"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              togglePlay(index);
-                            }}
-                          >
-                            {playingIdx === index ? (
-                              <Pause className="w-4 h-4 text-muted-foreground" />
-                            ) : (
-                              <Play className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </Button>
+                          <div className="w-6 zIndex-999">
+                            <Button
+                              type="button"
+                              size="icon"
+                              color="purple"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                togglePlay(index);
+                              }}
+                            >
+                              {playingIdx === index ? (
+                                <Pause className="w-4 h-4 text-muted-foreground" />
+                              ) : (
+                                <Play className="w-4 h-4 text-muted-foreground" />
+                              )}
+                            </Button>
+                          </div>
                           <audio
                             ref={(el) => (audioRefs.current[index] = el)}
                             style={{ display: "none" }}
@@ -2488,12 +2191,34 @@ try {
               )}
             </div>
 
-            <label className="block text-sm font-medium">Avatar</label>
+            {/* Avatar */}
+            <label className="block text-sm font-medium mt-4">Avatar</label>
             {form.gender ? (
-              <Select onValueChange={(v) => setForm({ ...form, avatar: v })}>
+              <Select
+                value={form.avatar || ""}
+                onValueChange={(v) => setForm({ ...form, avatar: v })}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose avatar" />
+                  <SelectValue placeholder="Choose avatar">
+                    {/* Show selected avatar with index */}
+                    {(() => {
+                      const currentList = avatars[form.gender] || [];
+                      const selectedIndex = currentList.findIndex((a) => a.img === form.avatar);
+                      const selectedAvatar = currentList[selectedIndex];
+                      return selectedAvatar ? (
+                        <span className="inline-flex items-center gap-2">
+                          <img
+                            src={selectedAvatar.img}
+                            alt={`Avatar ${selectedIndex + 1}`}
+                            className="w-6 h-6 rounded-full"
+                          />
+                          Avatar {selectedIndex + 1}
+                        </span>
+                      ) : null;
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
+
                 <SelectContent>
                   {avatars[form.gender]?.map((av, index) => (
                     <SelectItem key={index} value={av.img}>
@@ -2510,14 +2235,20 @@ try {
                 </SelectContent>
               </Select>
             ) : (
-              <p className="text-sm text-gray-500">
-                Select gender to choose avatar
-              </p>
+              <p className="text-sm text-gray-500">Select gender to choose avatar</p>
             )}
+
+
             <br />
             {roles.map((role, index) => (
-              <label key={index}>
+              <label
+                key={index}
+
+
+              >
                 <div className="flex">
+
+
                   <div className="flex ">
                     <input
                       type="radio"
@@ -2526,44 +2257,56 @@ try {
                       checked={selectedRole === role.title}
                       onChange={() => {
                         setSelectedRole(role.title);
+
                       }}
+
                     />
                     {/* <span className={styles.customRadio}></span> */}
-                  </div>{" "}
-                  &nbsp; &nbsp;
-                  <div>
-                    <p>{role.title}</p>
+                  </div> &nbsp; &nbsp;
+                  <div >
+                    <p >{role.title}</p>
+
                   </div>
+
                 </div>
+
               </label>
+
             ))}
+            <div className="flex items-center justify-between mt-4">
+  <label className="block text-sm font-medium">Call Recording</label>
+  <button
+    type="button"
+    onClick={() =>
+      setForm((prev) => ({
+        ...prev,
+        CallRecording: !prev.CallRecording,
+      }))
+    }
+    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-300 ${
+      form.CallRecording ? "bg-purple-600" : "bg-gray-300"
+    }`}
+  >
+    <span
+      className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-300 ${
+        form.CallRecording ? "translate-x-6" : "translate-x-1"
+      }`}
+    /> 
+  </button>
+</div>
           </div>
         )}
 
+
+
         <div className="flex justify-between pt-4">
-          {step > 1 && (
-            <Button variant="outline" color="purple" onClick={handlePrevious}>
-              Previous
-            </Button>
-          )}
-          {step < 4 && (
-            <Button
-              color="purple"
-              className="bg-purple-600"
-              onClick={handleNext}
-            >
-              Next
-            </Button>
-          )}
-          {step === 4 && (
-            <Button className="bg-purple-600 text-white" onClick={handleSubmit}>
-              Submit
-            </Button>
-          )}
+          {step > 2 && <Button variant="outline" color="purple" onClick={handlePrevious}>Previous</Button>}
+          {step < 4 && <Button color="purple" className="bg-purple-600" onClick={handleNext}>Next</Button>}
+          {step === 4 && <Button className="bg-purple-600 text-white" onClick={handleSubmit}>Submit</Button>}
         </div>
       </div>
     </Modal>
-  );
-};
+  )
+}
 
-export default AddAgentModal;
+export default EditAgentModal

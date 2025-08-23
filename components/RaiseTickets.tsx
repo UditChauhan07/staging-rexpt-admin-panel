@@ -18,7 +18,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -108,11 +108,15 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
   return (
     <div className="p-4 space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Raised Tickets</h2>
+        <div>
+        <h1 className="text-3xl font-bold text-gray-900">Raised Tickets</h1>
+         <p className="text-gray-600 mt-2">Manage all raised tickets </p>
+        </div>
         {/* <Button onClick={() => setModalOpen(true)}>Raise New Ticket</Button> */}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
+            <CardTitle>All Users</CardTitle>
         {/* <Input placeholder="Search" value={userId} onChange={(e) => setUserId(e.target.value)} /> */}
         <Input
             placeholder="Search by Ticket ID or Subject"
@@ -145,26 +149,29 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
       </div>
 
       <Card className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Ticket ID</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>User ID</TableHead>
-              <TableHead>Raised by</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Attachments</TableHead>
-               <TableHead>Status</TableHead>
-               <TableHead>Ticket Raised</TableHead>
-              <TableHead>Last Activity</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <Table style={{padding:'5px'}}>
+
+          {/* <CardHeader>
+           </CardHeader> */}
+            <tr>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Ticket ID</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Subject</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Priority</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">User ID</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Raised by</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Category</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Attachments</th>
+               <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+               <th className="text-left py-3 px-4 font-semibold text-gray-700">Ticket Raised</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Activity</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Resolution Note</th>
+            </tr>
+        
+          <tbody>
             {currentTickets.map((ticket) => (
               <TableRow key={ticket?.ticketId}>
-                <TableCell>{ticket?.ticketId}</TableCell>
+                <TableCell style={{border:'unset'}}>{ticket?.ticketId}</TableCell>
                 <TableCell>{ticket?.subject}</TableCell>
                 <TableCell>{ticket?.priority}</TableCell>
                         <TableCell>
@@ -179,7 +186,8 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
                     </Tooltip>
                   </TooltipProvider>
                 </TableCell>
-                <TableCell>{ticket?.user?.isOpen ==2?'User':'Partner'}</TableCell>
+                <TableCell>{ticket?.user?.isUserType === 2 || ticket?.user?.isUserType === 3 ? 'Partner' : 'User'}
+                </TableCell>
                 <TableCell>{ticket?.category}</TableCell>
                 <TableCell><Button
                     variant="outline"
@@ -225,9 +233,10 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
                   Take Action
                 </Button>
               </TableCell>
+              <TableCell>{ticket?.resolutionNotes}</TableCell>
               </TableRow>
             ))}
-          </TableBody>
+          </tbody>
         </Table>
             <div className="flex items-center justify-between mt-6">
             <div className="text-sm text-gray-600">

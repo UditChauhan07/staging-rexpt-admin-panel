@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect,useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, EyeOff, Trash2 ,Plus} from "lucide-react";
+import { Eye, EyeOff, Trash2, Plus } from "lucide-react";
 import axios from "axios";
 import { Input } from "./ui/input";
 import {
@@ -33,7 +33,6 @@ import {
 import { getRetellVoices, validateWebsite } from "@/Services/auth";
 import Swal from "sweetalert2";
 
-
 interface Agent {
   agent_id: string;
   agentName: string;
@@ -55,6 +54,8 @@ interface Agent {
   rawPromptTemplate?: string;
   dynamicPromptTemplate?: string;
   llmDetails?: { model?: string };
+  knowledgeBaseId?: string;
+  promptVariablesList?: string | any[];
 }
 
 interface Business {
@@ -66,6 +67,8 @@ interface Business {
   agents?: Agent[];
   totalCalls?: number;
   activeAgents?: number;
+  businessType?: string;
+  knowledge_base_texts?: { phone?: string };
 }
 
 interface BusinessType {
@@ -74,8 +77,7 @@ interface BusinessType {
   icon: string
 }
 
-
-  const avatars = {
+const avatars = {
   Male: [
     { img: '/images/Male-01.png' },
     { img: '/images/Male-02.png' },
@@ -93,13 +95,10 @@ interface BusinessType {
   ],
 };
 
-
-
-
 interface AgentDetailViewProps {
   agent: Agent;
   business: Business;
-  total_call:total_call,
+  total_call: number;
   onBack: () => void;
   agentName: string;
   dropdowns?: Record<string, boolean>;
@@ -130,35 +129,13 @@ const getModelImage = (model: string) => {
 };
 
 const sidebarOptions = [
-  // { id: "functions", label: "Functions", icon: Settings, hasDropdown: true },
   {
     id: "knowledge",
     label: "Knowledge Base",
     icon: BookOpen,
-hasDropdown: true, 
+    hasDropdown: true,
   },
-  // { id: "speech", label: "Speech Settings", icon: Volume2, hasDropdown: false },
-  // { id: "call", label: "Call Settings", icon: Phone, hasDropdown: true },
-  // {
-  //   id: "forwards",
-  //   label: "Text-Call Forwards",
-  //   icon: PhoneForwarded,
-  //   hasDropdown: false,
-  // },
-  // {
-  //   id: "security",
-  //   label: "Security & Callback Settings",
-  //   icon: Shield,
-  //   hasDropdown: true,
-  // },
-  // {
-  //   id: "webhook",
-  //   label: "Webhook Settings",
-  //   icon: Webhook,
-  //   hasDropdown: false,
-  // },
 ];
-
 
 const variableList = [
   { name: "AGENT NAME" },
@@ -173,60 +150,42 @@ const variableList = [
   { name: "AGENTNOTE" },
 ];
 
-
 export function AgentDetailView({
   agent,
   business,
-  knowledge_base_texts,
   total_call,
   onBack,
-  agentName,
-  dropdowns = {}, // fallback to empty object
+  dropdowns = {},
   toggleDropdown,
   setShowAgentModal,
   setAgentData,
   languages,
 }: AgentDetailViewProps) {
   const [activeTab, setActiveTab] = useState("functions");
-  const [retellVoices, setRetellVoices] = useState([]||agent?.agentVoice||"English(US)");
+  const [retellVoices, setRetellVoices] = useState<any[]>([]);
   const [isDynamicView, setIsDynamicView] = useState(false);
   const [prompt, setPrompt] = useState(agent.rawPromptTemplate || "");
-  const dynamicPrompt = agent.dynamicPromptTemplate || "";
   const [modelName, setModelName] = useState(agent.modelName || "gemini-2.0-flash");
- const [selectedVoiceId, setSelectedVoiceId] = useState(agent?.agentVoice || "");
-  const [knowledgeBases, setKnowledgeBases] = useState<string[]>([
-  "Sales Docs",
+  const [selectedVoiceId, setSelectedVoiceId] = useState(agent?.agentVoice || "");
+  const [knowledgeBases, setKnowledgeBases] = useState<string[]>(["Sales Docs"]);
+  const [showAddKnowledgeModal, setShowAddKnowledgeModal] = useState(false);
+  const [newKnowledgeName, setNewKnowledgeName] = useState("");
+  const [form, setForm] = useState<any>({});
+  const [isWebsiteValid, setIsWebsiteValid] = useState<boolean | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [customText, setCustomText] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [showAddOptions, setShowAddOptions] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(agent?.agentLanguageCode || "");
 
-]); // Dummy data; replace with fetched data if needed
-  const [businessSearch, setBusinessSearch] = useState("")
-   const [businessSize, setBusinessSize] = useState("");
-//  const [businessTypes, setBusinessTypes] = useState<BusinessType[]>(allBusinessTypes)
-  const [allServices, setAllServices] = useState<{ [key: string]: string[] }>({})
-  const [selectedType, setSelectedType] = useState("")
-  const [newBusinessType, setNewBusinessType] = useState("")
-  const [newService, setNewService] = useState("")
-const [showAddKnowledgeModal, setShowAddKnowledgeModal] = useState(false);
-// const [newKnowledgeName, setNewKnowledgeName] = useState("");
-const [showAddOptions, setShowAddOptions] = useState(false);
-// const [form, setForm] = useState({ businessUrl: "", services: [], customServices: [], businessType: "" });
-const [isWebsiteValid, setIsWebsiteValid] = useState(null);
-const [isVerifying, setIsVerifying] = useState(false);
-const [customText, setCustomText] = useState("");
-const [uploadedFiles, setUploadedFiles] = useState([]);
-
- const [form, setForm] = useState<any>({})
-const [newKnowledgeName, setNewKnowledgeName] = useState("");
- const [selectedLanguage, setSelectedLanguage] = useState(agent?.agentLanguageCode || "");
-
-
-  const textareaRef = useRef(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const parsedVariables =
     typeof agent?.promptVariablesList === "string"
       ? JSON.parse(agent.promptVariablesList)
       : agent?.promptVariablesList || [];
 
-     const insertVariableAtCursor = (variable) => {
+  const insertVariableAtCursor = (variable: string) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     const start = textarea.selectionStart;
@@ -242,8 +201,7 @@ const [newKnowledgeName, setNewKnowledgeName] = useState("");
     }, 0);
   };
 
-
- const liveDynamicPrompt = prompt.replace(/{{(.*?)}}/g, (_match, varName) => {
+  const liveDynamicPrompt = prompt.replace(/{{(.*?)}}/g, (_match, varName) => {
     const found = parsedVariables.find((v) => v.name.toLowerCase() === varName.trim().toLowerCase());
     if (!found) return _match;
     const val = found.value;
@@ -253,56 +211,37 @@ const [newKnowledgeName, setNewKnowledgeName] = useState("");
     return val ?? "";
   });
 
-  // const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-
-
-const handledeleteknowledgebase = async (knowledge_base_id) => {
-  try {
-    const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/knowledgeBase/deleteKnowledgeBase/${knowledge_base_id}`);
-    if (res.data?.status === true) {
-      Swal.fire("Deleted!", "Knowledge base deleted successfully", "success");
-      setKnowledgeBases(prev => prev.filter(id => id !== knowledge_base_id));
-    } else {
-      Swal.fire("Error", "Could not delete the knowledge base", "error");
+  const handledeleteknowledgebase = async (knowledge_base_id: string) => {
+    try {
+      const res = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/knowledgeBase/deleteKnowledgeBase/${knowledge_base_id}`);
+      if (res.data?.status === true) {
+        Swal.fire("Deleted!", "Knowledge base deleted successfully", "success");
+        setKnowledgeBases(prev => prev.filter(id => id !== knowledge_base_id));
+      } else {
+        Swal.fire("Error", "Could not delete the knowledge base", "error");
+      }
+    } catch (error: any) {
+      console.error(error.response?.data?.error || error.message);
+      Swal.fire("Error", error.response?.data?.error || "An error occurred", "error");
     }
-  } catch (error) {
-    console.error(error.response.data.error);
-    Swal.fire("Error", error.response.data.error, "error");
-  }
-};
+  };
 
+  const handleWebsiteBlur = async () => {
+    const url = form.businessUrl;
+    if (!url) return;
 
-const handleWebsiteBlur = async () => {
-  const url = form.businessUrl;
-  if (!url) return;
-
-  setIsVerifying(true);
-  try {
-    const result = await validateWebsite(url); // your API
-    setIsWebsiteValid(result.valid);
-  } catch (err) {
-    console.error("Website verification error:", err);
-    setIsWebsiteValid(false);
-  } finally {
-    setIsVerifying(false);
-  }
-};
-
-const getLeadTypeChoices = () => {
-        const fixedChoices = ["Spam Caller", "Irrelvant Call", "Angry Old Customer"];
-        const allServices = [...customServices, ...businessServiceNames];
-        const cleanedServices = allServices
-            .map(service => service?.trim()) // remove extra whitespace
-            .filter(service => service && service?.toLowerCase() !== "other")
-            .map(service => {
-                const normalized = service?.replace(/\s+/g, " ")?.trim();
-                return `Customer for ${normalized}`;
-            });
-        const combinedChoices = Array.from(new Set([...fixedChoices, ...cleanedServices]));
-        return combinedChoices;
+    setIsVerifying(true);
+    try {
+      const result = await validateWebsite(url);
+      setIsWebsiteValid(result.valid);
+    } catch (err) {
+      console.error("Website verification error:", err);
+      setIsWebsiteValid(false);
+    } finally {
+      setIsVerifying(false);
     }
-console.log(knowledge_base_texts,"knowledge_base_texts")
+  };
+
   useEffect(() => {
     const fetchVoices = async () => {
       try {
@@ -314,7 +253,6 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
     };
     fetchVoices();
   }, []);
-  // const URL = "https://rex-bk.truet.net";
 
   const getStatusBadge = (status: Agent["status"]) => {
     const variants = {
@@ -366,65 +304,56 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-         {sidebarOptions.map((opt) => {
-  const Icon = opt.icon;
-  const isActive = activeTab === opt.id;
-  const isDropdownOpen = dropdowns[opt.id];
+          {sidebarOptions.map((opt) => {
+            const Icon = opt.icon;
+            const isActive = activeTab === opt.id;
+            const isDropdownOpen = dropdowns[opt.id];
 
-  return (
-    <div key={opt.id}>
-      <button
-        onClick={() => {
-          setActiveTab(opt.id);
-          if (opt.hasDropdown) toggleDropdown(opt.id);
-        }}
-        className={`flex items-center justify-between w-full px-4 py-2 rounded-lg transition-all ${
-          isActive
-            ? "bg-blue-50 text-blue-700 border border-blue-200"
-            : "hover:bg-gray-100"
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <Icon className="h-5 w-5" />
-          <span>{opt.label}</span>
-        </div>
-        {opt.hasDropdown && (
-          isDropdownOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
-        )}
-      </button>
+            return (
+              <div key={opt.id}>
+                <button
+                  onClick={() => {
+                    setActiveTab(opt.id);
+                    if (opt.hasDropdown) toggleDropdown(opt.id);
+                  }}
+                  className={`flex items-center justify-between w-full px-4 py-2 rounded-lg transition-all ${isActive
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "hover:bg-gray-100"
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-5 w-5" />
+                    <span>{opt.label}</span>
+                  </div>
+                  {opt.hasDropdown && (
+                    isDropdownOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
 
-      {/* Knowledge Base Dropdown Items */}
-      {opt.id === "knowledge" && isDropdownOpen && (
-        <div className="ml-8 mt-2 space-y-2">
-         
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">{agent.knowledgeBaseId}</span>
-              <button
-                className="text-red-500 text-xs"
-                onClick={() => {
-                  setKnowledgeBases(prev => {
-  const trimmed = newKnowledgeName.trim();
-  return prev.includes(trimmed) ? prev : [...prev, trimmed];
-});
-                }}
-              >
-             <Trash2 onClick={() => handledeleteknowledgebase(agent.knowledgeBaseId)} className="h-4 w-4" />
-
-              </button>
-            </div>
-          
-          <button
-            onClick={() => setShowAddKnowledgeModal(true)}
-            className="text-blue-600 text-sm underline mt-2"
-          >
-            + Add New
-          </button>
-        </div>
-      )}
-    </div>
-  );
-})}
-
+                {opt.id === "knowledge" && isDropdownOpen && (
+                  <div className="ml-8 mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700">{agent.knowledgeBaseId || "No Knowledge Base"}</span>
+                      {agent.knowledgeBaseId && (
+                        <button
+                          className="text-red-500 text-xs"
+                          onClick={() => handledeleteknowledgebase(agent.knowledgeBaseId!)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setShowAddKnowledgeModal(true)}
+                      className="text-blue-600 text-sm underline mt-2"
+                    >
+                      + Add New
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="p-4 border-t bg-gray-50">
@@ -457,7 +386,6 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
 
         {/* Model, Voice, Language Dropdowns */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
-          {/* Model Dropdown */}
           <div className="relative">
             <button
               className="flex items-center gap-2 border rounded px-3 py-1 text-sm bg-white shadow-sm"
@@ -469,16 +397,14 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
                 className="w-5 h-5 rounded-full"
               />
               <span>{modelName}</span>
-              {/* {dropdowns?.model ? (
+              {dropdowns?.model ? (
                 <ChevronUp size={16} />
               ) : (
                 <ChevronDown size={16} />
-              )} */}
+              )}
             </button>
-           
           </div>
 
-          {/* Voice Dropdown */}
           <div className="relative">
             <button
               className="flex items-center gap-2 border rounded px-3 py-1 text-sm bg-white shadow-sm"
@@ -508,31 +434,24 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
                   <div
                     key={voice.voice_id}
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-             onClick={async () => {
-  try {
-    setSelectedVoiceId(voice.voice_id);
-    
-    // ✅ Only use setAgentData if it's passed
-    if (typeof setAgentData === "function") {
-      setAgentData((prev) => ({
-        ...prev,
-        voice_id: voice.voice_id,
-      }));
-    }
-
-    toggleDropdown("agent");
-
-    await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/agent/update/${agent.agent_id}`, {
-      voice_id: voice.voice_id,
-    });
-
-    console.log("Voice updated successfully");
-
-  } catch (err) {
-    console.error("Failed to update voice", err);
-  }
-}}
-
+                    onClick={async () => {
+                      try {
+                        setSelectedVoiceId(voice.voice_id);
+                        if (typeof setAgentData === "function") {
+                          setAgentData((prev: any) => ({
+                            ...prev,
+                            voice_id: voice.voice_id,
+                          }));
+                        }
+                        toggleDropdown("agent");
+                        await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/agent/update/${agent.agent_id}`, {
+                          voice_id: voice.voice_id,
+                        });
+                        console.log("Voice updated successfully");
+                      } catch (err) {
+                        console.error("Failed to update voice", err);
+                      }
+                    }}
                   >
                     <img
                       src={voice.avatar_url}
@@ -546,38 +465,37 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
             )}
           </div>
 
-          {/* Language Dropdown */}
           <div className="relative">
             <button
               className="flex items-center gap-2 border rounded px-3 py-1 text-sm bg-white shadow-sm"
-              // onClick={() => toggleDropdown("language")}
+              onClick={() => toggleDropdown("language")}
             >
               <span>
                 {Array.isArray(languages)
                   ? languages.find((l) => l.locale === selectedLanguage)
-                      ?.name || "Select Language"
+                    ?.name || "Select Language"
                   : "Select Language"}
               </span>
-              {/* {dropdowns?.language ? (
+              {dropdowns?.language ? (
                 <ChevronUp size={16} />
               ) : (
                 <ChevronDown size={16} />
-              )} */}
+              )}
             </button>
             {dropdowns?.language && (
-              <div className="absolute mt-1 w-64 bg-white border rounded shadow z-10 max-h-60 overflow-y-auto ">
+              <div className="absolute mt-1 w-64 bg-white border rounded shadow z-10 max-h-60 overflow-y-auto">
                 {languages.map((lang) => (
                   <div
                     key={lang.locale}
                     className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-                    // onClick={() => {
-                    //   setSelectedLanguage(lang.locale);
-                    //   setAgentData((prev) => ({
-                    //     ...prev,
-                    //     language: lang.locale,
-                    //   }));
-                    //   toggleDropdown("language");
-                    // }}
+                    onClick={() => {
+                      setSelectedLanguage(lang.locale);
+                      setAgentData((prev: any) => ({
+                        ...prev,
+                        language: lang.locale,
+                      }));
+                      toggleDropdown("language");
+                    }}
                   >
                     {lang.name}
                   </div>
@@ -586,38 +504,40 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
             )}
           </div>
         </div>
-        <div className="relative">
-  <button
-    className="flex items-center gap-2 border rounded px-3 py-1 text-sm bg-white shadow-sm"
-    onClick={() => toggleDropdown("variables")}
-  >
-    <Plus size={16} />
-    <span>Variables</span>
-    {dropdowns?.variables ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-  </button>
-  {dropdowns?.variables && (
-    <div className="absolute mt-1 w-64 bg-white border rounded shadow z-10 max-h-60 overflow-y-auto" style={{zIndex:"9999"}}>
-     {parsedVariables.map((v) => (
-  <div
-    key={v.name}
-    className="flex flex-col gap-1 px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
-  >
-    <div className="flex justify-between items-center">
-      <span className="font-semibold">{v.name}</span>
-      <button onClick={() => insertVariableAtCursor(v.name)}>
-        <Plus size={14} className="text-green-600 hover:text-green-800" />
-      </button>
-    </div>
-    <div className="text-gray-500 truncate text-xs">
-      {Array.isArray(v.value)
-        ? v.value.map((s) => s.service || s).join(", ")
-        : v.value ?? ""}
-    </div>
-  </div>
-))}
-    </div>
-  )}
-</div>
+
+        {/* Variables Dropdown */}
+        <div className="relative mb-4">
+          <button
+            className="flex items-center gap-2 border rounded px-3 py-1 text-sm bg-white shadow-sm"
+            onClick={() => toggleDropdown("variables")}
+          >
+            <Plus size={16} />
+            <span>Variables</span>
+            {dropdowns?.variables ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {dropdowns?.variables && (
+            <div className="absolute mt-1 w-64 bg-white border rounded shadow z-10 max-h-60 overflow-y-auto">
+              {parsedVariables.map((v) => (
+                <div
+                  key={v.name}
+                  className="flex flex-col gap-1 px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                >
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">{v.name}</span>
+                    <button onClick={() => insertVariableAtCursor(v.name)}>
+                      <Plus size={14} className="text-green-600 hover:text-green-800" />
+                    </button>
+                  </div>
+                  <div className="text-gray-500 truncate text-xs">
+                    {Array.isArray(v.value)
+                      ? v.value.map((s) => s.service || s).join(", ")
+                      : v.value ?? ""}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Prompt Section */}
         <div className="mb-4 flex items-center justify-between">
@@ -636,261 +556,234 @@ console.log(knowledge_base_texts,"knowledge_base_texts")
           </Button>
         </div>
 
-        {isDynamicView ? (
-  <div
-  className="min-h-[60vh] max-h-[60vh] overflow-y-auto p-4 border rounded text-sm font-mono bg-gray-50 whitespace-pre-wrap"
-  dangerouslySetInnerHTML={{
-    __html: liveDynamicPrompt.replace(
-      /{{(.*?)}}/g,
-      (_match, p1) =>
-        `<span class="font-semibold text-green-600">${p1}</span>`
-    ),
-  }}
-/>
-
-) : (
-<div className="relative min-h-[60vh] max-h-[60vh] overflow-y-auto border rounded">
-  {/* Highlighted version underneath (colored text) */}
-  <pre
-    aria-hidden="true"
-    className="absolute inset-0 z-0 p-4 text-sm font-mono bg-white text-black whitespace-pre-wrap pointer-events-none"
-    dangerouslySetInnerHTML={{
-      __html: prompt
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(
-          /{{(.*?)}}/g,
-          '<span class="bg-yellow-100 text-yellow-700 font-semibold rounded px-1">$&</span>'
-        ),
-    }}
-  />
-
-  {/* Editable textarea on top (transparent text, visible caret) */}
-  <textarea
-    ref={textareaRef}
-    value={prompt}
-    onChange={(e) => setPrompt(e.target.value)}
-    className="absolute inset-0 z-10 w-full h-full resize-none p-4 text-sm font-mono bg-transparent text-transparent caret-black whitespace-pre-wrap overflow-y-auto focus:outline-none"
-    placeholder="Enter system prompt here..."
-    spellCheck={false}
-  />
-</div>
-
-
-
-)}
-
+        <div className="relative min-h-[60vh] max-h-[80vh] w-full border rounded bg-white box-border overflow-hidden">
+          {isDynamicView ? (
+            <div
+              className="min-h-[60vh] max-h-[80vh] overflow-y-auto p-4 border rounded text-sm font-mono bg-gray-50 whitespace-pre-wrap"
+            >
+              {liveDynamicPrompt}
+            </div>
+          ) : (
+            <Textarea
+              ref={textareaRef}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              className="min-h-[60vh] max-h-[80vh] w-full resize-none p-4 text-sm font-mono bg-white text-black whitespace-pre-wrap focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter system prompt here..."
+              spellCheck={false}
+            />
+          )}
+        </div>
 
         <div className="flex justify-between items-center mt-4">
           <span className="text-sm text-gray-500">
-            Characters: {(isDynamicView ? dynamicPrompt : prompt).length}
+            Characters: {(isDynamicView ? liveDynamicPrompt : prompt).length}
           </span>
           <div className="space-x-2">
-            <Button variant="outline" disabled={isDynamicView}>
+            <Button
+              variant="outline"
+              disabled={isDynamicView}
+              onClick={() => setPrompt(agent.rawPromptTemplate || "")}
+            >
               Reset
             </Button>
             <Button
-  onClick={async () => {
-    try {
-      const res =await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/llmprompt/update/${agent.llmId}`, {llmId:agent.llmId, prompt });
-     if(res.data.message==="Prompt updated successfully.")
-      Swal.fire("Prompt Updated Successfully")
-    } catch (err) {
-      console.error("Failed to save prompt:", err);
-      alert("Save failed");
-    }
-  }}
->
-  Save Prompt
-</Button>
+              onClick={async () => {
+                try {
+                  const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/llmprompt/update/${agent.llmId}`, {
+                    llmId: agent.llmId,
+                    rawPromptTemplate: prompt,
+                    dynamicPromptTemplate: liveDynamicPrompt,
+                  });
+                  if (res.data.message === "Prompt updated successfully.") {
+                    Swal.fire("Success", "Prompt Updated Successfully", "success");
+                  } else {
+                    Swal.fire("Error", "Failed to update prompt", "error");
+                  }
+                } catch (err) {
+                  console.error("Failed to save prompt:", err);
+                  Swal.fire("Error", "Failed to save prompt", "error");
+                }
+              }}
+            >
+              Save Prompt
+            </Button>
           </div>
         </div>
-      {showAddKnowledgeModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
-    <div className="bg-white rounded-lg p-6 shadow-lg w-[500px] max-h-[90vh] overflow-y-auto">
-      <h3 className="text-lg font-semibold mb-4">Add Knowledge Base</h3>
 
-      {/* Knowledge Base Name */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Knowledge Base Name</label>
-        <Input
-          value={newKnowledgeName}
-          onChange={(e) => setNewKnowledgeName(e.target.value)}
-          placeholder="Enter knowledge base name"
-        />
-      </div>
+        {/* Add Knowledge Base Modal */}
+        {showAddKnowledgeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 z-50 flex items-center justify-center">
+            <div className="bg-white rounded-lg p-6 shadow-lg w-[500px] max-h-[90vh] overflow-y-auto">
+              <h3 className="text-lg font-semibold mb-4">Add Knowledge Base</h3>
 
-      {/* + Add Options */}
-      {newKnowledgeName.trim() !== "" && (
-        <div className="mb-4">
-          <Button
-            variant="outline"
-            onClick={() => setShowAddOptions(!showAddOptions)}
-          >
-            + Add
-          </Button>
+              <div className="mb-4">
+                <label className="block text-sm font-medium">Knowledge Base Name</label>
+                <Input
+                  value={newKnowledgeName}
+                  onChange={(e) => setNewKnowledgeName(e.target.value)}
+                  placeholder="Enter knowledge base name"
+                />
+              </div>
 
-          {showAddOptions && (
-            <div className="mt-2 space-y-3 border p-3 rounded-md bg-gray-50">
-              {/* Add URL */}
-              <div>
-                <label className="text-sm font-medium">Website URL</label>
-                <div className="relative w-full">
-                  <Input
-                    placeholder="https://example.com"
-                    value={form.businessUrl || ""}
-                    onChange={(e) => {
-                      setForm({ ...form, businessUrl: e.target.value });
-                      setIsWebsiteValid(null);
-                    }}
-                    onBlur={handleWebsiteBlur}
-                  />
-                  {isVerifying && (
-                    <span className="absolute right-2 top-2 text-xs text-blue-500">
-                      Verifying...
-                    </span>
-                  )}
-                  {isWebsiteValid === true && (
-                    <span className="absolute right-2 top-2 text-xs text-green-600">
-                      ✓ Valid
-                    </span>
-                  )}
-                  {isWebsiteValid === false && (
-                    <span className="absolute right-2 top-2 text-xs text-red-600">
-                      ✗ Invalid
-                    </span>
+              {newKnowledgeName.trim() !== "" && (
+                <div className="mb-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddOptions(!showAddOptions)}
+                  >
+                    + Add
+                  </Button>
+
+                  {showAddOptions && (
+                    <div className="mt-2 space-y-3 border p-3 rounded-md bg-gray-50">
+                      <div>
+                        <label className="text-sm font-medium">Website URL</label>
+                        <div className="relative w-full">
+                          <Input
+                            placeholder="https://example.com"
+                            value={form.businessUrl || ""}
+                            onChange={(e) => {
+                              setForm({ ...form, businessUrl: e.target.value });
+                              setIsWebsiteValid(null);
+                            }}
+                            onBlur={handleWebsiteBlur}
+                          />
+                          {isVerifying && (
+                            <span className="absolute right-2 top-2 text-xs text-blue-500">
+                              Verifying...
+                            </span>
+                          )}
+                          {isWebsiteValid === true && (
+                            <span className="absolute right-2 top-2 text-xs text-green-600">
+                              ✓ Valid
+                            </span>
+                          )}
+                          {isWebsiteValid === false && (
+                            <span className="absolute right-2 top-2 text-xs text-red-600">
+                              ✗ Invalid
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Upload Files</label>
+                        <Input
+                          type="file"
+                          multiple
+                          accept=".pdf,.doc,.docx,.txt"
+                          onChange={(e) => setUploadedFiles([...(e.target.files || [])])}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Paste Text</label>
+                        <textarea
+                          rows={4}
+                          className="w-full p-2 border rounded text-sm"
+                          placeholder="Paste business content here..."
+                          value={customText}
+                          onChange={(e) => setCustomText(e.target.value)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
+              )}
 
-              {/* Add Files */}
-              <div>
-                <label className="text-sm font-medium">Upload Files</label>
-                <Input
-                  type="file"
-                  multiple
-                  accept=".pdf,.doc,.docx,.txt"
-                  onChange={(e) => setUploadedFiles([...e.target.files])}
-                />
-              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowAddKnowledgeModal(false);
+                    setNewKnowledgeName("");
+                    setShowAddOptions(false);
+                    setForm({ ...form, businessUrl: "" });
+                    setCustomText("");
+                    setUploadedFiles([]);
+                  }}
+                >
+                  Cancel
+                </Button>
 
-              {/* Add Text */}
-              <div>
-                <label className="text-sm font-medium">Paste Text</label>
-                <textarea
-                  rows={4}
-                  className="w-full p-2 border rounded text-sm"
-                  placeholder="Paste business content here..."
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                />
+                <Button
+                  onClick={async () => {
+                    const API_KEY = "Bearer YOUR_RETELL_API_KEY";
+                    const API_BASE_URL = "https://api.retellai.com/v1";
+
+                    const texts = customText.trim()
+                      ? [{ title: "Custom Text", text: customText.trim() }]
+                      : [];
+
+                    const urls = form.businessUrl?.trim()
+                      ? [form.businessUrl.trim()]
+                      : [];
+
+                    const files = uploadedFiles?.length ? uploadedFiles : [];
+
+                    const formData = new FormData();
+
+                    texts.forEach((t, i) => {
+                      formData.append(`knowledge_base_texts[${i}][title]`, t.title);
+                      formData.append(`knowledge_base_texts[${i}][text]`, t.text);
+                    });
+
+                    urls.forEach((url, i) => {
+                      formData.append(`knowledge_base_urls[${i}]`, url);
+                    });
+
+                    files.forEach((file) => {
+                      formData.append("knowledge_base_files", file);
+                    });
+
+                    try {
+                      if (agent.knowledgeBaseId) {
+                        await axios.post(
+                          `${API_BASE_URL}/knowledge-bases/${agent.knowledgeBaseId}/sources`,
+                          formData,
+                          {
+                            headers: {
+                              Authorization: API_KEY,
+                              "Content-Type": "multipart/form-data",
+                            },
+                          }
+                        );
+                      } else {
+                        formData.append("knowledge_base_name", newKnowledgeName.trim());
+                        const res = await axios.post(
+                          `${API_BASE_URL}/knowledge-bases`,
+                          formData,
+                          {
+                            headers: {
+                              Authorization: API_KEY,
+                              "Content-Type": "multipart/form-data",
+                            },
+                          }
+                        );
+                        const newKBId = res.data.knowledge_base_id;
+                        console.log("New KB created:", newKBId);
+                      }
+
+                      setKnowledgeBases((prev) => [...prev, newKnowledgeName.trim()]);
+                      setShowAddKnowledgeModal(false);
+                      setNewKnowledgeName("");
+                      setShowAddOptions(false);
+                      setForm({ ...form, businessUrl: "" });
+                      setCustomText("");
+                      setUploadedFiles([]);
+                    } catch (err) {
+                      console.error("Failed to add/create KB:", err);
+                      Swal.fire("Error", "Failed to add knowledge base", "error");
+                    }
+                  }}
+                >
+                  Add Knowledge Base
+                </Button>
               </div>
             </div>
-          )}
-        </div>
-      )}
-
-      {/* Footer Buttons */}
-      <div className="flex justify-end gap-2 pt-4">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setShowAddKnowledgeModal(false);
-            setNewKnowledgeName("");
-            setShowAddOptions(false);
-            setForm({ ...form, businessUrl: "" });
-            setCustomText("");
-            setUploadedFiles([]);
-          }}
-        >
-          Cancel
-        </Button>
-
-        <Button
-          onClick={async () => {
-            const API_KEY = "Bearer YOUR_RETELL_API_KEY"; // Replace this
-            const API_BASE_URL = "https://api.retellai.com/v1";
-
-            const texts = customText.trim()
-              ? [{ title: "Custom Text", text: customText.trim() }]
-              : [];
-
-            const urls = form.businessUrl?.trim()
-              ? [form.businessUrl.trim()]
-              : [];
-
-            const files = uploadedFiles?.length ? uploadedFiles : [];
-
-            const formData = new FormData();
-
-            texts.forEach((t, i) => {
-              formData.append(`knowledge_base_texts[${i}][title]`, t.title);
-              formData.append(`knowledge_base_texts[${i}][text]`, t.text);
-            });
-
-            urls.forEach((url, i) => {
-              formData.append(`knowledge_base_urls[${i}]`, url);
-            });
-
-            files.forEach((file) => {
-              formData.append("knowledge_base_files", file);
-            });
-
-            try {
-              if (agent.knowledgeBaseId) {
-                // ✅ Add sources to existing KB
-                await axios.post(
-                  `${API_BASE_URL}/knowledge-bases/${agent.knowledgeBaseId}/sources`,
-                  formData,
-                  {
-                    headers: {
-                      Authorization: API_KEY,
-                      "Content-Type": "multipart/form-data",
-                    },
-                  }
-                );
-              } else {
-                // 🆕 Create new KB
-                formData.append("knowledge_base_name", newKnowledgeName.trim());
-
-                const res = await axios.post(
-                  `${API_BASE_URL}/knowledge-bases`,
-                  formData,
-                  {
-                    headers: {
-                      Authorization: API_KEY,
-                      "Content-Type": "multipart/form-data",
-                    },
-                  }
-                );
-
-                const newKBId = res.data.knowledge_base_id;
-                // 🔁 Optionally update agent or store KB ID in DB/state
-                console.log("New KB created:", newKBId);
-              }
-
-              setKnowledgeBases((prev) => [...prev, newKnowledgeName.trim()]);
-              setShowAddKnowledgeModal(false);
-              setNewKnowledgeName("");
-              setShowAddOptions(false);
-              setForm({ ...form, businessUrl: "" });
-              setCustomText("");
-              setUploadedFiles([]);
-            } catch (err) {
-              console.error("Failed to add/create KB:", err);
-            }
-          }}
-        >
-          Add Knowledge Base
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-
+          </div>
+        )}
       </div>
     </div>
   );

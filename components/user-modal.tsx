@@ -166,7 +166,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     if (!formData.role) {
       newErrors.role = "Role is required"
     }
-    if (!user && !formData.password?.trim()) {
+    if (!(formData.role==="0") && !formData.password?.trim()) {
       newErrors.password = "Password is required"
     } else if (formData.password) {
       const strongPasswordRegex =
@@ -295,7 +295,11 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
   <PhoneInput
     country={'in'} // default country
     value={formData.phone}
-    onChange={(phone) => setFormData({ ...formData, phone })}
+    onChange={(phone) => {
+  setFormData({ ...formData, phone });
+  setErrors({ ...errors, phone: "" });
+}}
+
     inputClass="!w-full  !text-sm !rounded !border !border-gray-300"
     containerClass="!w-full"
     inputProps={{
@@ -372,31 +376,35 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
             </div>
           )}
           {/* Password Field */}
-          <div>
-            <Label htmlFor="password">
-              Password {!user && <span className="text-red-500">*</span>}
-            </Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) =>{setErrors({ ...errors, role: "" }); setFormData({ ...formData, password: e.target.value })}}
-                placeholder={user ? "Leave blank to keep current password" : "Enter password"}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute inset-y-0 right-2 flex items-center text-gray-500 text-sm"
-              >
-                {showPassword ? "Hide" : "View"}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-sm text-red-600 mt-1">{errors.password}</p>
-            )}
-          </div>
-
+         {(formData.role === "2" || formData.role === "3"||formData.role === "4") ? (
+  <div>
+    <Label htmlFor="password">
+      Password {!user && <span className="text-red-500">*</span>}
+    </Label>
+    <div className="relative">
+      <Input
+        id="password"
+        type={showPassword ? "text" : "password"}
+        value={formData.password}
+        onChange={(e) => {
+            setErrors({ ...errors, password: "" });
+          setFormData({ ...formData, password: e.target.value });
+        }}
+        placeholder={user ? "Leave blank to keep current password" : "Enter password"}
+      />
+      <button
+        type="button"
+        onClick={() => setShowPassword((prev) => !prev)}
+        className="absolute inset-y-0 right-2 flex items-center text-gray-500 text-sm"
+      >
+        {showPassword ? "Hide" : "View"}
+      </button>
+    </div>
+    {errors.password && (
+      <p className="text-sm text-red-600 mt-1">{errors.password}</p>
+    )}
+  </div>
+) : null}
 
 
           <div className="flex gap-3 pt-4">
