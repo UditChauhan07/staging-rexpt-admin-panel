@@ -281,7 +281,7 @@ export default function ManualNotification({ notification, onSuccess }: ManualNo
               disabled={isLoading}
             />
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
           <Label htmlFor="files">Attach up to 5 documents (PDF/images, max 5MB each)</Label>
             <Input
               id="files"
@@ -351,7 +351,7 @@ export default function ManualNotification({ notification, onSuccess }: ManualNo
                 ))}
               </div>
             )}
-          </div>
+          </div> */}
           <div className="flex gap-4">
             <Button onClick={handleSendNowClick} disabled={isLoading || !title || !description}>
               {isLoading ? "Processing..." : notification?.id ? "Update Now" : "Send Now"}

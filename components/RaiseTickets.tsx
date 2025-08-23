@@ -165,6 +165,7 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
                <th className="text-left py-3 px-4 font-semibold text-gray-700">Ticket Raised</th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Activity</th>
               <th className="text-left py-3 px-4 font-semibold text-gray-700">Action</th>
+              <th className="text-left py-3 px-4 font-semibold text-gray-700">Resolution Note</th>
             </tr>
         
           <tbody>
@@ -232,6 +233,7 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
                   Take Action
                 </Button>
               </TableCell>
+              <TableCell>{ticket?.resolutionNotes}</TableCell>
               </TableRow>
             ))}
           </tbody>
