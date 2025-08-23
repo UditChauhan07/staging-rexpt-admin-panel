@@ -187,7 +187,7 @@ export default function NotificationList() {
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Attachments</TableHead>
+                {/* <TableHead>Attachments</TableHead> */}
                 <TableHead>Created At</TableHead>
                 <TableHead>Scheduled Date</TableHead>
                 <TableHead>Action</TableHead>
@@ -204,7 +204,7 @@ export default function NotificationList() {
                       {n.type.charAt(0).toUpperCase() + n.type.slice(1)}
                     </span>
                   </TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     {n.attachments.length > 0 ? (
                       n.attachments.map((attachment, idx) => (
                         <div key={idx} className="mb-2">
@@ -220,7 +220,7 @@ export default function NotificationList() {
                     ) : (
                       "No Attachments"
                     )}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>{new Date(n.createdAt).toLocaleString("en-GB")}</TableCell>
                   <TableCell>{n.scheduledDate ? new Date(n.scheduledDate)?.toLocaleString("en-GB") : "N/A"}</TableCell>
                   <TableCell>
