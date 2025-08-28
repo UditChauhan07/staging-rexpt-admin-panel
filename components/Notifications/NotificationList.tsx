@@ -25,6 +25,9 @@ interface Notification {
   id: string;
   title: string;
   message: string;
+  status:string;
+  targetPlatform:string;
+  sendType:string;
   attachments: Attachment[];
   type: string;
   createdAt: string;
@@ -36,6 +39,10 @@ export default function NotificationList() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [searchText, setSearchText] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+   const [sendToFilter, setSendToFilter] = useState("");   // 👈 new
+  const [sendModeFilter, setSendModeFilter] = useState(""); // 👈 new
+   const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -66,6 +73,9 @@ export default function NotificationList() {
         type: n.type,
         createdAt: n.createdAt,
         scheduledDate: n.scheduledDate,
+        sendType: n.sendType,
+        targetPlatform: n.targetPlatform,
+        status: n.status,
       })) || [];
 
       setAllNotifications(mappedNotifications);
@@ -80,20 +90,63 @@ export default function NotificationList() {
     fetchNotifications();
   }, []);
 
+  // useEffect(() => {
+  //   let filtered = allNotifications;
+  //   if (typeFilter) filtered = filtered.filter((n) => n.type === typeFilter);
+  //   if (searchText.trim()) {
+  //     const text = searchText.toLowerCase();
+  //     filtered = filtered.filter(
+  //       (n) =>
+  //         n.id.toLowerCase().includes(text) ||
+  //         n.title.toLowerCase().includes(text) ||
+  //         n.message.toLowerCase().includes(text)
+  //     );
+  //   }
+  //   setNotifications(filtered);
+  // }, [typeFilter, searchText, allNotifications]);
+    // Debounce search
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchText.trim().toLowerCase());
+    }, 400); // delay 400ms
+    return () => clearTimeout(handler);
+  }, [searchText]);
+
+  // Fetch notifications (same as yours)...
+
   useEffect(() => {
     let filtered = allNotifications;
-    if (typeFilter) filtered = filtered.filter((n) => n.type === typeFilter);
-    if (searchText.trim()) {
-      const text = searchText.toLowerCase();
+
+    // type filter
+    if (typeFilter) filtered = filtered.filter((n) => n.type.toLowerCase() === typeFilter.toLowerCase());
+
+    // sendTo filter
+    if (sendToFilter) filtered = filtered.filter((n) => n.targetPlatform.toLowerCase() === sendToFilter.toLowerCase());
+
+    // sendMode filter
+    if (sendModeFilter) filtered = filtered.filter((n) => n.sendType.toLowerCase() === sendModeFilter.toLowerCase());
+
+    // search filter
+    if (debouncedSearch) {
       filtered = filtered.filter(
         (n) =>
-          n.id.toLowerCase().includes(text) ||
-          n.title.toLowerCase().includes(text) ||
-          n.message.toLowerCase().includes(text)
+          n.id.toLowerCase().includes(debouncedSearch) ||
+          n.title.toLowerCase().includes(debouncedSearch) ||
+          n.message.toLowerCase().includes(debouncedSearch)
       );
     }
+
     setNotifications(filtered);
-  }, [typeFilter, searchText, allNotifications]);
+    setCurrentPage(1); // reset page when filters change
+  }, [typeFilter, sendToFilter, sendModeFilter, debouncedSearch, allNotifications]);
+
+  const clearFilters = () => {
+    setTypeFilter("");
+    setSendToFilter("");
+    setSendModeFilter("");
+    setSearchText("");
+    setCurrentPage(1);
+  };
 
   const indexOfLastNotification = currentPage * notificationsPerPage;
   const indexOfFirstNotification = indexOfLastNotification - notificationsPerPage;
@@ -109,6 +162,19 @@ export default function NotificationList() {
         return "bg-green-100 text-green-800";
       case "both":
         return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+  const getStatusStyle = (type: string) => {
+    switch (type) {
+      case "unread":
+      case "read":
+        return "bg-green-100 text-greeb-800";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800";
+      case "failed":
+        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -159,12 +225,36 @@ export default function NotificationList() {
           <h1 className="text-3xl font-bold text-gray-900">Notification List</h1>
           <p className="text-gray-600 mt-2">View and manage all sent and scheduled notifications</p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>Create New Notification</Button>
+        <Button className="bg-purple-600 hover:bg-purple-700"
+        onClick={() => setIsCreateModalOpen(true)}>Create New Notification</Button>
       </div>
 
       {/* Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        <Input placeholder="Search..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+      <div className="grid grid-cols-4 md:grid-cols-4 gap-2">
+        <Input placeholder="Search Notification ID, Title ... " value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+              <Select value={sendToFilter} onValueChange={setSendToFilter}>
+          <SelectTrigger><SelectValue placeholder="Filter by Send To" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="Free">Free</SelectItem>
+            <SelectItem value="Paid">Paid</SelectItem>
+            <SelectItem value="payG">payG</SelectItem>
+            <SelectItem value="Starter">Starter</SelectItem>
+            <SelectItem value="Scaler">Scaler</SelectItem>
+            <SelectItem value="Growth">Growth</SelectItem>
+            <SelectItem value="Corporate">Corporate</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={sendModeFilter} onValueChange={setSendModeFilter}>
+          <SelectTrigger><SelectValue placeholder="Filter by Send Mode" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="notification">Notification</SelectItem>
+            <SelectItem value="email">Email</SelectItem>
+            <SelectItem value="both">Email & Notification</SelectItem>
+          </SelectContent>
+        </Select>
+        
         {/* <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger><SelectValue placeholder="Filter by Type" /></SelectTrigger>
           <SelectContent>
@@ -174,7 +264,8 @@ export default function NotificationList() {
             <SelectItem value="both">Both</SelectItem>
           </SelectContent>
         </Select> */}
-        <Button onClick={() => { setTypeFilter(""); setSearchText(""); setCurrentPage(1); }}>Clear Filters</Button>
+        <Button className="bg-purple-600 hover:bg-purple-700"
+        onClick={clearFilters}>Clear Filters</Button>
       </div>
 
       {/* Table */}
@@ -186,7 +277,11 @@ export default function NotificationList() {
                 <TableHead>Notification ID</TableHead>
                 <TableHead>Title</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
+                {/* <TableHead>Type</TableHead> */}
+                <TableHead>Status</TableHead>
+                <TableHead>Send To(Users)</TableHead>
+                <TableHead>Send Mode</TableHead>
+
                 {/* <TableHead>Attachments</TableHead> */}
                 <TableHead>Created At</TableHead>
                 <TableHead>Scheduled Date</TableHead>
@@ -199,11 +294,18 @@ export default function NotificationList() {
                   <TableCell>{n.id}</TableCell>
                   <TableCell>{n.title}</TableCell>
                   <TableCell>{n.message}</TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeStyle(n.type)}`}>
                       {n.type.charAt(0).toUpperCase() + n.type.slice(1)}
                     </span>
+                  </TableCell> */}
+                  <TableCell>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(n.status)}`}>
+                      {n.status=='unread'?'Sent':n?.status?.charAt(0)?.toUpperCase() + n?.status?.slice(1)}
+                    </span>
                   </TableCell>
+                   <TableCell>{n.targetPlatform?.charAt(0)?.toUpperCase() + n?.targetPlatform?.slice(1)}</TableCell>
+                   <TableCell>{n.sendType=='both'?'Email & Notification':n.sendType?.charAt(0)?.toUpperCase() + n?.sendType?.slice(1)}</TableCell>
                   {/* <TableCell>
                     {n.attachments.length > 0 ? (
                       n.attachments.map((attachment, idx) => (
@@ -388,7 +490,7 @@ export default function NotificationList() {
 }
 
 
-
+// 
 
 // "use client";
 
