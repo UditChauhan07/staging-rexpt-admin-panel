@@ -145,7 +145,8 @@ const totalPages = Math.ceil(tickets.length / ticketsPerPage);
         </Select>
 
         {/* <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} /> */}
-        <Button onClick={()=>{setPriority("");setStatus("");setCurrentPage(1);}}>Clear Filter</Button>
+        <Button className="bg-purple-600 hover:bg-purple-700"
+        onClick={()=>{setPriority("");setStatus("");setCurrentPage(1);}}>Clear Filter</Button>
       </div>
 
       <Card className="overflow-x-auto">
