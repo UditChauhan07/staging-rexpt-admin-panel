@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Sidebar } from "./components/sidebar";
 import { AnalyticsSection } from "./components/analytics-section";
-import  {UserManagement}  from "./components/user-management";
+import { UserManagement } from "./components/user-management";
 import { UserDetails } from "./components/user-details";
 import { RoleManagement } from "./components/role-management";
 import { AgentBusinessList } from "./components/agent-business-list";
 import { AgentDetailView } from "./components/agent-detail-view";
-import {DataTable} from "./components/DataTable"
+import { DataTable } from "./components/DataTable";
 import { fetchAgentDetailById } from "./Services/auth";
 import { languages } from "./components/languageOptions";
 import UserKnowledgebaseViewer from "./components/UserKnowledgebaseViewer";
@@ -18,6 +18,7 @@ import ContactUsForm from "./components/ContactUsForm";
 import ContactMessages from "./components/ContactUsForm";
 import NotificationList from "./components/Notifications/NotificationList";
 import ManualNotification from "./components/Notifications/ManualNotification";
+import HelpusQueries from "./components/HelpusQueries";
 interface User {
   id: string;
   name: string;
@@ -61,9 +62,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [selectedAgent, setSelectedAgent] = useState<{
     agent: Agent;
     business: Business;
-    knowledge_base_texts:knowledge_base_texts;
-  total_call:total_call;
-
+    knowledge_base_texts: knowledge_base_texts;
+    total_call: total_call;
   } | null>(null);
   console.log(selectedAgent, "selectedAgent");
   const [dropdowns, setDropdowns] = useState<Record<string, boolean>>({
@@ -77,7 +77,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setActiveSection(section);
   };
 
-console.log(selectedAgent,"agent")
+  console.log(selectedAgent, "agent");
   const toggleDropdown = (key: string) => {
     setDropdowns((prev) => ({
       ...prev,
@@ -100,10 +100,14 @@ console.log(selectedAgent,"agent")
   const handleBackToUsers = () => {
     setSelectedUser(null);
   };
- 
 
-  const handleViewAgent = (agent: any, business: any,knowledge_base_texts:any,total_call:any) => {
-    setSelectedAgent({ agent, business, knowledge_base_texts,total_call});
+  const handleViewAgent = (
+    agent: any,
+    business: any,
+    knowledge_base_texts: any,
+    total_call: any
+  ) => {
+    setSelectedAgent({ agent, business, knowledge_base_texts, total_call });
   };
 
   const handleBackToAgents = () => {
@@ -116,7 +120,6 @@ console.log(selectedAgent,"agent")
     }
 
     if (selectedAgent) {
-     
       return (
         <AgentDetailView
           agent={selectedAgent.agent}
@@ -140,18 +143,20 @@ console.log(selectedAgent,"agent")
         return <RoleManagement />;
       case "agents":
         return <AgentBusinessList onViewAgent={handleViewAgent} />;
-        case "knowledgeBase":
-        return<UserKnowledgebaseViewer/>;
-        case "PricingEnquiry":
-          return <PricingQueries/>
-        case "ContactUs":
-            return <ContactMessages/>
+      case "knowledgeBase":
+        return <UserKnowledgebaseViewer />;
+      case "PricingEnquiry":
+        return <PricingQueries />;
+      case "ContactUs":
+        return <ContactMessages />;
+      case "HelpUs":
+        return <HelpusQueries />;
       case "RaiseTickets":
-          return<RaiseTickets/>;
+        return <RaiseTickets />;
       case "Notifications":
-          return<NotificationList/>;
+        return <NotificationList />;
       case "createNotifications":
-          return<ManualNotification/>;
+        return <ManualNotification />;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
@@ -178,7 +183,6 @@ console.log(selectedAgent,"agent")
       <Sidebar
         activeSection={activeSection}
         onSectionChange={handleSectionChange}
-
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         onLogout={onLogout}
