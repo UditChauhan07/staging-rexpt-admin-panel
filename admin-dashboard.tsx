@@ -19,6 +19,7 @@ import ContactMessages from "./components/ContactUsForm";
 import NotificationList from "./components/Notifications/NotificationList";
 import ManualNotification from "./components/Notifications/ManualNotification";
 import HelpusQueries from "./components/HelpusQueries";
+import RaiseComment from "./components/RaiseComment";
 interface User {
   id: string;
   name: string;
@@ -151,6 +152,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         return <ContactMessages />;
       case "HelpUs":
         return <HelpusQueries />;
+      case "RaiseComment":
+        return <RaiseComment />;
       case "RaiseTickets":
         return <RaiseTickets />;
       case "Notifications":
