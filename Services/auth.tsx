@@ -4,6 +4,7 @@ import { useEffect,useState } from "react";
 // const URL = "https://rex-bk.truet.net";
 console.log(process.env.NEXT_PUBLIC_API_URL)
 // admin login api
+
 export const adminLogin = async (email, password) => {
     try {
         const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, { email, password });
@@ -204,7 +205,6 @@ export const check_email_Exsitence = async (email) => {
     return 0;
   }
 };
-
 export const updateAgent = async (agentId, updateData) => {
   const token=localStorage.getItem("token")
   const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgent/${agentId}`, updateData, {
