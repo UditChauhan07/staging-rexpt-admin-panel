@@ -498,7 +498,7 @@ const filteredAgents = sortedAgents.filter((row) => {
             <Eye className="h-4 w-4" />
           </Button>
       </td>
-      {/* <td  className="py-3 ">
+      <td  className="py-3 ">
   <Button
     size="sm"
     variant="outline"
@@ -519,7 +519,7 @@ const filteredAgents = sortedAgents.filter((row) => {
   >
     <Edit className="h-4 w-4" />
   </Button>
-</td> */}
+</td>
 
 
         <td>
