@@ -155,7 +155,7 @@ export default function RaiseTickets() {
           </SelectContent>
         </Select>
 
-        {/* <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} /> */}
+        {/* <Input placeholder="Category" value={category} onChange={(e) => setCategory(e.target.value)} /> aa*/}
         <Button
           className="bg-purple-600 hover:bg-purple-700"
           onClick={() => {
