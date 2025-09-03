@@ -2002,6 +2002,7 @@ const PartnerResources = () => {
       }
       const newResource = {
         ...res.data,
+        resourceId:res?.data?.id,
         coverImage: res.data.coverImage
           ? `${process.env.NEXT_PUBLIC_API_URL}${res.data.coverImage}`
           : null,
@@ -2322,6 +2323,7 @@ const PartnerResources = () => {
                   ref={fileInputRef}
                   className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
                 />
+                {/* <>
                 {newContent.filePreviews.length > 0 && (
                   <div className="mt-2 grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
                     {newContent.filePreviews.map((preview, idx) => (
@@ -2361,6 +2363,59 @@ const PartnerResources = () => {
                     ))}
                   </div>
                 )}
+                </> */}
+                {newContent.filePreviews.length > 0 && (
+                <div className="mt-2 grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                  {newContent.filePreviews.map((preview, idx) => {
+                    // Dynamically get icon properties if they're missing
+                    const { iconUrl, color, inlineSvg } = preview.iconUrl && preview.color
+                      ? { iconUrl: preview.iconUrl, color: preview.color, inlineSvg: preview.inlineSvg }
+                      : getFileIcon(preview.type || 'default');
+
+                    return (
+                      <div key={idx} className="relative">
+                        {preview.type.startsWith('image/') && (
+                          <img src={preview.url} alt={preview.name} className="w-full h-24 object-cover rounded-md" />
+                        )}
+                        {preview.type.startsWith('video/') && (
+                          <div className="w-full h-24 bg-gray-100 rounded-md flex items-center justify-center">
+                            <video src={preview.url} className="w-full h-full object-cover" muted playsInline />
+                          </div>
+                        )}
+                        {!preview.type.startsWith('image/') && !preview.type.startsWith('video/') && (
+                          <div className="flex flex-col items-center bg-gray-100 p-2 rounded-md hover:bg-gray-200 transition-colors">
+                            {inlineSvg ? (
+                              <svg
+                                className={`w-12 h-12 ${color} transform hover:scale-110 transition-transform`}
+                                viewBox="0 0 24 24"
+                              >
+                                <path d={inlineSvg} fill="currentColor" />
+                              </svg>
+                            ) : (
+                              <img
+                                src={iconUrl || fileIcons.default.url} // Fallback to default icon
+                                alt="File Icon"
+                                className={`w-12 h-12 ${color || fileIcons.default.color} transform hover:scale-110 transition-transform object-contain`}
+                                onError={(e) => {
+                                  e.target.src = fileIcons.default.url; // Fallback on image load error
+                                }}
+                              />
+                            )}
+                            <span className="mt-1 text-xs text-gray-600 truncate">{preview.name}</span>
+                            <span className="text-xs text-gray-500">{preview.size}</span>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => removeFile(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                        >
+                          −
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               </div>
               <div className="flex justify-end space-x-3">
                 <button
