@@ -37,6 +37,7 @@ const navigationItems = [
   { id: "RaiseTickets", label: "Raised Tickets", icon: Tickets },
   { id: "knowledgeBase", label: " Knowledge Base", icon: Shield },
   { id: "Notifications", label: "Admin Notifications", icon: BellRing },
+  { id: "PartnerResources", label: "Partner Resources", icon: BellRing },
 
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },

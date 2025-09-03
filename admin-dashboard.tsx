@@ -20,6 +20,7 @@ import NotificationList from "./components/Notifications/NotificationList";
 import ManualNotification from "./components/Notifications/ManualNotification";
 import HelpusQueries from "./components/HelpusQueries";
 import RaiseComment from "./components/RaiseComment";
+import PartnerResources from "./components/PartnerResources/PartnerResources";
 interface User {
   id: string;
   name: string;
@@ -160,6 +161,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         return <NotificationList />;
       case "createNotifications":
         return <ManualNotification />;
+      case "PartnerResources":
+        return <PartnerResources />;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
