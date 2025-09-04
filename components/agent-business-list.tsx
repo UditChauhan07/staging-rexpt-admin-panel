@@ -474,6 +474,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
                 </tr>
               </thead>
               <tbody>
+
                 {loaders ? (
                   <tr>
                     <td colSpan={8}>
@@ -541,6 +542,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
                         </Button>
                       </td>
                       {/* <td  className="py-3 ">
+
   <Button
     size="sm"
     variant="outline"
@@ -561,7 +563,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   >
     <Edit className="h-4 w-4" />
   </Button>
-</td> */}
+</td>
 
                       <td>
                         <Button

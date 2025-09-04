@@ -214,3 +214,34 @@ export const updateAgent = async (agentId, updateData) => {
   });
   return res.data;
 };
+
+
+export const listSiteMap = async (url) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/map/list-sitemap`,
+      { url },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error deleting agent file:",
+      error.response?.data || error.message
+    );
+    throw new Error("Error deleting agent file");
+  }
+};
+export const updateAgentWidgetDomain = async (id, url) => {
+  const data = { url: url };
+  const res = await axios.put(
+    `${process.env.NEXT_PUBLIC_API_URL}}/api/agent/updateAgentWidgetDomain/${id}`,
+    data
+  );
+  return res.data;
+};

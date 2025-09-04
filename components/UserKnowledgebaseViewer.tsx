@@ -1,3 +1,407 @@
+// "use client";
+
+// import { useState, useEffect } from "react";
+// import axios from "axios";
+// import Swal from "sweetalert2";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogFooter,
+// } from "@/components/ui/dialog";
+// import { Input } from "@/components/ui/input";
+// import { FadeLoader } from "react-spinners";
+
+// export default function UserKnowledgebaseViewer() {
+//   const [users, setUsers] = useState([]);
+//   const [filteredUsers, setFilteredUsers] = useState([]);
+//   const [searchQuery, setSearchQuery] = useState("");
+
+//   const [selectedUser, setSelectedUser] = useState(null);
+//   const [knowledgebases, setKnowledgebases] = useState([]);
+//   const [selectedKbIds, setSelectedKbIds] = useState([]);
+//   const [modalOpen, setModalOpen] = useState(false);
+//   const [loading, setloading] = useState(false);
+// const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  
+//     const fetchData = async () => {
+//       setloading(true);
+//       try {
+//         const res = await axios.get(
+//           `${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllKnowledgeBaseUser`
+//         );
+//         const kbData = res.data.data || [];
+
+//         const groupedByUser = {};
+
+//         for (const item of kbData) {
+//           const user = item.user;
+//           const agentDetails = item.agentDetails || {};
+
+//           if (!user?.userId) continue;
+
+//           if (!groupedByUser[user.userId]) {
+//             groupedByUser[user.userId] = {
+//               userId: user.userId,
+//               name: user.name,
+//               email: user.email,
+//               agents: [],
+//             };
+//           }
+
+//           groupedByUser[user.userId].agents.push({
+//             knowledgeBaseId: agentDetails.knowledgeBaseId,
+//             agentName: agentDetails.agentName,
+//           });
+//         }
+
+//         const usersArr = Object.values(groupedByUser);
+//         setUsers(usersArr);
+//         setFilteredUsers(usersArr);
+//       } catch (error) {
+//         console.error("Error fetching all knowledgeBaseUser:", error);
+//       }
+//       setloading(false);
+//     };
+
+// useEffect(() => {
+//     fetchData();
+//   }, []);
+
+//   useEffect(() => {
+//     if (!searchQuery) {
+//       setFilteredUsers(users);
+//     } else {
+//       const q = searchQuery.toLowerCase();
+//       setFilteredUsers(
+//         users.filter(
+//           (u) =>
+//             u.userId.toLowerCase().includes(q) ||
+//             u.name?.toLowerCase().includes(q) ||
+//             u.email?.toLowerCase().includes(q)
+//         )
+//       );
+//     }
+//   }, [searchQuery, users]);
+
+//   const handleView = (user) => {
+//     setSelectedUser(user);
+//     setKnowledgebases(user.agents || []);
+//     setSelectedKbIds([]);
+//     setModalOpen(true);
+//   };
+
+//   const handleDelete = async () => {
+//     if (selectedKbIds.length === 0) return;
+
+//     const selectedKbInfo = knowledgebases
+//       .filter((kb) => selectedKbIds.includes(kb.knowledgeBaseId))
+//       .map((kb) => `<b>${kb.agentName}</b>: ${kb.knowledgeBaseId}`)
+//       .join("<br>");
+
+//     const confirm = await Swal.fire({
+//       title: "Confirm Deletion",
+//       html: `
+//         <p>You're about to delete the following <b>${selectedKbIds.length}</b> knowledgebases:</p>
+//         <div class="text-left mt-2">${selectedKbInfo}</div>
+//       `,
+//       icon: "warning",
+//       showCancelButton: true,
+//       confirmButtonText: "Yes, Delete",
+//       cancelButtonText: "Cancel",
+//       customClass: {
+//         popup: "z-[9999]",
+//       },
+//     });
+
+//     if (!confirm.isConfirmed) return;
+
+//     const failedDeletes = [];
+//     setloading(true);
+
+//     try {
+//       await Promise.all(
+//         selectedKbIds.map(async (id) => {
+//           try {
+//             await axios.delete(
+//               `https://api.retellai.com/delete-knowledge-base/${id}`,
+//               {
+//                 headers: {
+//                   Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+//                 },
+//               }
+//             );
+//             fetchData()
+//           } catch (error) {
+//             if (error?.response?.data?.message !== "Not Found") {
+//               failedDeletes.push(id);
+//             }
+//           }
+//         })
+//       );
+
+//       if (failedDeletes.length > 0) {
+//         Swal.fire(
+//           "Partial Success",
+//           `Some KBs could not be deleted: ${failedDeletes.join(", ")}`,
+//           "warning"
+//         );
+//       } else {
+//         Swal.fire("Deleted", "Selected knowledgebases deleted successfully.", "success");
+//       }
+
+//       const updatedAgents = knowledgebases.filter(
+//         (kb) => !selectedKbIds.includes(kb.knowledgeBaseId)
+//       );
+//       setKnowledgebases(updatedAgents);
+//       setSelectedKbIds([]);
+//       setModalOpen(false);
+//     } catch (err) {
+//       console.error(err);
+//       Swal.fire("Error", "Something went wrong during deletion.", "error");
+//     }
+
+//     setloading(false);
+//   };
+// const handleDeleteSelectedUsersKbs = async () => {
+//   const selectedUsers = users.filter((u) => selectedUserIds.includes(u.userId));
+//   let allKbList = [];
+
+//   selectedUsers.forEach((u) => {
+//     u.agents?.forEach((kb) => {
+//       allKbList.push({
+//         userId: u.userId,
+//         agentName: kb.agentName,
+//         kbId: kb.knowledgeBaseId,
+//       });
+//     });
+//   });
+
+//   if (allKbList.length === 0) {
+//     Swal.fire("No KBs", "No knowledgebases found for selected users.", "info");
+//     return;
+//   }
+
+//   const kbListHTML = allKbList
+//     .map((k) => `<b>${k.agentName}</b> (${k.kbId})`)
+//     .join("<br>");
+
+//   const confirm = await Swal.fire({
+//     title: "Confirm Deletion",
+//     html: `You're about to delete <b>${allKbList.length}</b> knowledgebases:<br/><div class="text-left mt-2 max-h-[300px] overflow-auto">${kbListHTML}</div>`,
+//     icon: "warning",
+//     showCancelButton: true,
+//     confirmButtonText: "Yes, Delete All",
+//     cancelButtonText: "Cancel",
+//     customClass: {
+//       popup: "z-[9999]",
+//     },
+//   });
+
+//   if (!confirm.isConfirmed) return;
+
+//   setloading(true);
+
+//   const failed = [];
+
+//   await Promise.all(
+//     allKbList.map(async (item) => {
+//       try {
+//         await axios.delete(
+//           `https://api.retellai.com/delete-knowledge-base/${item.kbId}`,
+//           {
+//             headers: {
+//               Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+//             },
+//           }
+
+//         );
+//         fetchData()
+//       } catch (err) {
+//         failed.push(item.kbId);
+//       }
+//     })
+//   );
+
+//   if (failed.length > 0) {
+//     Swal.fire(
+//       "Partial Success",
+//       `Some KBs failed to delete: ${failed.join(", ")}`,
+//       "warning"
+//     );
+//   } else {
+//     Swal.fire("Deleted", "All selected users' KBs deleted.", "success");
+//   }
+
+//   // Remove deleted KBs from state
+//   const updatedUsers = users.map((u) => {
+//     if (!selectedUserIds.includes(u.userId)) return u;
+//     return { ...u, agents: [] }; // Clear KBs
+//   });
+
+//   setUsers(updatedUsers);
+//   setFilteredUsers(updatedUsers);
+//   setSelectedUserIds([]);
+//   setModalOpen(false);
+//   setloading(false);
+// };
+
+//   return (
+//     <div className="p-4 space-y-6">
+//       <h2 className="text-2xl font-semibold">Users with Agents</h2>
+//    <div className="flex " style={{justifyContent:'space-between'}}> <p className="text-gray-600 mt-2">Manage and monitor Knowledge Bases of each user</p>
+
+//       <Input
+//         placeholder="Search by userId, name or email"
+//         value={searchQuery}
+//         onChange={(e) => setSearchQuery(e.target.value)}
+//         className="w-50 max-w-md mb-4"
+//       />
+//  {selectedUserIds.length > 0 && (
+//   <div className="mb-4">
+//     <Button
+//       className="bg-red-600 hover:bg-red-700 w-35"
+//       onClick={handleDeleteSelectedUsersKbs}
+//     >
+//       Delete for {selectedUserIds.length}  
+//     </Button>
+//   </div>
+// )}</div>
+//       {loading ? (
+//         <div className="flex justify-center py-20">
+//           <FadeLoader color="#3b82f6" />
+//         </div>
+//       ) : (
+//         <table className="w-full border-collapse border text-sm  " style={{background:'white'}}>
+//           <thead >
+//             <tr>
+//               <th className="p-3  text-center">
+//   <input
+//     type="checkbox"
+//     checked={selectedUserIds.length === filteredUsers.length}
+//     onChange={(e) => {
+//       const checked = e.target.checked;
+//       setSelectedUserIds(checked ? filteredUsers.map((u) => u.userId) : []);
+//     }}
+//   />
+// </th>
+
+//               <th className="p-3  text-left">User ID</th>
+//               <th className="p-3  text-left">Name</th>
+//               <th className="p-3  text-left">Email</th>
+//               <th className="p-3  text-center">Action</th>
+//             </tr>
+//           </thead>
+//         <tbody  style={{background:'white'}}>
+//   {filteredUsers.map((u) => (
+//     <tr key={u.userId} className="hover:bg-gray-50">
+//       <td className="p-3  text-center">
+//         <input
+//           type="checkbox"
+//           checked={selectedUserIds.includes(u.userId)}
+//           onChange={(e) => {
+//             const checked = e.target.checked;
+//             setSelectedUserIds((prev) =>
+//               checked
+//                 ? [...prev, u.userId]
+//                 : prev.filter((id) => id !== u.userId)
+//             );
+//           }}
+//         />
+//       </td>
+//       <td className="p-3 ">{u.userId}</td>
+//       <td className="p-3  capitalize">{u.name}</td>
+//       <td className="p-3 ">{u.email}</td>
+//       <td className="p-3  text-center">
+//         <Button size="sm" onClick={() => handleView(u)}>
+//           View
+//         </Button>
+//       </td>
+//     </tr>
+//   ))}
+// </tbody>
+
+//         </table>
+        
+//       )}
+     
+
+
+//       {/* Modal */}
+//       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+//         <DialogContent className="max-w-4xl">
+//           <DialogHeader>
+//             <DialogTitle>
+//               Agents for <span className="text-blue-600">{selectedUser?.name}</span>
+//             </DialogTitle>
+//           </DialogHeader>
+
+//           <div className="overflow-auto max-h-[400px] mt-3 border rounded">
+//             <table className="w-full border-collapse text-sm">
+//               <thead className="bg-gray-100 sticky top-0 z-10">
+//                 <tr>
+//                   <th className="p-2 border text-center">
+//                     <input
+//                       type="checkbox"
+//                       checked={
+//                         knowledgebases.length > 0 &&
+//                         selectedKbIds.length === knowledgebases.length
+//                       }
+//                       onChange={(e) => {
+//                         const checked = e.target.checked;
+//                         setSelectedKbIds(
+//                           checked ? knowledgebases.map((kb) => kb.knowledgeBaseId) : []
+//                         );
+//                       }}
+//                     />
+//                   </th>
+//                   <th className="p-2 border text-left">Agent Name</th>
+//                   <th className="p-2 border text-left">Knowledgebase ID</th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {knowledgebases.map((kb) => (
+//                   <tr key={kb.knowledgeBaseId} className="hover:bg-gray-50">
+//                     <td className="p-2 border text-center">
+//                       <input
+//                         type="checkbox"
+//                         checked={selectedKbIds.includes(kb.knowledgeBaseId)}
+//                         onChange={(e) => {
+//                           const checked = e.target.checked;
+//                           setSelectedKbIds((prev) =>
+//                             checked
+//                               ? [...prev, kb.knowledgeBaseId]
+//                               : prev.filter((id) => id !== kb.knowledgeBaseId)
+//                           );
+//                         }}
+//                       />
+//                     </td>
+//                     <td className="p-2 border">{kb.agentName}</td>
+//                     <td className="p-2 border">{kb.knowledgeBaseId}</td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+
+//           <DialogFooter className="mt-4">
+//             <Button
+//               className="bg-red-600 hover:bg-red-700"
+//               disabled={selectedKbIds.length === 0}
+//               onClick={handleDelete}
+//             >
+//               Delete Selected Knowledgebases
+//             </Button>
+//           </DialogFooter>
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   );
+// }
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -24,50 +428,53 @@ export default function UserKnowledgebaseViewer() {
   const [selectedKbIds, setSelectedKbIds] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setloading] = useState(false);
-const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
 
-  
-    const fetchData = async () => {
-      setloading(true);
-      try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllKnowledgeBaseUser`
-        );
-        const kbData = res.data.data || [];
+  const [activeTab, setActiveTab] = useState<"customers" | "anonymous">(
+    "customers"
+  );
 
-        const groupedByUser = {};
+  const fetchData = async () => {
+    setloading(true);
+    try {
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/endusers/getAllKnowledgeBaseUser`
+      );
+      const kbData = res.data.data || [];
 
-        for (const item of kbData) {
-          const user = item.user;
-          const agentDetails = item.agentDetails || {};
+      const groupedByUser: any = {};
 
-          if (!user?.userId) continue;
+      for (const item of kbData) {
+        const user = item.user;
+        const agentDetails = item.agentDetails || {};
 
-          if (!groupedByUser[user.userId]) {
-            groupedByUser[user.userId] = {
-              userId: user.userId,
-              name: user.name,
-              email: user.email,
-              agents: [],
-            };
-          }
+        if (!user?.userId) continue;
 
-          groupedByUser[user.userId].agents.push({
-            knowledgeBaseId: agentDetails.knowledgeBaseId,
-            agentName: agentDetails.agentName,
-          });
+        if (!groupedByUser[user.userId]) {
+          groupedByUser[user.userId] = {
+            userId: user.userId,
+            name: user.name,
+            email: user.email,
+            agents: [],
+          };
         }
 
-        const usersArr = Object.values(groupedByUser);
-        setUsers(usersArr);
-        setFilteredUsers(usersArr);
-      } catch (error) {
-        console.error("Error fetching all knowledgeBaseUser:", error);
+        groupedByUser[user.userId].agents.push({
+          knowledgeBaseId: agentDetails.knowledgeBaseId,
+          agentName: agentDetails.agentName,
+        });
       }
-      setloading(false);
-    };
 
-useEffect(() => {
+      const usersArr = Object.values(groupedByUser);
+      setUsers(usersArr);
+      setFilteredUsers(usersArr);
+    } catch (error) {
+      console.error("Error fetching all knowledgeBaseUser:", error);
+    }
+    setloading(false);
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -78,7 +485,7 @@ useEffect(() => {
       const q = searchQuery.toLowerCase();
       setFilteredUsers(
         users.filter(
-          (u) =>
+          (u: any) =>
             u.userId.toLowerCase().includes(q) ||
             u.name?.toLowerCase().includes(q) ||
             u.email?.toLowerCase().includes(q)
@@ -87,7 +494,7 @@ useEffect(() => {
     }
   }, [searchQuery, users]);
 
-  const handleView = (user) => {
+  const handleView = (user: any) => {
     setSelectedUser(user);
     setKnowledgebases(user.agents || []);
     setSelectedKbIds([]);
@@ -101,7 +508,7 @@ useEffect(() => {
       .filter((kb) => selectedKbIds.includes(kb.knowledgeBaseId))
       .map((kb) => `<b>${kb.agentName}</b>: ${kb.knowledgeBaseId}`)
       .join("<br>");
-
+setModalOpen(false);
     const confirm = await Swal.fire({
       title: "Confirm Deletion",
       html: `
@@ -113,13 +520,17 @@ useEffect(() => {
       confirmButtonText: "Yes, Delete",
       cancelButtonText: "Cancel",
       customClass: {
-        popup: "z-[9999]",
+        popup: "z-[99999] !important", // <-- make sure it's super high
+       container: "z-[99999]",
       },
+    backdrop: `rgba(0,0,0,0.5) z-[99998]`, // Explicitly set backdrop z-index
+    allowOutsideClick: false, // Prevent closing by clicking outside
+    focusConfirm: true, // Ensure confirm button is focused
     });
 
     if (!confirm.isConfirmed) return;
 
-    const failedDeletes = [];
+    const failedDeletes: string[] = [];
     setloading(true);
 
     try {
@@ -134,8 +545,8 @@ useEffect(() => {
                 },
               }
             );
-            fetchData()
-          } catch (error) {
+            fetchData();
+          } catch (error: any) {
             if (error?.response?.data?.message !== "Not Found") {
               failedDeletes.push(id);
             }
@@ -150,7 +561,11 @@ useEffect(() => {
           "warning"
         );
       } else {
-        Swal.fire("Deleted", "Selected knowledgebases deleted successfully.", "success");
+        Swal.fire(
+          "Deleted",
+          "Selected knowledgebases deleted successfully.",
+          "success"
+        );
       }
 
       const updatedAgents = knowledgebases.filter(
@@ -166,184 +581,238 @@ useEffect(() => {
 
     setloading(false);
   };
-const handleDeleteSelectedUsersKbs = async () => {
-  const selectedUsers = users.filter((u) => selectedUserIds.includes(u.userId));
-  let allKbList = [];
 
-  selectedUsers.forEach((u) => {
-    u.agents?.forEach((kb) => {
-      allKbList.push({
-        userId: u.userId,
-        agentName: kb.agentName,
-        kbId: kb.knowledgeBaseId,
+  const handleDeleteSelectedUsersKbs = async () => {
+    const selectedUsers = users.filter((u) =>
+      selectedUserIds.includes(u.userId)
+    );
+    let allKbList: any[] = [];
+
+    selectedUsers.forEach((u) => {
+      u.agents?.forEach((kb: any) => {
+        allKbList.push({
+          userId: u.userId,
+          agentName: kb.agentName,
+          kbId: kb.knowledgeBaseId,
+        });
       });
     });
-  });
 
-  if (allKbList.length === 0) {
-    Swal.fire("No KBs", "No knowledgebases found for selected users.", "info");
-    return;
-  }
+    if (allKbList.length === 0) {
+      Swal.fire("No KBs", "No knowledgebases found for selected users.", "info");
+      return;
+    }
 
-  const kbListHTML = allKbList
-    .map((k) => `<b>${k.agentName}</b> (${k.kbId})`)
-    .join("<br>");
+    const kbListHTML = allKbList
+      .map((k) => `<b>${k.agentName}</b> (${k.kbId})`)
+      .join("<br>");
+setModalOpen(false); // close modal
+    const confirm = await Swal.fire({
+      title: "Confirm Deletion",
+      html: `You're about to delete <b>${allKbList.length}</b> knowledgebases:<br/><div class="text-left mt-2 max-h-[300px] overflow-auto">${kbListHTML}</div>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Delete All",
+      cancelButtonText: "Cancel",
+            customClass: {
+        popup: "z-[99999] !important", // <-- make sure it's super high
+       container: "z-[99999]",
+      },
+    backdrop: `rgba(0,0,0,0.5) z-[99998]`, // Explicitly set backdrop z-index
+    allowOutsideClick: false, // Prevent closing by clicking outside
+    focusConfirm: true, // Ensure confirm button is focused
+    });
 
-  const confirm = await Swal.fire({
-    title: "Confirm Deletion",
-    html: `You're about to delete <b>${allKbList.length}</b> knowledgebases:<br/><div class="text-left mt-2 max-h-[300px] overflow-auto">${kbListHTML}</div>`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, Delete All",
-    cancelButtonText: "Cancel",
-    customClass: {
-      popup: "z-[9999]",
-    },
-  });
+    if (!confirm.isConfirmed) return;
 
-  if (!confirm.isConfirmed) return;
+    setloading(true);
 
-  setloading(true);
+    const failed: string[] = [];
 
-  const failed = [];
-
-  await Promise.all(
-    allKbList.map(async (item) => {
-      try {
-        await axios.delete(
-          `https://api.retellai.com/delete-knowledge-base/${item.kbId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
-            },
-          }
-
-        );
-        fetchData()
-      } catch (err) {
-        failed.push(item.kbId);
-      }
-    })
-  );
-
-  if (failed.length > 0) {
-    Swal.fire(
-      "Partial Success",
-      `Some KBs failed to delete: ${failed.join(", ")}`,
-      "warning"
+    await Promise.all(
+      allKbList.map(async (item) => {
+        try {
+          await axios.delete(
+            `https://api.retellai.com/delete-knowledge-base/${item.kbId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`,
+              },
+            }
+          );
+          fetchData();
+        } catch (err) {
+          failed.push(item.kbId);
+        }
+      })
     );
-  } else {
-    Swal.fire("Deleted", "All selected users' KBs deleted.", "success");
-  }
 
-  // Remove deleted KBs from state
-  const updatedUsers = users.map((u) => {
-    if (!selectedUserIds.includes(u.userId)) return u;
-    return { ...u, agents: [] }; // Clear KBs
-  });
+    if (failed.length > 0) {
+      Swal.fire(
+        "Partial Success",
+        `Some KBs failed to delete: ${failed.join(", ")}`,
+        "warning"
+      );
+    } else {
+      Swal.fire("Deleted", "All selected users' KBs deleted.", "success");
+    }
 
-  setUsers(updatedUsers);
-  setFilteredUsers(updatedUsers);
-  setSelectedUserIds([]);
-  setModalOpen(false);
-  setloading(false);
-};
+    // Remove deleted KBs from state
+    const updatedUsers = users.map((u) => {
+      if (!selectedUserIds.includes(u.userId)) return u;
+      return { ...u, agents: [] }; // Clear KBs
+    });
+
+    setUsers(updatedUsers);
+    setFilteredUsers(updatedUsers);
+    setSelectedUserIds([]);
+    setModalOpen(false);
+    setloading(false);
+  };
+
+  // ✅ Tab-wise filtering
+const displayedUsers = filteredUsers.filter((u: any) =>
+  activeTab === "customers" ? u.userId !== "anonymous" : u.userId === "anonymous"
+);
 
   return (
     <div className="p-4 space-y-6">
       <h2 className="text-2xl font-semibold">Users with Agents</h2>
-   <div className="flex " style={{justifyContent:'space-between'}}> <p className="text-gray-600 mt-2">Manage and monitor Knowledge Bases of each user</p>
 
-      <Input
-        placeholder="Search by userId, name or email"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-50 max-w-md mb-4"
-      />
- {selectedUserIds.length > 0 && (
-  <div className="mb-4">
-    <Button
-      className="bg-red-600 hover:bg-red-700 w-35"
-      onClick={handleDeleteSelectedUsersKbs}
-    >
-      Delete for {selectedUserIds.length}  
-    </Button>
-  </div>
-)}</div>
+      {/* Tabs */}
+      <div className="flex gap-4 border-b pb-2">
+        <button
+          className={`px-4 py-2 rounded-t ${
+            activeTab === "customers"
+              ? "bg-purple-600 text-white"
+              : "bg-gray-100 text-gray-700"
+          }`}
+          onClick={() => setActiveTab("customers")}
+        >
+          Customers
+        </button>
+        {typeof window !== "undefined" && (window.location.origin === "https://admin.rexpt.in")    &&  (  <button
+          className={`px-4 py-2 rounded-t ${
+            activeTab === "anonymous"
+              ? "bg-purple-600 text-white"
+              : "bg-gray-100 text-gray-700"
+          }`}
+          onClick={() => setActiveTab("anonymous")}
+        >
+          Anonymous
+        </button>
+        )}
+      </div>
+
+      <div className="flex justify-between">
+        <p className="text-gray-600 mt-2">
+          Manage and monitor Knowledge Bases of each user
+        </p>
+
+        <Input
+          placeholder="Search by userId, name or email"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-50 max-w-md mb-4"
+        />
+
+        {selectedUserIds.length > 0 && (
+          <div className="mb-4">
+            <Button
+              className="bg-red-600 hover:bg-red-700 w-35"
+              onClick={handleDeleteSelectedUsersKbs}
+            >
+              Delete for {selectedUserIds.length}
+            </Button>
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-20">
           <FadeLoader color="#3b82f6" />
         </div>
       ) : (
-        <table className="w-full border-collapse border text-sm  " style={{background:'white'}}>
-          <thead >
+        <table
+          className="w-full border-collapse border text-sm"
+          style={{ background: "white" }}
+        >
+          <thead>
             <tr>
-              <th className="p-3  text-center">
-  <input
-    type="checkbox"
-    checked={selectedUserIds.length === filteredUsers.length}
-    onChange={(e) => {
-      const checked = e.target.checked;
-      setSelectedUserIds(checked ? filteredUsers.map((u) => u.userId) : []);
-    }}
-  />
-</th>
+              {/* <th className="p-3 text-center">
+                <input
+                  type="checkbox"
+                  checked={
+                    selectedUserIds.length === displayedUsers.length &&
+                    displayedUsers.length > 0
+                  }
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setSelectedUserIds(
+                      checked ? displayedUsers.map((u: any) => u.userId) : []
+                    );
+                  }}
+                />
+              </th> */}
+              <th></th>
 
-              <th className="p-3  text-left">User ID</th>
-              <th className="p-3  text-left">Name</th>
-              <th className="p-3  text-left">Email</th>
-              <th className="p-3  text-center">Action</th>
+              <th className="p-3 text-left">User ID</th>
+              <th className="p-3 text-left">Name</th>
+              <th className="p-3 text-left">Email</th>
+              <th className="p-3 text-center">Action</th>
             </tr>
           </thead>
-        <tbody  style={{background:'white'}}>
-  {filteredUsers.map((u) => (
-    <tr key={u.userId} className="hover:bg-gray-50">
-      <td className="p-3  text-center">
-        <input
-          type="checkbox"
-          checked={selectedUserIds.includes(u.userId)}
-          onChange={(e) => {
-            const checked = e.target.checked;
-            setSelectedUserIds((prev) =>
-              checked
-                ? [...prev, u.userId]
-                : prev.filter((id) => id !== u.userId)
-            );
-          }}
-        />
-      </td>
-      <td className="p-3 ">{u.userId}</td>
-      <td className="p-3  capitalize">{u.name}</td>
-      <td className="p-3 ">{u.email}</td>
-      <td className="p-3  text-center">
-        <Button size="sm" onClick={() => handleView(u)}>
-          View
-        </Button>
-      </td>
-    </tr>
-  ))}
-</tbody>
-
+          <tbody style={{ background: "white" }}>
+            {displayedUsers.map((u: any) => (
+              <tr key={u.userId} className="hover:bg-gray-50">
+                <td className="p-3 text-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedUserIds.includes(u.userId)}
+                    onChange={(e) => {
+                      const checked = e.target.checked;
+                      setSelectedUserIds((prev) =>
+                        checked
+                          ? [...prev, u.userId]
+                          : prev.filter((id) => id !== u.userId)
+                      );
+                    }}
+                  />
+                </td>
+                <td className="p-3">{u.userId}</td>
+                <td className="p-3 capitalize">
+                  {u.name || <span className="italic text-gray-400">Anonymous</span>}
+                </td>
+                <td className="p-3">{u.email || "-"}</td>
+                <td className="p-3 text-center">
+                  <Button size="sm" onClick={() => handleView(u)}>
+                    View
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
-        
       )}
-     
-
 
       {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>
-              Agents for <span className="text-blue-600">{selectedUser?.name}</span>
+              Agents for{" "}
+              <span className="text-blue-600">
+                {selectedUser?.name || "Anonymous"} 
+              </span>
+             <span className="text-[10px] text-gray-400">(Select up to 5)</span>
             </DialogTitle>
           </DialogHeader>
 
-          <div className="overflow-auto max-h-[400px] mt-3 border rounded">
+          <div className="overflow-auto max-h-[400px] mt-3 border rounded ">
             <table className="w-full border-collapse text-sm">
               <thead className="bg-gray-100 sticky top-0 z-10">
                 <tr>
-                  <th className="p-2 border text-center">
+                  {/* <th className="p-2 border text-center">
                     <input
                       type="checkbox"
                       checked={
@@ -353,11 +822,14 @@ const handleDeleteSelectedUsersKbs = async () => {
                       onChange={(e) => {
                         const checked = e.target.checked;
                         setSelectedKbIds(
-                          checked ? knowledgebases.map((kb) => kb.knowledgeBaseId) : []
+                          checked
+                            ? knowledgebases.map((kb) => kb.knowledgeBaseId)
+                            : []
                         );
                       }}
                     />
-                  </th>
+                  </th> */}
+                  <th></th>
                   <th className="p-2 border text-left">Agent Name</th>
                   <th className="p-2 border text-left">Knowledgebase ID</th>
                 </tr>
@@ -371,10 +843,15 @@ const handleDeleteSelectedUsersKbs = async () => {
                         checked={selectedKbIds.includes(kb.knowledgeBaseId)}
                         onChange={(e) => {
                           const checked = e.target.checked;
+                              if (checked && selectedKbIds.length >= 5) {
+                                return; // block selection
+                              }
                           setSelectedKbIds((prev) =>
                             checked
                               ? [...prev, kb.knowledgeBaseId]
-                              : prev.filter((id) => id !== kb.knowledgeBaseId)
+                              : prev.filter(
+                                  (id) => id !== kb.knowledgeBaseId
+                                )
                           );
                         }}
                       />
@@ -387,7 +864,7 @@ const handleDeleteSelectedUsersKbs = async () => {
             </table>
           </div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 z-20 relative">
             <Button
               className="bg-red-600 hover:bg-red-700"
               disabled={selectedKbIds.length === 0}
@@ -401,3 +878,4 @@ const handleDeleteSelectedUsersKbs = async () => {
     </div>
   );
 }
+

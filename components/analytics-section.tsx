@@ -24,6 +24,7 @@ export function AnalyticsSection() {
     totalsubscriptions: 0,
   });
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -43,9 +44,11 @@ export function AnalyticsSection() {
         setLoading(false);
       }
     };
+    if(token){
+          fetchAnalytics();
 
-    fetchAnalytics();
-  }, []);
+    }
+  }, [token]);
 
   const COLORS = ["#34D399", "#6366F1"]; // free, paid
 
