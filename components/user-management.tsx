@@ -100,7 +100,6 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
 const filteredUsers = users
   .filter(
     (user) =>
-      (user.referredBy === currentReferredBy || user.isUserType === 0) &&
       user.isUserType !== 1
   )
   .filter(

@@ -1887,7 +1887,8 @@ const PartnerResources = () => {
     return { type, url, name: file.name, size, iconUrl, color, inlineSvg };
   };
 
-  const removeFile = (index) => {
+  const removeFile = (index,e: React.MouseEvent) => {
+     e.stopPropagation(); // 🚫 parent click trigger hone se roke
     const updatedFiles = newContent.files.filter((_, i) => i !== index);
     const updatedPreviews = newContent.filePreviews.filter((_, i) => i !== index);
     setNewContent({
@@ -2464,7 +2465,7 @@ const PartnerResources = () => {
                           </div>
                         )}
                         <button
-                          onClick={() => removeFile(idx)}
+                          onClick={(e) => removeFile(idx,e)}
                           className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                         >
                           −
@@ -2474,8 +2475,8 @@ const PartnerResources = () => {
                   })}
                 </div>
               )}
-              </div>
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+              </div>
 
               <div className="flex justify-end space-x-3">
                 <button
