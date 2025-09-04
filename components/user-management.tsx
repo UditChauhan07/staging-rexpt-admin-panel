@@ -34,6 +34,21 @@ interface UserManagementProps {
   onViewUser: (user: User) => void
 }
 
+export const getUserTypeText = (type: number | string | null | undefined): string => {
+  switch (String(type)) {
+    case "0":
+      return "User";
+    case "1":
+      return "Admin";
+    case "2":
+      return "Partner";
+    case "3":
+      return "Jr. Partner";
+    default:
+      return "Unknown";
+  }
+};
+
 export function UserManagement({ onViewUser }: UserManagementProps) {
   const [users, setUsers] = useState<User[]>([])
   const [searchTerm, setSearchTerm] = useState("")
@@ -58,7 +73,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
         id: u.userId ?? `USR${String(index + 1).padStart(3, "0")}`,
         name: u.name ?? "N/A",
         email: u.email ?? "No Email",
-        // role: u.userType ?? "User",
+        role: u.isUserType ?? 0,
         // status: "Active",
         // lastLogin: "-",
         registrationDate: u.createdAt ?? null,
@@ -66,7 +81,7 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
         referredBy: u.referredBy,
         isUserType: u.isUserType,
         referralCode: u.referralCode ?? "N/A",
-        referalName: u.referredByName ?? "N/A",
+        referalName: u.referalName ?? "N/A",
       }))
       console.log(mappedUsers, "mappedUsers")
       setUsers(mappedUsers)
@@ -85,7 +100,6 @@ export function UserManagement({ onViewUser }: UserManagementProps) {
 const filteredUsers = users
   .filter(
     (user) =>
-      (user.referredBy === currentReferredBy || user.isUserType === 0) &&
       user.isUserType !== 1
   )
   .filter(
@@ -361,6 +375,7 @@ const filteredUsers = users
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone Number</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Role</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Referred By</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Actions</th>
                     </tr>
@@ -380,9 +395,12 @@ const filteredUsers = users
                           <td className="py-3 px-4 font-medium">{user.name}</td>
                           <td className="py-3 px-4 text-gray-600">{user.email}</td>
                           <td className="py-3 px-4 text-gray-600">{user.phone}</td>
+                          <td className="py-3 px-4 text-gray-600">{getUserTypeText(user?.isUserType)}</td>
                           <td className="py-3 px-4 text-gray-600">
-  {user?.referredBy?.trim() ? user.referredBy : "N/A"}
-</td>
+                          {user?.referredBy?.trim() ? user.referredBy : "N/A"}
+                        </td>
+                    
+
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => onViewUser(user)}>

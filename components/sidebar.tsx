@@ -13,6 +13,11 @@ import {
   HelpCircleIcon,
   BadgeHelp,
   BellRing,
+
+  GitPullRequest,
+
+  TvMinimalPlay 
+
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -33,10 +38,11 @@ const navigationItems = [
   { id: "PricingEnquiry", label: "Pricing Enquiry", icon: HelpCircleIcon },
   { id: "ContactUs", label: "Contact Us Queries", icon: BadgeHelp },
   { id: "HelpUs", label: "Help Us Queries", icon: BadgeHelp },
-  { id: "RaiseComment", label: "Raised Comment", icon: Tickets },
+  { id: "RaiseComment", label: "Partner Requests", icon: GitPullRequest },
   { id: "RaiseTickets", label: "Raised Tickets", icon: Tickets },
   { id: "knowledgeBase", label: " Knowledge Base", icon: Shield },
   { id: "Notifications", label: "Admin Notifications", icon: BellRing },
+  { id: "PartnerResources", label: "Partner Resources", icon: TvMinimalPlay },
 
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },

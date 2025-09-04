@@ -419,6 +419,8 @@ const filteredAgents = sortedAgents.filter((row) => {
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Business Name
+                  </th> <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                    Agent ID
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Agent Name
@@ -478,6 +480,7 @@ const filteredAgents = sortedAgents.filter((row) => {
         <td className="py-3 px-4 text-gray-600">{row.userName}</td>
         <td className="py-3 px-4 text-gray-600">{row.userEmail}</td>
         <td className="py-3 px-4 font-medium">{row.businessName}</td>
+         <td className="py-3 px-4 font-medium">{row.agentId}</td>
         <td className="py-3 px-4 font-medium">{row.agentName}</td>
         <td className="py-3 px-4 font-medium">{row.agentCreatedBy}</td>
         <td className="py-3 px-4 font-medium">
@@ -489,16 +492,17 @@ const filteredAgents = sortedAgents.filter((row) => {
         </td>
         <td className="py-3 px-4 text-gray-600">{row.agentPlan}</td>
         <td className="py-3">
+           <div className="flex gap-2">
           <Button
             size="sm"
             variant="outline"
             onClick={() => handleAgentClick(row)}
-            className="hover:bg-purple-50 hover:text-purple-700"
+            className="hover:bg-purple-50 hover:text-purple-700" 
           >
             <Eye className="h-4 w-4" />
           </Button>
-      </td>
-      {/* <td  className="py-3 ">
+      {/* </td> */}
+      {/* <td  className="py-3 "> */}
   <Button
     size="sm"
     variant="outline"
@@ -519,10 +523,10 @@ const filteredAgents = sortedAgents.filter((row) => {
   >
     <Edit className="h-4 w-4" />
   </Button>
-</td> */}
 
 
-        <td>
+
+
           <Button
             size="sm"
             variant="outline"
@@ -530,7 +534,7 @@ const filteredAgents = sortedAgents.filter((row) => {
             className="text-red-600 hover:text-red-700"
           >
             <Trash2 className="h-4 w-4" />
-          </Button>
+          </Button>  </div>
         </td>
       </tr>
     ))
