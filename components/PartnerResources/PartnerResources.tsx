@@ -1543,6 +1543,7 @@ const PartnerResources = () => {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedLink, setSelectedLink] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newContent, setNewContent] = useState({
     category: 'Sales and Marketing',
     resourceType: '',
@@ -1674,16 +1675,18 @@ const PartnerResources = () => {
         };
 
         res.data.forEach((resource) => {
-          let parsedLinks = [];
-          try {
-            if (typeof resource.links === 'string') {
-              parsedLinks = JSON.parse(resource.links);
-            } else if (Array.isArray(resource.links)) {
-              parsedLinks = resource.links;
-            }
-          } catch (err) {
-            parsedLinks = [];
+      let parsedLinks: string[] = [];
+
+        try {
+          if (typeof res.data.links === "string") {
+            const parsed = JSON.parse(res.data.links || "[]");
+            parsedLinks = Array.isArray(parsed) ? parsed : [];
+          } else if (Array.isArray(res.data.links)) {
+            parsedLinks = res.data.links;
           }
+        } catch {
+          parsedLinks = [];
+        }
           const formattedResource = {
             ...resource,
             coverImage: resource.coverImage
@@ -1711,7 +1714,7 @@ const PartnerResources = () => {
         setContent(groupedContent);
         setLoading(false);
       } catch (err) {
-        setError('Failed to fetch resources.');
+        // setError('Failed to fetch resources.');
         setLoading(false);
       }
     };
@@ -1724,39 +1727,85 @@ const PartnerResources = () => {
     setNewContent({ ...newContent, category: tab, resourceType: '' });
   };
 
+  // const handleInputChange = (e, index) => {
+  //   const { name, value, files } = e.target;
+  //   if (name === 'coverImage' && files[0]) {
+  //     compressImage(files[0], (compressed) => {
+  //       const preview = URL.createObjectURL(compressed);
+  //       setNewContent({
+  //         ...newContent,
+  //         coverImage: compressed,
+  //         coverPreview: preview,
+  //       });
+  //     });
+  //   } else if (name === 'files') {
+  //     const selectedFiles = Array.from(files);
+  //     if (newContent.files.length + selectedFiles.length > MAX_FILES) {
+  //       setError(`Maximum ${MAX_FILES} files allowed.`);
+  //       return;
+  //     }
+  //     const previews = selectedFiles.map((file) => getFilePreview(file));
+  //     setNewContent({
+  //       ...newContent,
+  //       files: [...newContent.files, ...selectedFiles],
+  //       filePreviews: [...newContent.filePreviews, ...previews],
+  //     });
+  //     setError('');
+  //     fileInputRef.current.value = null;
+  //   } else if (name === 'link') {
+  //     const updatedLinks = [...newContent.links];
+  //     updatedLinks[index] = value;
+  //     setNewContent({ ...newContent, links: updatedLinks });
+  //   } else {
+  //     setNewContent({ ...newContent, [name]: value });
+  //   }
+  // };
+
   const handleInputChange = (e, index) => {
-    const { name, value, files } = e.target;
-    if (name === 'coverImage' && files[0]) {
-      compressImage(files[0], (compressed) => {
-        const preview = URL.createObjectURL(compressed);
-        setNewContent({
-          ...newContent,
-          coverImage: compressed,
-          coverPreview: preview,
-        });
-      });
-    } else if (name === 'files') {
-      const selectedFiles = Array.from(files);
-      if (newContent.files.length + selectedFiles.length > MAX_FILES) {
-        setError(`Maximum ${MAX_FILES} files allowed.`);
-        return;
-      }
-      const previews = selectedFiles.map((file) => getFilePreview(file));
+  const { name, value, files } = e.target;
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB in bytes
+
+  if (name === 'coverImage' && files[0]) {
+    if (files[0].size > MAX_FILE_SIZE) {
+      setError('Cover image must be less than 50 MB.');
+      return;
+    }
+    compressImage(files[0], (compressed) => {
+      const preview = URL.createObjectURL(compressed);
       setNewContent({
         ...newContent,
-        files: [...newContent.files, ...selectedFiles],
-        filePreviews: [...newContent.filePreviews, ...previews],
+        coverImage: compressed,
+        coverPreview: preview,
       });
-      setError('');
-      fileInputRef.current.value = null;
-    } else if (name === 'link') {
-      const updatedLinks = [...newContent.links];
-      updatedLinks[index] = value;
-      setNewContent({ ...newContent, links: updatedLinks });
-    } else {
-      setNewContent({ ...newContent, [name]: value });
+    });
+  } else if (name === 'files') {
+    const selectedFiles = Array.from(files);
+    // Check file size for each selected file
+    const oversizedFiles = selectedFiles.filter((file) => file.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      setError('All files must be less than 50 MB.');
+      return;
     }
-  };
+    if (newContent.files.length + selectedFiles.length > MAX_FILES) {
+      setError(`Maximum ${MAX_FILES} files allowed.`);
+      return;
+    }
+    const previews = selectedFiles.map((file) => getFilePreview(file));
+    setNewContent({
+      ...newContent,
+      files: [...newContent.files, ...selectedFiles],
+      filePreviews: [...newContent.filePreviews, ...previews],
+    });
+    setError('');
+    fileInputRef.current.value = null;
+  } else if (name === 'link') {
+    const updatedLinks = [...newContent.links];
+    updatedLinks[index] = value;
+    setNewContent({ ...newContent, links: updatedLinks });
+  } else {
+    setNewContent({ ...newContent, [name]: value });
+  }
+};
 
   const addLinkInput = () => {
     setNewContent({ ...newContent, links: [...newContent.links, ''] });
@@ -1938,7 +1987,12 @@ const PartnerResources = () => {
       setError('Resource Type is required.');
       return;
     }
+    if(error){
+      return
+    }
     try {
+      setLoading(true); // Set loading state
+      setError('');
       const formData = new FormData();
       formData.append('category', newContent.category);
       formData.append('resourceType', newContent.resourceType);
@@ -1990,16 +2044,19 @@ const PartnerResources = () => {
         );
       }
 
-      let parsedLinks = [];
-      try {
-        if (typeof res.data.links === 'string') {
-          parsedLinks = JSON.parse(res.data.links);
-        } else if (Array.isArray(res.data.links)) {
-          parsedLinks = res.data.links;
+     let parsedLinks: string[] = [];
+
+        try {
+          if (typeof res.data.links === "string") {
+            const parsed = JSON.parse(res.data.links || "[]");
+            parsedLinks = Array.isArray(parsed) ? parsed : [];
+          } else if (Array.isArray(res.data.links)) {
+            parsedLinks = res.data.links;
+          }
+        } catch {
+          parsedLinks = [];
         }
-      } catch (err) {
-        parsedLinks = [];
-      }
+      // console.log('parsedLinks',parsedLinks)
       const newResource = {
         ...res.data,
         resourceId:res?.data?.id,
@@ -2052,8 +2109,11 @@ const PartnerResources = () => {
       setEditResourceId(null);
       setError('');
     } catch (err) {
+      console.log(err)
       setError(isEditing ? 'Failed to update resource.' : 'Failed to upload resource.');
-    }
+    }finally {
+    setLoading(false); // Reset loading state
+  }
   };
 
   return (
@@ -2165,7 +2225,7 @@ const PartnerResources = () => {
                                   className={`w-12 h-12 ${file.color} transform hover:scale-110 transition-transform object-contain`}
                                 />
                               )}
-                              <span className="mt-1 text-xs text-gray-600 truncate">{file.name}</span>
+                              <span className="mt-1 text-xs text-gray-600 block max-w-[120px] truncate">{file.name}</span>
                               <span className="text-xs text-gray-500">{file.size}</span>
                             </div>
                           )}
@@ -2201,7 +2261,6 @@ const PartnerResources = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 overflow-y-auto">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto my-8">
             <h2 className="text-2xl font-bold mb-4">{isEditing ? 'Edit Resource' : 'Add New Resource'}</h2>
-            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">Category</label>
@@ -2417,6 +2476,8 @@ const PartnerResources = () => {
                 </div>
               )}
               </div>
+              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
