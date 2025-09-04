@@ -2115,7 +2115,6 @@ const PartnerResources = () => {
     setLoading(false); // Reset loading state
   }
   };
-
   return (
     <div className="container mx-auto p-6 bg-gray-100 min-h-screen">
       <div className="flex justify-between items-center mb-6">
@@ -2476,7 +2475,7 @@ const PartnerResources = () => {
                 </div>
               )}
               </div>
-              {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
               <div className="flex justify-end space-x-3">
                 <button
@@ -2486,15 +2485,32 @@ const PartnerResources = () => {
                     setIsEditing(false);
                     setEditResourceId(null);
                   }}
-                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition-colors"
+                    disabled={loading}
+                   className={`px-4 py-2 rounded-md transition-colors 
+                            ${loading 
+                              ? "bg-gray-200 text-gray-400 cursor-not-allowed" 
+                              : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                            }`}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
+                  disabled={loading}
+                   className={`px-4 py-2 rounded-md transition-colors 
+                  ${loading 
+                    ? "bg-purple-300 text-white cursor-not-allowed" 
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                  }`}
                 >
-                  {isEditing ? 'Update' : 'Add'}
+                  {/* {isEditing ? 'Update' : 'Add'} */}
+                    {loading 
+                  ? isEditing 
+                    ? "Updating..." 
+                    : "Adding..." 
+                  : isEditing 
+                    ? "Update" 
+                    : "Add"}
                 </button>
               </div>
             </form>
