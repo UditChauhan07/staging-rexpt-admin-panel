@@ -19,7 +19,7 @@ interface User {
   name: string
   email: string
   phone: string
-  role: string
+  role: number
   referalName?: string
   password?: string
 }
@@ -79,11 +79,12 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   useEffect(() => {
     if (user) {
+            console.log('user2',user)
       setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: user.role || "",
+        role:user.isUserType || user.role || "",
         referalName: user.referalName || user.name.toLowerCase().replace(/\s+/g, "-") || "",
         password: user.password || "",
       })
@@ -112,11 +113,12 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
   useEffect(() => {
     if (user) {
+      console.log('user',user)
       setFormData({
         name: user.name || "",
         email: user.email || "",
         phone: user.phone || "",
-        role: user.role || "",
+        role:user.isUserType || user.role || "",
         referalName: user.referalName || user.name.toLowerCase().replace(/\s+/g, "-") || "",
         password: ""
       })
@@ -214,7 +216,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
       </div>
     );
   }
-
+console.log('sasasa',formData)
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -241,7 +243,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
                 const firstName = fullName.split(" ")[0];
 
                 // Capitalize first character of first name
-                const formattedName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                const formattedName = firstName?.toLowerCase();
 
                 setErrors({ ...errors, name: "" });
                 setFormData({
@@ -349,7 +351,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
 
                   // Capitalize first letter of first name
                   const formattedName =
-                    firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+                    firstName?.toLowerCase();
 
                   setFormData({
                     ...formData,
