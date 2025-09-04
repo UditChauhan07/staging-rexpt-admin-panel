@@ -48,17 +48,12 @@ interface AgentBusinessRow {
   agentPlan: string;
   status?: number;
   businessId: string;
-  agentCreatedBy: string;
-  userId: string;
+  agentCreatedBy:string;
+  userId:string
 }
 
 interface AgentBusinessListProps {
-  onViewAgent: (
-    agent: any,
-    business: any,
-    knowledge_base_texts: any,
-    total_call: any
-  ) => void;
+  onViewAgent: (agent: any, business: any,knowledge_base_texts:any,total_call:any) => void; 
 }
 export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,44 +67,45 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   const [isAgentModalOpen, setIsAgentModalOpen] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [usersList, setuserList] = useState<User[]>([]);
-  const [userDetails, setUserdetails] = useState<User[]>([]);
+  const [userDetails,setUserdetails]=useState<User[]>([])
   const [selectedAgentInfo, setSelectedAgentInfo] = useState<{
-    agentId: string;
-    businessId: string;
-    userId: string;
-  } | null>(null);
-  console.log(selectedAgentInfo, "selectAgentinfo");
+  agentId: string;
+  businessId: string;
+  userId:string;
+} | null>(null);
+console.log(selectedAgentInfo,"selectAgentinfo")
 
-  const [loading, setLoading] = useState(false);
-  const [loaders, setLoaders] = useState(false);
-  const [sortBy, setSortBy] = useState<keyof AgentBusinessRow | "">("");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [planFilter, setPlanFilter] = useState<string>("all");
-  const [isEditAgentModalOpen, setEditAgentModal] = useState(false);
-  const sortedAgents = [...agentData].sort((a, b) => {
-    if (!sortBy) return 0;
-    const aValue = a[sortBy] ?? "";
-    const bValue = b[sortBy] ?? "";
+const [loading, setLoading] = useState(false); 
+const [loaders,setLoaders]=useState(false)
+const [sortBy, setSortBy] = useState<keyof AgentBusinessRow | "">("");
+const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+const [statusFilter, setStatusFilter] = useState<string>("all");
+const [planFilter, setPlanFilter] = useState<string>("all");
+const [isEditAgentModalOpen,setEditAgentModal]=useState(false)
+const sortedAgents = [...agentData].sort((a, b) => {
+  if (!sortBy) return 0;
+  const aValue = a[sortBy] ?? "";
+  const bValue = b[sortBy] ?? "";
 
-    if (typeof aValue === "string" && typeof bValue === "string") {
-      return sortDirection === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
-    }
+  if (typeof aValue === "string" && typeof bValue === "string") {
+    return sortDirection === "asc"
+      ? aValue.localeCompare(bValue)
+      : bValue.localeCompare(aValue);
+  }
 
-    if (typeof aValue === "number" && typeof bValue === "number") {
-      return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
-    }
+  if (typeof aValue === "number" && typeof bValue === "number") {
+    return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+  }
 
-    return 0;
-  });
+  return 0;
+});
 
   console.log(selectedAgent, "selectedAgent");
 
   async function fetchUsers() {
     try {
-      setLoaders(true);
+
+      setLoaders(true)
       const apiUsers = await retrieveAllRegisteredUsers();
       if (!Array.isArray(apiUsers)) {
         console.error("API returned error:", apiUsers);
@@ -126,23 +122,24 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       }));
       console.log(mappedUsers, "mappedUsers");
       setuserList(mappedUsers);
-      setLoading(false);
+       setLoading(false)
     } catch (error) {
       console.error("Failed to fetch users", error);
-      setLoaders(false);
+       setLoaders(false)
     }
   }
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  const fetchData = async () => {
-    setLoaders(true);
+  const fetchData = async () => 
+    {
+       setLoaders(true)
     const res = await retrieveAllRegisteredUsers2();
     console.log(res.length, "response of agents");
-    console.log(res, "resres");
+    console.log(res,"resres")
     const flatList: AgentBusinessRow[] = [];
-    console.log(agentData, "agentdata");
+    console.log(agentData,"agentdata")
 
     res?.data?.forEach((user: any) => {
       user.businesses?.forEach((business: any) => {
@@ -155,41 +152,41 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
             agentId: agent.agentId || agent.agent_id || "-",
             agentName: agent.agentName || "-",
             agentPlan: agent.agentPlan || "-",
-            agentCreatedBy: agent.agentCreatedBy || "-",
+            agentCreatedBy:agent.agentCreatedBy||"-",
             businessName: business.businessName || "-",
             userName: user.userName || "-",
             userEmail: user.userEmail || "-",
             status: agent.agentStatus ?? 1,
-            userId: user?.userId || agent?.userId || "-",
+            userId:user?.userId || agent?.userId||"-"
           });
         });
       });
     });
     setAgentData(flatList);
-    setLoaders(false);
+     setLoaders(false)
   };
   useEffect(() => {
     fetchData();
   }, []);
 
   const agentsPerPage = 10;
-  const filteredAgents = sortedAgents.filter((row) => {
-    const name = row.agentName || "";
-    const business = row?.businessName || "";
-    const user = row.userName || "";
-    const email = row.userEmail || "";
+const filteredAgents = sortedAgents.filter((row) => {
+  const name = row.agentName || "";
+  const business = row?.businessName || "";
+  const user = row.userName || "";
+  const email = row.userEmail || "";
 
-    if (statusFilter !== "all" && String(row.status) !== statusFilter)
-      return false;
-    if (planFilter !== "all" && row.agentPlan !== planFilter) return false;
+  if (statusFilter !== "all" && String(row.status) !== statusFilter) return false;
+  if (planFilter !== "all" && row.agentPlan !== planFilter) return false;
 
-    return (
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      business.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
+  return (
+    name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    business.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+});
+
 
   const totalPages = Math.ceil(filteredAgents.length / agentsPerPage);
   const startIndex = (currentPage - 1) * agentsPerPage;
@@ -205,7 +202,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
 
   const handleConfirmDelete = async () => {
     if (!selectedAgent) return;
-
+  
     Swal.fire({
       title: "Deleting...",
       text: "Please wait while we delete the agent.",
@@ -216,12 +213,12 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
     });
 
     try {
-      setLoading(true);
+       setLoading(true)
       await deleteAgent(selectedAgent.agentId);
       setAgentData((prev) =>
         prev.filter((agent) => agent.agentId !== selectedAgent.agentId)
       );
-      setLoading(false);
+      setLoading(false)
       Swal.close();
       await fetchData();
       await Swal.fire({
@@ -232,7 +229,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       });
     } catch (err) {
       console.error("Failed to delete agent:", err);
-      setLoading(false);
+       setLoading(false)
       Swal.close();
       await Swal.fire({
         icon: "error",
@@ -244,7 +241,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       setIsDeleting(false);
       setShowConfirm(false);
       setSelectedAgent(null);
-      setLoading(false);
+       setLoading(false)
     }
   };
 
@@ -273,12 +270,12 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       });
 
       try {
-        setLoading(true);
+        setLoading(true)
         const response = await deactivateAgent(agent.agentId);
         Swal.close();
         await fetchData();
         if (response?.status === true) {
-          setLoading(false);
+                 setLoading(false)
           await Swal.fire({
             icon: "success",
             title: "Agent Deactivated",
@@ -287,7 +284,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
             showConfirmButton: false,
           });
         } else {
-          setLoading(false);
+                 setLoading(false)
           await Swal.fire({
             icon: "error",
             title: "Failed",
@@ -296,7 +293,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
         }
       } catch (err) {
         console.error("Error deactivating agent:", err);
-        setLoading(false);
+               setLoading(false)
         Swal.close();
         await Swal.fire({
           icon: "error",
@@ -312,7 +309,7 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
 
   const handleAgentClick = async (row: AgentBusinessRow) => {
     try {
-      //  setLoading(true)
+            //  setLoading(true)
       const { agentId, businessId } = row;
       console.log(row);
       const data = await fetchAgentDetailById({
@@ -320,15 +317,11 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
         bussinesId: businessId,
       });
       console.log("dsdsdsdsdsdewrerrewrew", data);
-      onViewAgent(
-        data?.data?.agent,
-        data?.data?.business,
-        data?.data?.knowledge_base_texts
-      );
-      //  setLoading(false)
+      onViewAgent(data?.data?.agent, data?.data?.business,data?.data?.knowledge_base_texts)
+            //  setLoading(false)
     } catch (err) {
       console.error("Error fetching agent details", err);
-      setLoading(false);
+             setLoading(false)
     }
   };
   if (loading) {
@@ -352,35 +345,33 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
       </div>
     );
   }
-  console.log(paginatedAgents);
+  console.log(paginatedAgents)
   return (
     <div className="space-y-6">
-      <div style={{ display: "flex", justifyContent: "space-between" }}>
+      <div style={{display:'flex',justifyContent:'space-between'}}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            Agent Business List
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Manage agents across all businesses
-          </p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Agent Business List
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Manage agents across all businesses
+        </p>
         </div>
-        <div>
-          {" "}
-          <Button
-            className="bg-purple-600 hover:bg-purple-700"
-            onClick={() => setIsAgentModalOpen(true)}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Agent
-          </Button>
-        </div>
+        <div>        <Button
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={() => setIsAgentModalOpen(true)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Agent
+            </Button></div>
+
       </div>
 
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>All Agents</CardTitle>
-
+            
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
@@ -391,29 +382,28 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
               />
             </div>
             <div className="flex gap-4 mt-4">
-              <select
-                value={planFilter}
-                onChange={(e) => setPlanFilter(e.target.value)}
-                className="border px-3 py-1 rounded-md text-sm"
-              >
-                <option value="all">All </option>
-                {[...new Set(agentData.map((a) => a.agentPlan))].map((plan) => (
-                  <option key={plan} value={plan}>
-                    {plan}
-                  </option>
-                ))}
-              </select>
+  <select
+    value={planFilter}
+    onChange={(e) => setPlanFilter(e.target.value)}
+    className="border px-3 py-1 rounded-md text-sm"
+  >
+    <option value="all">All </option>
+    {[...new Set(agentData.map((a) => a.agentPlan))].map((plan) => (
+      <option key={plan} value={plan}>{plan}</option>
+    ))}
+  </select>
 
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border px-3 py-1 rounded-md text-sm"
-              >
-                <option value="all">All</option>
-                <option value="1">Active</option>
-                <option value="0">Inactive</option>
-              </select>
-            </div>
+  <select
+    value={statusFilter}
+    onChange={(e) => setStatusFilter(e.target.value)}
+    className="border px-3 py-1 rounded-md text-sm"
+  >
+    <option value="all">All</option>
+    <option value="1">Active</option>
+    <option value="0">Inactive</option>
+  </select>
+</div>
+
           </div>
         </CardHeader>
         <CardContent>
@@ -429,44 +419,36 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Business Name
+                  </th> <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                    Agent ID
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Agent Name
                   </th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
-                    Agent Id
-                  </th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Agent Type
                   </th>
                   <th
-                    onClick={() => {
-                      setSortBy("status");
-                      setSortDirection((prev) =>
-                        sortBy === "status" && prev === "asc" ? "desc" : "asc"
-                      );
-                    }}
-                    className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
-                  >
-                    Agent Status{" "}
-                    {sortBy === "status" &&
-                      (sortDirection === "asc" ? "↑" : "↓")}
-                  </th>
-                  <th
-                    onClick={() => {
-                      setSortBy("agentPlan");
-                      setSortDirection((prev) =>
-                        sortBy === "agentPlan" && prev === "asc"
-                          ? "desc"
-                          : "asc"
-                      );
-                    }}
-                    className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
-                  >
-                    Plan{" "}
-                    {sortBy === "agentPlan" &&
-                      (sortDirection === "asc" ? "↑" : "↓")}
-                  </th>
+  onClick={() => {
+    setSortBy("status");
+    setSortDirection((prev) => (sortBy === "status" && prev === "asc" ? "desc" : "asc"));
+  }}
+  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
+>
+  Agent Status {sortBy === "status" && (sortDirection === "asc" ? "↑" : "↓")}
+</th>
+                 <th
+  onClick={() => {
+    setSortBy("agentPlan");
+    setSortDirection((prev) => (sortBy === "agentPlan" && prev === "asc" ? "desc" : "asc"));
+  }}
+  className="cursor-pointer text-left py-3 px-4 font-semibold text-gray-700"
+>
+  Plan {sortBy === "agentPlan" && (sortDirection === "asc" ? "↑" : "↓")}
+</th>
+
+
+
 
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">
                     Actions
@@ -474,75 +456,53 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
                 </tr>
               </thead>
               <tbody>
-
-                {loaders ? (
-                  <tr>
-                    <td colSpan={8}>
-                      <div
-                        className="flex justify-center items-center py-6 "
-                        style={{ marginTop: "25%", marginBottom: "50%" }}
-                      >
-                        <FadeLoader
-                          height={10}
-                          width={3}
-                          color="#6524EB"
-                          speedMultiplier={1.5}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ) : paginatedAgents.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center py-6 text-gray-500">
-                      No agents found.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedAgents.map((row) => (
-                    <tr
-                      key={row.agentId}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-4 text-gray-600">
-                        {row.userName}
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {row.userEmail}
-                      </td>
-                      <td className="py-3 px-4 font-medium">
-                        {row.businessName}
-                      </td>
-                      <td className="py-3 px-4 font-medium">{row.agentName}</td>
-                      <td className="py-3 px-4 font-medium">{row.agentId}</td>
-                      <td className="py-3 px-4 font-medium">
-                        {row.agentCreatedBy}
-                      </td>
-                      <td className="py-3 px-4 font-medium">
-                        {row.status === 1 ? (
-                          <span className="text-green-600 font-semibold">
-                            Active
-                          </span>
-                        ) : (
-                          <span className="text-red-600 font-semibold">
-                            Inactive
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">
-                        {row.agentPlan}
-                      </td>
-                      <td className="py-3">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleAgentClick(row)}
-                          className="hover:bg-purple-50 hover:text-purple-700"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </td>
-                      {/* <td  className="py-3 ">
-
+  {loaders ? (
+    <tr>
+      <td colSpan={8}>
+        <div className="flex justify-center items-center py-6 " style={{marginTop:"25%",marginBottom:'50%'}}>
+          <FadeLoader height={10} width={3} color="#6524EB" speedMultiplier={1.5} />
+        </div>
+      </td>
+    </tr>
+  ) : paginatedAgents.length === 0 ? (
+    <tr>
+      <td colSpan={8} className="text-center py-6 text-gray-500">
+        No agents found.
+      </td>
+    </tr>
+  ) : (
+    paginatedAgents.map((row) => (
+      
+      <tr
+        key={row.agentId}
+        className="border-b border-gray-100 hover:bg-gray-50"
+      >
+        <td className="py-3 px-4 text-gray-600">{row.userName}</td>
+        <td className="py-3 px-4 text-gray-600">{row.userEmail}</td>
+        <td className="py-3 px-4 font-medium">{row.businessName}</td>
+         <td className="py-3 px-4 font-medium">{row.agentId}</td>
+        <td className="py-3 px-4 font-medium">{row.agentName}</td>
+        <td className="py-3 px-4 font-medium">{row.agentCreatedBy}</td>
+        <td className="py-3 px-4 font-medium">
+          {row.status === 1 ? (
+            <span className="text-green-600 font-semibold">Active</span>
+          ) : (
+            <span className="text-red-600 font-semibold">Inactive</span>
+          )}
+        </td>
+        <td className="py-3 px-4 text-gray-600">{row.agentPlan}</td>
+        <td className="py-3">
+           <div className="flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleAgentClick(row)}
+            className="hover:bg-purple-50 hover:text-purple-700" 
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
+      {/* </td> */}
+      {/* <td  className="py-3 "> */}
   <Button
     size="sm"
     variant="outline"
@@ -563,22 +523,24 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
   >
     <Edit className="h-4 w-4" />
   </Button>
-</td>
 
-                      <td>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(row)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
+
+
+
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => handleDeleteClick(row)}
+            className="text-red-600 hover:text-red-700"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>  </div>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
+
             </table>
           </div>
 
@@ -616,23 +578,23 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
         </CardContent>
       </Card>
 
-      <EditAgentModal
-        isOpen={isEditAgentModalOpen}
-        onClose={() => {
-          setEditAgentModal(false);
-          setUserSearch("");
-        }}
-        UserData={usersList}
-        agentId={selectedAgentInfo?.agentId}
-        businessId={selectedAgentInfo?.businessId}
-        userId={selectedAgentInfo?.userId}
-        onSubmit={(formData) => {
+<EditAgentModal
+isOpen={isEditAgentModalOpen}
+onClose={()=>{
+  setEditAgentModal(false)
+  setUserSearch("")
+}}
+UserData={usersList}
+agentId={selectedAgentInfo?.agentId}
+  businessId={selectedAgentInfo?.businessId}
+  userId={selectedAgentInfo?.userId}
+
+ onSubmit={(formData) => {
           console.log("Final Form Data:", formData);
           // 🚀 Call your backend API here
-
+          
           setEditAgentModal(false); // close modal after submit
-        }}
-      />
+ }}/>
 
       <AddAgentModal
         isOpen={isAgentModalOpen}
@@ -640,14 +602,14 @@ export function AgentBusinessList({ onViewAgent }: AgentBusinessListProps) {
           setIsAgentModalOpen(false);
           setUserSearch("");
         }}
-        allUsers={usersList}
+        allUsers={usersList} 
         onSubmit={(formData) => {
           console.log("Final Form Data:", formData);
-
-          setIsAgentModalOpen(false);
+         
+          setIsAgentModalOpen(false); 
         }}
       />
-
+    
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
           <DialogHeader>
