@@ -15,11 +15,12 @@ import {
   BellRing,
 
   GitPullRequest,
-
+Presentation ,
   TvMinimalPlay 
 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 interface SidebarProps {
   activeSection: string;
@@ -43,6 +44,7 @@ const navigationItems = [
   { id: "knowledgeBase", label: " Knowledge Base", icon: Shield },
   { id: "Notifications", label: "Admin Notifications", icon: BellRing },
   { id: "PartnerResources", label: "Partner Resources", icon: TvMinimalPlay },
+  { id: "Demo", label: "Demo", icon: Presentation  },
 
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },
@@ -53,8 +55,23 @@ export function Sidebar({
   onSectionChange,
   isCollapsed,
   onToggleCollapse,
-  onLogout,
+  onLogout, 
 }: SidebarProps) {
+
+useEffect(() => {
+    // Only run on mount to set initial state based on screen size
+    const handleInitialResize = () => {
+      if (window.innerWidth <= 768 && !isCollapsed) {
+        onToggleCollapse();
+      } else if (window.innerWidth > 768 && isCollapsed) {
+        onToggleCollapse();
+      }
+    };
+
+    handleInitialResize(); // Run on mount only
+
+    // No resize event listener needed to override user choice
+  }, [])
   return (
     <div
       className={`bg-white border-r border-gray-200 transition-all duration-300 ${

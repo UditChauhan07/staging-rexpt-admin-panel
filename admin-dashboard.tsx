@@ -21,6 +21,7 @@ import ManualNotification from "./components/Notifications/ManualNotification";
 import HelpusQueries from "./components/HelpusQueries";
 import RaiseComment from "./components/RaiseComment";
 import PartnerResources from "./components/PartnerResources/PartnerResources";
+import DemoApp from "./components/DemoApp/DemoApp";
 interface User {
   id: string;
   name: string;
@@ -163,6 +164,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         return <ManualNotification />;
       case "PartnerResources":
         return <PartnerResources />;
+      case "Demo":
+        return <DemoApp />;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
