@@ -58,8 +58,9 @@ export function Sidebar({
   onLogout, 
 }: SidebarProps) {
 
-    useEffect(() => {
-    const handleResize = () => {
+useEffect(() => {
+    // Only run on mount to set initial state based on screen size
+    const handleInitialResize = () => {
       if (window.innerWidth <= 768 && !isCollapsed) {
         onToggleCollapse();
       } else if (window.innerWidth > 768 && isCollapsed) {
@@ -67,10 +68,10 @@ export function Sidebar({
       }
     };
 
-    handleResize(); // run on mount
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [isCollapsed, onToggleCollapse]);
+    handleInitialResize(); // Run on mount only
+
+    // No resize event listener needed to override user choice
+  }, [])
   return (
     <div
       className={`bg-white border-r border-gray-200 transition-all duration-300 ${
