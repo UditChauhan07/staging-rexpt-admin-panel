@@ -15,7 +15,7 @@ import {
   BellRing,
 
   GitPullRequest,
-
+Presentation ,
   TvMinimalPlay 
 
 } from "lucide-react";
@@ -44,7 +44,7 @@ const navigationItems = [
   { id: "knowledgeBase", label: " Knowledge Base", icon: Shield },
   { id: "Notifications", label: "Admin Notifications", icon: BellRing },
   { id: "PartnerResources", label: "Partner Resources", icon: TvMinimalPlay },
-  { id: "Demo", label: "Demo", icon: TvMinimalPlay },
+  { id: "Demo", label: "Demo", icon: Presentation  },
 
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },
