@@ -20,6 +20,7 @@ import {
 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 
 interface SidebarProps {
   activeSection: string;
@@ -43,6 +44,7 @@ const navigationItems = [
   { id: "knowledgeBase", label: " Knowledge Base", icon: Shield },
   { id: "Notifications", label: "Admin Notifications", icon: BellRing },
   { id: "PartnerResources", label: "Partner Resources", icon: TvMinimalPlay },
+  { id: "Demo", label: "Demo", icon: TvMinimalPlay },
 
   // { id: "products", label: "Product Management", icon: Package },
   // { id: "settings", label: "Settings", icon: Settings },
@@ -53,8 +55,22 @@ export function Sidebar({
   onSectionChange,
   isCollapsed,
   onToggleCollapse,
-  onLogout,
+  onLogout, 
 }: SidebarProps) {
+
+    useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768 && !isCollapsed) {
+        onToggleCollapse();
+      } else if (window.innerWidth > 768 && isCollapsed) {
+        onToggleCollapse();
+      }
+    };
+
+    handleResize(); // run on mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isCollapsed, onToggleCollapse]);
   return (
     <div
       className={`bg-white border-r border-gray-200 transition-all duration-300 ${
