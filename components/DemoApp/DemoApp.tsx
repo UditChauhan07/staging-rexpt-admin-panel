@@ -38,7 +38,9 @@ export default function DemoApp() {
           encryptedPayload
         )}&signature=${encodeURIComponent(signature)}`;
 
-        router.push(signupUrl);
+        // router.push(signupUrl);
+        window.open(signupUrl, "_blank");
+        window.location.reload();
       } catch (err) {
         console.error(err);
         setError("Failed to fetch demo session");
