@@ -17,7 +17,7 @@ interface DiscountFormProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
-  onNext?: () => void; // 👈 allow page to control step forward
+  onNext?: () => void;
 }
 
 const DiscountForm: React.FC<DiscountFormProps> = ({
@@ -31,9 +31,9 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
   const [error, setError] = useState<string>("");
   const URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // Helper function to generate random 10-character string
   const generateRandomCode = (length: number = 10): string => {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let result = "";
 
     for (let i = 0; i < length; i++) {
@@ -44,7 +44,7 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
     return result;
   };
 
-  const createCoupen = async () => {
+  const createCoupen = async (): Promise<boolean> => {
     const code = generateRandomCode(10);
     const customerId = localStorage.getItem("customerId") || "";
 
@@ -56,8 +56,10 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
       });
 
       console.log("Coupon Created:", res.data);
+      return true;
     } catch (error) {
       console.error("Failed to create coupon:", error);
+      return false;
     }
   };
 
@@ -77,27 +79,17 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
     };
 
     onUpdate({ payment: updatedPayment });
-// <<<<<<< dev_Shorya
-//     onNext?.();
 
-    
-//   };
+    // First, create the coupon
+    const couponCreated = await createCoupen();
 
-  
-
-
-  const createCoupen = async()=>{
-    // let res = await axios.post(``)
-  }
-// =======
-
-//     // Create the coupon first
-//     await createCoupen();
-
-//     // Proceed with next step or final submit
-//     onSubmit({ ...data, payment: updatedPayment });
-//   };
-// >>>>>>> dev_gaurav_sales 
+    if (couponCreated) {
+      // Proceed to next step only if coupon is successfully created
+      onNext?.();
+    } else {
+      setError("Failed to create coupon, please try again.");
+    }
+  };
 
   return (
     <StepWrapper
