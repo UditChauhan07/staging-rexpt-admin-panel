@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft } from "lucide-react";
 import StepWrapper from "./StepWrapper";
+import axios from "axios";
+import { ClimbingBoxLoader } from "react-spinners";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+}
 
 interface FormData {
   payment?: {
     plan: string;
     amount: number;
-    cardNumber: string;
-    expiry: string;
-    cvv: string;
   };
 }
 
@@ -20,78 +23,104 @@ interface PaymentStepProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
+  onNext: () => void;
 }
 
-const PaymentStep: React.FC<PaymentStepProps> = ({ data, onUpdate, onSubmit, onPrevious }) => {
-  const [paymentData, setPaymentData] = useState<FormData["payment"]>(
-    data.payment || { plan: "basic", amount: 10, cardNumber: "", expiry: "", cvv: "" }
-  );
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+const PaymentStep: React.FC<PaymentStepProps> = ({
+  data,
+  onUpdate,
+  onSubmit,
+  onNext , 
+  onPrevious,
 
-  const validate = () => {
-    const newErrors: { [key: string]: string } = {};
-    if (!paymentData.cardNumber?.trim() || paymentData.cardNumber.length !== 16)
-      newErrors.cardNumber = "Valid 16-digit card number is required";
-    if (!paymentData.expiry?.trim() || !/^\d{2}\/\d{2}$/.test(paymentData.expiry))
-      newErrors.expiry = "Valid expiry (MM/YY) is required";
-    if (!paymentData.cvv?.trim() || paymentData.cvv.length !== 3)
-      newErrors.cvv = "Valid 3-digit CVV is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+}) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
+  const [loading, setLoading] = useState(false);
+
+  const URL = process.env.NEXT_PUBLIC_API_URL;
+  const token = localStorage.getItem("token");
+
+  const getProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${URL}/api/products`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Extract only necessary fields
+      console.log({res})
+      const mappedProducts = res.data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+      }));
+
+      setProducts(mappedProducts);
+    } catch (error) {
+      console.error("Failed to fetch products", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    getProducts();
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!selectedPlan) return alert("Please select a product");
 
-    onUpdate({ payment: paymentData });
-    onSubmit({ ...data, payment: paymentData });
+    // Send selected plan id to parent
+    onUpdate({ payment: { plan: selectedPlan, amount: 0 } });
+    onSubmit({ payment: { plan: selectedPlan, amount: 0 } });
   };
+    const handleNext = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!validate()) return;
+  
+      const selectedVoice = filteredVoices.find((voice) => voice.voice_id === formData.voice);
+      onUpdate({ agent: { ...formData, selectedVoice } });
+      onNext();
+    };
+  
 
   return (
-    <StepWrapper step={4} totalSteps={4} title="Payment Details" description="Enter payment information to complete onboarding.">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cardNumber">Card Number <span className="text-red-500">*</span></Label>
-            <Input
-              id="cardNumber"
-              value={paymentData.cardNumber}
-              onChange={(e) => setPaymentData({ ...paymentData, cardNumber: e.target.value })}
-              placeholder="Enter 16-digit card number"
-            />
-            {errors.cardNumber && <p className="text-sm text-red-600">{errors.cardNumber}</p>}
+    <StepWrapper
+      step={4}
+      totalSteps={5}
+      title="Select a Product Plan"
+      description="Choose the plan that suits your needs."
+    >
+      {loading ? (
+        <ClimbingBoxLoader />
+      ) : (
+        <form onSubmit={handleNext} className="space-y-6">
+          {products.map((product) => (
+            <div key={product.id} className="flex items-center space-x-3 my-2">
+              <input
+                type="radio"
+                name="product"
+                value={product.id}
+                checked={selectedPlan === product.id}
+                onChange={() => setSelectedPlan(product.id)}
+              />
+              <div>
+                <Label className="font-semibold">{product.name}</Label>
+                <p className="text-sm text-gray-600">{product.description}</p>
+              </div>
+            </div>
+          ))}
+
+          <div className="flex justify-between">
+            <Button type="button" onClick={onPrevious}>
+              Previous
+            </Button>
+            <Button type="submit">Next</Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="expiry">Expiry Date <span className="text-red-500">*</span></Label>
-            <Input
-              id="expiry"
-              value={paymentData.expiry}
-              onChange={(e) => setPaymentData({ ...paymentData, expiry: e.target.value })}
-              placeholder="MM/YY"
-            />
-            {errors.expiry && <p className="text-sm text-red-600">{errors.expiry}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="cvv">CVV <span className="text-red-500">*</span></Label>
-            <Input
-              id="cvv"
-              value={paymentData.cvv}
-              onChange={(e) => setPaymentData({ ...paymentData, cvv: e.target.value })}
-              placeholder="Enter 3-digit CVV"
-            />
-            {errors.cvv && <p className="text-sm text-red-600">{errors.cvv}</p>}
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
-          <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
-            <ChevronLeft className="w-4 h-4 mr-2" /> Previous
-          </Button>
-          <Button type="submit" className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700">
-            Complete Onboarding
-          </Button>
-        </div>
-      </form>
+        </form>
+      )}
     </StepWrapper>
   );
 };

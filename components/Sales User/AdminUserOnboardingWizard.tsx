@@ -6,6 +6,7 @@ import BusinessDetailsStep from "./components/BusinessDetailsStep";
 import AgentCreationStep from "./components/AgentCreationStep";
 import PaymentStep from "./components/PaymentStep";
 import axios from "axios";
+import DiscountForm from "./components/Discount";
 
 interface FormData {
   user?: {
@@ -49,7 +50,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
   };
 
   const handleNext = () => {
-    setStep((prev) => Math.min(prev + 1, 4));
+    setStep((prev) => Math.min(prev + 1, 5));
   };
 
   const handlePrevious = () => {
@@ -118,9 +119,19 @@ const AdminUserOnboardingWizard: React.FC = () => {
           data={formData}
           onUpdate={handleUpdate}
           onSubmit={handleSubmit}
+          onNext={handleNext}
           onPrevious={handlePrevious}
         />
       )}
+      {step === 5 && (
+  <DiscountForm
+    data={formData}
+    onUpdate={handleUpdate}
+    onSubmit={handleSubmit}
+    onPrevious={handlePrevious}
+    
+  />
+)}
     </div>
   );
 };
