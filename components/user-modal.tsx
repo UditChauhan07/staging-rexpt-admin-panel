@@ -133,7 +133,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     // { label: "SuperAdmin", value: "1" },
     { label: "PartnerPlus", value: "2" },
     { label: "Junior Partner", value: "3" },
-    { label: "Affiliate", value: "4" },
+  
   ]
 
   const validate = () => {
