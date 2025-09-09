@@ -747,16 +747,19 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           onNext();
         }, 2000);
 
-        if (formData.agent.planType == 'free') {
-          try {
-            const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, { agentId: saveRes.agentId.planType, mins: formData.agent.freeMinutes }, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-            });
-          } catch (error) {
-            console.log('error while adding free minutes', error)
-          }
+    console.log('dsdsddsfreererre',formData,saveRes)
+   if(formData.planType=='free')
+ 
+        {
+        try{
+          const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, {agentId:saveRes?.data?.agent_id,mins:formData?.freeMinutes}, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        }catch(error){
+          console.log('error while adding free minutes',error)
+
         }
       } else {
         throw new Error("Agent creation failed.");
