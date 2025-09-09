@@ -26,7 +26,7 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
 }) => {
   const [discount, setDiscount] = useState<number>(data.payment?.discount || 0);
   const [error, setError] = useState<string>("");
-
+ const URL = process.env.NEXT_PUBLIC_API_URL;
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -46,6 +46,13 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
     onUpdate({ payment: updatedPayment });
     onSubmit({ ...data, payment: updatedPayment });
   };
+
+
+
+
+  const createCoupen = async()=>{
+    // let res = await axios.post(``)
+  }
 
   return (
     <StepWrapper

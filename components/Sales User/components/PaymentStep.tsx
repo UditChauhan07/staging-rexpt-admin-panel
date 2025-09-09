@@ -9,6 +9,7 @@ interface Product {
   id: string;
   name: string;
   description: string;
+  amount: number; // Add amount to track price if available
 }
 
 interface FormData {
@@ -30,9 +31,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   data,
   onUpdate,
   onSubmit,
-  onNext , 
+  onNext,
   onPrevious,
-
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
@@ -48,12 +48,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Extract only necessary fields
-      console.log({res})
+      // Assume res.data is an array of products with amount field
       const mappedProducts = res.data.map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
+        amount: p.amount || 0, // Assuming API returns amount field
       }));
 
       setProducts(mappedProducts);
@@ -68,23 +68,25 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     getProducts();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPlan) return alert("Please select a product");
 
-    // Send selected plan id to parent
-    onUpdate({ payment: { plan: selectedPlan, amount: 0 } });
-    onSubmit({ payment: { plan: selectedPlan, amount: 0 } });
+    if (!selectedPlan) {
+      return alert("Please select a product plan");
+    }
+
+    // Find selected product details
+    const selectedProduct = products.find((p) => p.id === selectedPlan);
+
+    onUpdate({
+      payment: {
+        plan: selectedPlan,
+        amount: selectedProduct ? selectedProduct.amount : 0,
+      },
+    });
+
+    onNext();
   };
-    const handleNext = async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!validate()) return;
-  
-      const selectedVoice = filteredVoices.find((voice) => voice.voice_id === formData.voice);
-      onUpdate({ agent: { ...formData, selectedVoice } });
-      onNext();
-    };
-  
 
   return (
     <StepWrapper
@@ -109,6 +111,9 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
               <div>
                 <Label className="font-semibold">{product.name}</Label>
                 <p className="text-sm text-gray-600">{product.description}</p>
+                <p className="text-sm text-gray-800 font-medium">
+                  Price: ${product.amount}
+                </p>
               </div>
             </div>
           ))}
