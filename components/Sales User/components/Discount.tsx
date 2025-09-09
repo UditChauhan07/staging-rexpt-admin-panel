@@ -17,6 +17,7 @@ interface DiscountFormProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
+  onNext?: () => void; // 👈 allow page to control step forward
 }
 
 const DiscountForm: React.FC<DiscountFormProps> = ({
@@ -24,6 +25,7 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
   onUpdate,
   onSubmit,
   onPrevious,
+  onNext,
 }) => {
   const [discount, setDiscount] = useState<number>(data.payment?.discount || 0);
   const [error, setError] = useState<string>("");
@@ -75,18 +77,32 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
     };
 
     onUpdate({ payment: updatedPayment });
+// <<<<<<< dev_Shorya
+//     onNext?.();
 
-    // Create the coupon first
-    await createCoupen();
+    
+//   };
 
-    // Proceed with next step or final submit
-    onSubmit({ ...data, payment: updatedPayment });
-  };
+  
+
+
+  const createCoupen = async()=>{
+    // let res = await axios.post(``)
+  }
+// =======
+
+//     // Create the coupon first
+//     await createCoupen();
+
+//     // Proceed with next step or final submit
+//     onSubmit({ ...data, payment: updatedPayment });
+//   };
+// >>>>>>> dev_gaurav_sales 
 
   return (
     <StepWrapper
       step={5}
-      totalSteps={5}
+      totalSteps={6}
       title="Apply Discount"
       description="Enter a percentage discount to apply."
     >
@@ -109,7 +125,7 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
           <Button type="button" onClick={onPrevious}>
             Previous
           </Button>
-          <Button type="submit">Submit</Button>
+          <Button type="submit">Next</Button>
         </div>
       </form>
     </StepWrapper>

@@ -95,7 +95,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   return (
     <StepWrapper
       step={4}
-      totalSteps={5}
+      totalSteps={6}
       title="Select a Product Plan"
       description="Choose the plan that suits your needs."
     >
