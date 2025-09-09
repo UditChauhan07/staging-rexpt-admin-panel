@@ -36,7 +36,6 @@ interface FormData {
     selectedVoice?: any;
   };
 }
-
 interface AgentCreationStepProps {
   data: FormData;
   onUpdate: (updates: Partial<FormData>) => void;
@@ -45,22 +44,20 @@ interface AgentCreationStepProps {
 }
 const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, onNext, onPrevious }) => {
   const [formData, setFormData] = useState<FormData["agent"]>(() => {
-  // Try to load from localStorage
-  const saved = localStorage.getItem("formData");
+    // Try to load from localStorage
+    const saved = localStorage.getItem("formData");
 
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      return parsed.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
-    } catch (e) {
-      console.error("Invalid JSON in localStorage:", e);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return parsed.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
+      } catch (e) {
+        console.error("Invalid JSON in localStorage:", e);
+      }
     }
-  }
-
-  // If nothing in localStorage, fallback to data.agent
-  return data.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
-});
-
+    // If nothing in localStorage, fallback to data.agent
+    return data.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
+  });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [retellVoices, setRetellVoices] = useState<{ voice_id: string; voice_name: string; gender: string; accent?: string; provider: string; preview_audio_url: string }[]>([]);
   const [filteredVoices, setFilteredVoices] = useState<any[]>([]);
@@ -68,7 +65,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   const [voiceError, setVoiceError] = useState("");
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
-
+const [loading,setLoading]=useState(false)
   useEffect(() => {
     setLoadingVoices(true);
     getRetellVoices()
@@ -123,9 +120,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-
-
   const validatePhoneNumber = (phone: string) => {
     const phoneNumberObj = parsePhoneNumberFromString(phone, selectedCountry);
     return phoneNumberObj && phoneNumberObj.isValid();
@@ -168,11 +162,32 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
 
     const selectedVoice = filteredVoices.find((voice) => voice.voice_id === formData.voice);
     onUpdate({ agent: { ...formData, selectedVoice } });
-    onNext();
+
   };
-
   //extractAddressFields
+  const savedDataAgentAndBusinessDetails = JSON.parse(localStorage.getItem("formData") || "{}");
+  const extractedDetails = {
+    // From agent
+    language: savedDataAgentAndBusinessDetails?.agent?.language || "",
+    gender: savedDataAgentAndBusinessDetails?.agent?.gender || "",
+    voice: savedDataAgentAndBusinessDetails?.agent?.voice || "",
+    agentName: savedDataAgentAndBusinessDetails?.agent?.name || "",
+    avatar: savedDataAgentAndBusinessDetails?.agent?.avatar || "",
+    agentLanguage: savedDataAgentAndBusinessDetails?.agent?.agentLanguage || "",
+    role: savedDataAgentAndBusinessDetails?.agent?.role || "",
 
+    // From user
+    userId: savedDataAgentAndBusinessDetails?.user?.id || "",
+
+    // From business
+    businessName: savedDataAgentAndBusinessDetails?.business?.name || "",
+    address: savedDataAgentAndBusinessDetails?.business?.address || "",
+    email: savedDataAgentAndBusinessDetails?.business?.email || "",
+    about: savedDataAgentAndBusinessDetails?.business?.about || "",
+    businessType: savedDataAgentAndBusinessDetails?.business?.type || "",
+    services: savedDataAgentAndBusinessDetails?.business?.services || [],
+    customBusiness: savedDataAgentAndBusinessDetails?.business?.customServices || []
+  };
   const handleSubmit = async () => {
     try {
       const {
@@ -192,12 +207,12 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         customBuisness,
         role,
       } = formData;
-      
-     const selectedRole=role||"General Receptionist"
-     const form=formData
+      setLoading(true)
+      const form = extractedDetails
+      const selectedRole = form.role || "General Receptionist"
       const addressFields = JSON.parse(localStorage.getItem('addressComponents'));
       const bssinessDetails = extractAddressFields(addressFields?.addressComponents)
-      const services1=addressFields?.services
+      const services1 = addressFields?.services
       const getLeadTypeChoices = () => {
         const fixedChoices = [
           "Spam Caller",
@@ -216,23 +231,19 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         );
         return combinedChoices;
       };
-      console.log(getLeadTypeChoices(),"jhrtertretretretretre")
       // return
       const plan = "free";
       const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
         ? "multi"
         : formData.language;
-     
-     
-      console.log(addressFields, "bssinessDetailsbssinessDetailsbssinessDetails")
       const currentState = bssinessDetails?.state || "";
-      console.log(currentState, "currentState");
+      localStorage.setItem("state", bssinessDetails?.state)
+      localStorage.setItem("country_code", bssinessDetails?.country_code)
+      localStorage.setItem("city", bssinessDetails?.city)
       const timeZoneGet = await getTimezoneFromState(currentState);
-      const timeZone = timeZoneGet?.timezoneId||"Asia/Calcutta"
-      console.log(timeZone,"timeZonetimeZonetimeZonetimeZonetimeZone")
-      const aboutBusinessForm =localStorage.getItem("businessonline") || formData.about || "";
-      
-      const currentTime=""
+      const timeZone = timeZoneGet?.timezoneId || "Asia/Calcutta"
+      const aboutBusinessForm = localStorage.getItem("businessonline") || formData.about || "";
+      const currentTime = ""
       const statesRequiringCallRecording = [
         "Washington",
         "Vermont",
@@ -255,14 +266,15 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         : false;
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
-        roleTitle: selectedRole,
+        roleTitle: form.role
+        ,
         agentName: form.agentName,
-        agentGender: gender,
+        agentGender: form.gender,
         business: {
-          businessName: businessName || "Your Business",
-          email: email || "",
-          aboutBusiness: about || "", // this can remain for context
-          address: address || "",
+          businessName: form.businessName || "Your Business",
+          email: form.email || "",
+          aboutBusiness: form.about || "", // this can remain for context
+          address: form.address || "",
         },
         languageSelect: languageAccToPlan,
         businessType,
@@ -338,10 +350,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           value: form.agentNote || "",
         },
       });
-
-      console.log("generatePrompt", filledPrompt2);
-      console.log(promptVariablesList);
-///LLM CREATION PROCESSS
+      ///LLM CREATION PROCESSS
       const agentConfig = {
         version: 0,
         model: "gemini-2.0-flash",
@@ -501,12 +510,12 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           timeZone: timeZone,
           business_Phone: `${form.phone}` || "",
           business_email: `${form.email}` || "",
-          
+
         },
       };
       const knowledgeBaseId = localStorage.getItem("knowledgeBaseId");
       agentConfig.knowledge_base_ids = [knowledgeBaseId];
-///LLM CREATION API 
+      ///LLM CREATION API 
       const llmRes = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/agent/createAdmin/llm`,
         agentConfig,
@@ -517,11 +526,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           },
         }
       );
-      console.log(llmRes);
       const llmId = llmRes.data.data.llm_id;
-      console.log(llmId);
-  const knowledgebaseName=localStorage.getItem("knowledgebaseName")
-
+      const knowledgebaseName = localStorage.getItem("knowledgebaseName")
       const finalAgentData = {
         response_engine: { type: "retell-llm", llm_id: llmId },
         voice_id: voice,
@@ -607,8 +613,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         normalize_for_speech: true,
         webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/agent/updateAgentCall_And_Mins_WebHook`,
       };
-      console.log(finalAgentData);
-
+      //CREATE AGENT 
       const agentRes = await axios.post(
         "https://api.retellai.com/create-agent",
         finalAgentData,
@@ -631,7 +636,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       } catch (e) {
         console.error("updateAgentWidgetDomain failed:", e);
       }
-
+      localStorage.setItem("agent_id", agentId)
       const dbPayload = {
         userId: localStorage.getItem("AgentForUserId") || "",
         agent_id: agentId,
@@ -641,13 +646,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
         agentAccent: form.selectedVoice?.voice_accent || "American",
         agentRole: selectedRole,
-        agentName:
-          form.agentName ||
-          form.selectedVoice?.voice_name ||
-          "Virtual Assistant",
-        agentLanguageCode:
-          languages.find((l) => l.name === languageAccToPlan)?.locale ||
-          "multi",
+        agentName: form.agentName || form.selectedVoice?.voice_name || "Virtual Assistant",
+        agentLanguageCode: languages.find((l) => l.name === languageAccToPlan)?.locale || "multi",
         agentLanguage: agentLanguage,
         dynamicPromptTemplate: filledPrompt,
         rawPromptTemplate: filledPrompt2,
@@ -734,18 +734,18 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
 
       const saveRes = await createAgent(dbPayload);
       if (saveRes.status === 200 || saveRes.status === 201) {
-        alert("Agent created successfully!");
-        localStorage.removeItem("businessType");
-        localStorage.removeItem("BusinessId");
-        localStorage.removeItem("isVerified");
-        localStorage.removeItem("knowledgeBaseId");
-        localStorage.removeItem("knowledgebaseName");
-        localStorage.removeItem("selectedSitemapUrls");
-        localStorage.removeItem("sitemapUrls");
-        sessionStorage.removeItem("placeDetailsExtract");
-        sessionStorage.removeItem("businessUrl");
-        localStorage.removeItem("");
-        onClose();
+        Swal.fire({
+          icon: "success",
+          title: "Created",
+          text: "Agent created successfully!",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+           setLoading(false)
+        setTimeout(() => {
+          onNext();
+        }, 2000);
+
       } else {
         throw new Error("Agent creation failed.");
       }
@@ -921,9 +921,14 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
             <ChevronLeft className="w-4 h-4 mr-2" /> Previous
           </Button>
-          <Button type="submit" className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700" onClick={handleSubmit}>
-            Next: Payment
-          </Button>
+          <Button 
+  type="submit" 
+  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700" 
+  onClick={handleSubmit}
+  disabled={loading} // 👈 yeh line add karo
+>
+  {loading ? "Loading..." : "Next: Payment"}
+</Button>
         </div>
       </form>
     </StepWrapper>

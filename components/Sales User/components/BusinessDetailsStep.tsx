@@ -1063,7 +1063,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [addressComponents, setAddressComponents] = useState<any[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("US");
-
+  
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
 
@@ -1074,10 +1074,11 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     });
     setAllServices(serviceMap);
   }, []);
-
+const businessDetails=JSON.parse(localStorage.getItem("formData"))
   useEffect(() => {
     if (data.business || editingBusiness) {
-      const business = data.business || editingBusiness;
+      const business = businessDetails.business || editingBusiness;
+      console.log(business.type,"businessbusinessbusiness")
       setFormData(business);
       setSelectedType(business.type);
       setAddressComponents(business.addressComponents || []);
@@ -1114,8 +1115,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       if (!place.place_id) return;
 
       const newWebsite = place.website || "";
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         googleBusiness: place.name || "",
         name: place.name || "",
         address: place.formatted_address || "",
@@ -1123,7 +1124,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         internationalPhoneNumber: place.international_phone_number || "",
         website: newWebsite,
         workingHours: place.opening_hours || null,
-      });
+      }));
+
       setAddressComponents(place.address_components || []);
       setSelectedCountry(
         place.address_components?.find((c) => c.types.includes("country"))?.short_name || "US"
@@ -1158,7 +1160,10 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
     const listener = addressAutocomplete.addListener("place_changed", () => {
       const place = addressAutocomplete.getPlace();
-      setFormData({ ...formData, address: place.formatted_address || "" });
+      setFormData((prev) => ({
+        ...prev,
+        address: place.formatted_address || "",
+      }));
       setAddressComponents(place.address_components || []);
       setSelectedCountry(
         place.address_components?.find((c) => c.types.includes("country"))?.short_name || "US"
@@ -1379,7 +1384,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
       const knowledge_base_name = localStorage.getItem("knowledgebaseName") || "My Business KB";
 
-      if (formData.website && isWebsiteValid) {
+      if (true) {
         const formDataPayload = new FormData();
         formDataPayload.append("knowledge_base_name", knowledge_base_name);
         formDataPayload.append("knowledge_base_urls", JSON.stringify([...selectedUrls]));
