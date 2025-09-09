@@ -209,6 +209,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       } = formData;
       setLoading(true)
       const form = extractedDetails
+      localStorage.setItem("agentName",form.agentName)
       const selectedRole = form.role || "General Receptionist"
       const addressFields = JSON.parse(localStorage.getItem('addressComponents'));
       const bssinessDetails = extractAddressFields(addressFields?.addressComponents)
