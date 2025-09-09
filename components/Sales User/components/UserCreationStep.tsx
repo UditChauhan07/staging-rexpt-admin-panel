@@ -199,6 +199,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         const userId =  response?.user?.userId || `USR${Date.now()}`; // Fallback ID
         if (typeof window !== "undefined") {
           localStorage.setItem("userId", userId); // Save user ID to local storage
+            localStorage.setItem("customerId", response?.user?.customerId);
         }
         const savedUser: FormData["user"] = {
           id: userId,
