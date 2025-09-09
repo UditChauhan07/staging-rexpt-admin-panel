@@ -1495,7 +1495,6 @@ if (prevKb && prevKb !== "null" && prevKb !== "undefined") {
       });
     }
   };
-
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSaveBusiness();
