@@ -1063,7 +1063,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [addressComponents, setAddressComponents] = useState<any[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("US");
-  
+
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
 
@@ -1074,11 +1074,11 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     });
     setAllServices(serviceMap);
   }, []);
-const businessDetails=JSON.parse(localStorage.getItem("formData"))
+  const businessDetails = JSON.parse(localStorage.getItem("formData"))
   useEffect(() => {
     if (data.business || editingBusiness) {
       const business = businessDetails.business || editingBusiness;
-      console.log(business.type,"businessbusinessbusiness")
+      console.log(business.type, "businessbusinessbusiness")
       setFormData(business);
       setSelectedType(business.type);
       setAddressComponents(business.addressComponents || []);
