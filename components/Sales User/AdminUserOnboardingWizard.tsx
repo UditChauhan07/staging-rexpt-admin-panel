@@ -52,6 +52,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
   const [editingUser, setEditingUser] = useState<FormData["user"] | null>(null);
   const [editingBusiness, setEditingBusiness] = useState<FormData["business"] | null>(null);
 
+  const customerId = localStorage.getItem("customerId") || "";
+
   const URL = process.env.NEXT_PUBLIC_API_URL;
   const token = localStorage.getItem("token");
 
@@ -67,29 +69,31 @@ const AdminUserOnboardingWizard: React.FC = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const agentCreationFinal = async () => {
-    const finalData = {
-      customer_id: "cus_T1OnUkWZ3qEyyO",   // ✅ fill with real values
-      plan_details: {
-        id: "price_starter_001",
-        name: "Starter",
-        desc: "Basic monthly plan",
-        amount: 29.99,
-        currency: "USD",
-        interval: "month",
-        created: new Date().toISOString(),
-        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        mins: 600,
-        original_plan_amount: 29.99,
-      },
-      agent_id: "agent_232733fa6fbf8f6942e4f15508",
-      user_id: "user_12345",
-      defer_days: 7, // example: 7 days defer
-    };
+  const agentCreationFinal = async (finalData: any) => {
+    // const finalData = {
+    //   customer_id: "cus_T1OnUkWZ3qEyyO",   // ✅ fill with real values
+    //   plan_details: {
+    //     id: "price_starter_001",
+    //     name: "Starter",
+    //     desc: "Basic monthly plan",
+    //     amount: 29.99,
+    //     currency: "USD",
+    //     interval: "month",
+    //     created: new Date().toISOString(),
+    //     end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    //     mins: 600,
+    //     original_plan_amount: 29.99,
+    //   },
+    //   agent_id: "agent_232733fa6fbf8f6942e4f15508",
+    //   user_id: "user_12345",
+    //   defer_days: 7, // example: 7 days defer
+    // };
     try {
-      const res = await axios.get(`${URL}/api/admin-static-defer-payment`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.post(
+        `${URL}/api/admin-static-defer-payment`,
+        finalData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       // check if API returned success:true
       if (res.data && res.data.success) {
@@ -110,6 +114,25 @@ const AdminUserOnboardingWizard: React.FC = () => {
 
   const handleSubmit = async (data: FormData) => {
     console.log("Final Form Data:", data);
+    const finalData = {
+      customer_id: customerId || "byAdmin", // from user step
+      plan_details: {
+        id: data.payment?.raw?.price?.id || "price_static_001",
+        name: data.payment?.raw?.product?.name || "Starter",
+        desc: data.payment?.raw?.product?.description || "Basic plan",
+        amount: data.payment?.raw?.derived?.amountUsd || data.payment?.amount || 0,
+        currency: data.payment?.raw?.derived?.currency || "USD",
+        interval: data.payment?.raw?.derived?.interval || "month",
+        created: new Date().toISOString(),
+        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        mins: data.payment?.raw?.derived?.mins || 0,
+        original_plan_amount: data.payment?.raw?.derived?.amountUsd || 0,
+      },
+      agent_id: data.agent?.id || "agent_static_id",
+      user_id: data.user?.id || "user_static_id",
+      defer_days: data.payment?.method === "defer" ? 7 : 0, // fallback
+    };
+    console.log("finalData", finalData)
     alert("Onboarding completed!");
   };
 
