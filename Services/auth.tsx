@@ -245,3 +245,28 @@ export const updateAgentWidgetDomain = async (id, url) => {
   );
   return res.data;
 };
+export const fetchAvailablePhoneNumberByCountry = async (token , country_code, locality, administrative_area, startsWith, endsWith) => {
+  let t = token
+  console.log('dsdsdsd',token,country_code,locality)
+  try {
+   const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/available-numbers`, {
+  params: {
+    country_code,
+    locality,
+    administrative_area,
+    starts_with: startsWith,
+    ends_with: endsWith
+  },
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${t}`,
+  }
+});
+console.log(res)
+    return res.data;
+  } catch (error) {
+    console.log('error',error)
+   return error.response?.data 
+   
+  }
+}

@@ -134,6 +134,7 @@ import BusinessDetailsStep from "./components/BusinessDetailsStep";
 import AgentCreationStep from "./components/AgentCreationStep";
 import PaymentStep from "./components/PaymentStep";
 import axios from "axios";
+import AssignNumberStep from "./components/AssignNumberStep";
 
 interface FormData {
   user?: {
@@ -161,6 +162,32 @@ interface FormData {
     googleBusiness: string;
     about: string;
     addressComponents: any[];
+  };
+   agent?: {
+    agentId?: string;
+    llmId?: string;
+    agentCode?: string;
+    name: string;
+    language: string;
+    agentLanguage: string;
+    gender: string;
+    voice: string;
+    avatar: string;
+    role: string;
+    selectedVoice?: any;
+  };
+  phone?: {
+    countryCode: string;
+    stateCode: string;
+    city: string;
+    selectedNumber: string;
+  };
+  payment?: {
+    plan: string;
+    amount: number;
+    cardNumber: string;
+    expiry: string;
+    cvv: string;
   };
 }
 
@@ -275,6 +302,14 @@ const AdminUserOnboardingWizard: React.FC = () => {
         />
       )}
       {step === 4 && (
+        <AssignNumberStep
+          data={formData}
+          onUpdate={handleUpdate}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+        />
+      )}
+      {step === 5 && (
         <PaymentStep
           data={formData}
           onUpdate={handleUpdate}
