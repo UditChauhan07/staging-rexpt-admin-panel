@@ -1028,41 +1028,91 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   editingBusiness,
   fetchBusinesses,
 }) => {
-  const [formData, setFormData] = useState<Business>(
-    data.business || editingBusiness || {
+  const [formData, setFormData] = useState<Business>(() => {
+    // Initialize from data.business or editingBusiness if available
+    if (data.business) return data.business;
+    if (editingBusiness) return editingBusiness;
+
+    // Fallback to localStorage
+    const savedType = localStorage.getItem("businessType") || "";
+    const savedServices = JSON.parse(localStorage.getItem("businessServices") || "[]");
+    const savedCustomServices = JSON.parse(localStorage.getItem("customServices") || "[]");
+    const savedAddressComponents = JSON.parse(localStorage.getItem("addressComponents") || "[]");
+
+    const isCustom = savedType && !allBusinessTypes.some((b) => b.type === savedType);
+    const typeToSet = savedType === "Other" ? "" : savedType;
+    const subtypeToSet = isCustom
+      ? "Custom"
+      : allBusinessTypes.find((b) => b.type === savedType)?.subtype || "";
+    const iconToSet = isCustom
+      ? "svg/Web-Design-Agency-icon.svg"
+      : allBusinessTypes.find((b) => b.type === savedType)?.icon || "";
+
+    return {
       id: "",
-      type: "",
-      subtype: "",
-      icon: "",
-      name: "",
+      type: typeToSet,
+      subtype: subtypeToSet,
+      icon: iconToSet,
+      name: localStorage.getItem("businessName") || "",
       size: "",
-      services: [],
-      customServices: [],
-      email: "",
-      address: "",
-      phone: "",
-      internationalPhoneNumber: "",
-      website: "",
-      googleBusiness: "",
-      about: "",
-      addressComponents: [],
+      services: savedServices,
+      customServices: savedCustomServices,
+      email: localStorage.getItem("businessEmail") || "",
+      address: localStorage.getItem("businessAddress") || "",
+      phone: localStorage.getItem("businessPhone") || "",
+      internationalPhoneNumber: localStorage.getItem("businessInternationalPhone") || "",
+      website: localStorage.getItem("businessWebsite") || "",
+      googleBusiness: localStorage.getItem("businessGoogleBusiness") || "",
+      about: localStorage.getItem("businessAbout") || "",
+      addressComponents: savedAddressComponents,
       workingHours: null,
-    }
-  );
+    };
+  });
+
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [businessSearch, setBusinessSearch] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState(formData.type || "");
   const [newBusinessType, setNewBusinessType] = useState("");
   const [newService, setNewService] = useState("");
   const [allServices, setAllServices] = useState<{ [key: string]: string[] }>({});
   const [isVerifying, setIsVerifying] = useState(false);
   const [isWebsiteValid, setIsWebsiteValid] = useState<boolean | null>(null);
-  const [hasNoGoogle, setHasNoGoogle] = useState(false);
+  const [hasNoGoogle, setHasNoGoogle] = useState(!formData.googleBusiness);
   const [sitemapUrls, setSitemapUrls] = useState<string[]>([]);
   const [showSitemap, setShowSitemap] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
-  const [addressComponents, setAddressComponents] = useState<any[]>([]);
+  const [addressComponents, setAddressComponents] = useState<any[]>(formData.addressComponents || []);
   const [selectedCountry, setSelectedCountry] = useState("US");
+
+  // Sync formData with props changes
+  useEffect(() => {
+    if (data.business || editingBusiness) {
+      const business = data.business || editingBusiness;
+      setFormData(business);
+      setSelectedType(business.type || "");
+      setAddressComponents(business.addressComponents || []);
+      setHasNoGoogle(!business.googleBusiness);
+      if (business.website) {
+        verifyWebsite(business.website);
+      }
+    }
+  }, [data.business, editingBusiness]);
+
+  // Save formData to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("businessType", formData.type || "");
+    localStorage.setItem("businessServices", JSON.stringify(formData.services || []));
+    localStorage.setItem("customServices", JSON.stringify(formData.customServices || []));
+    localStorage.setItem("businessName", formData.name || "");
+    localStorage.setItem("businessEmail", formData.email || "");
+    localStorage.setItem("businessAddress", formData.address || "");
+    localStorage.setItem("businessPhone", formData.phone || "");
+    localStorage.setItem("businessInternationalPhone", formData.internationalPhoneNumber || "");
+    localStorage.setItem("businessWebsite", formData.website || "");
+    localStorage.setItem("businessGoogleBusiness", formData.googleBusiness || "");
+    localStorage.setItem("businessAbout", formData.about || "");
+    localStorage.setItem("addressComponents", JSON.stringify(formData.addressComponents || []));
+  }, [formData]);
 
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
@@ -1086,8 +1136,34 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       if (business.website) {
         handleWebsiteBlur();
       }
+    } else {
+      // Restore from localStorage
+      const savedType = localStorage.getItem("businessType") || "";
+      const savedServices = JSON.parse(localStorage.getItem("businessServices") || "[]");
+      const savedCustom = JSON.parse(localStorage.getItem("customServices") || "[]");
+
+      if (savedType) {
+        const isCustom = !allBusinessTypes.some((b) => b.type === savedType);
+        const typeToSet = savedType === "Other" ? "" : savedType;
+        const subtypeToSet = isCustom
+          ? "Custom"
+          : allBusinessTypes.find((b) => b.type === savedType)?.subtype || "";
+        const iconToSet = isCustom
+          ? "svg/Web-Design-Agency-icon.svg"
+          : allBusinessTypes.find((b) => b.type === savedType)?.icon || "";
+
+        setSelectedType(savedType);
+        setFormData((prev) => ({
+          ...prev,
+          type: typeToSet,
+          subtype: subtypeToSet,
+          icon: iconToSet,
+          services: savedServices,
+          customServices: savedCustom,
+        }));
+      }
     }
-  }, [data.business, editingBusiness]);
+  }, [data.business, editingBusiness, allBusinessTypes]);
 
   useEffect(() => {
     if (!window.google?.maps?.places) return;
@@ -1115,6 +1191,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       if (!place.place_id) return;
 
       const newWebsite = place.website || "";
+
       setFormData((prev) => ({
         ...prev,
         googleBusiness: place.name || "",
@@ -1145,7 +1222,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         window.google.maps.event.removeListener(listener);
       }
     };
-  }, []);
+  }, [formData]); // Add formData to dependencies to ensure updates are applied correctly
 
   useEffect(() => {
     if (!window.google?.maps?.places) return;
@@ -1160,6 +1237,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
     const listener = addressAutocomplete.addListener("place_changed", () => {
       const place = addressAutocomplete.getPlace();
+
       setFormData((prev) => ({
         ...prev,
         address: place.formatted_address || "",
@@ -1176,60 +1254,137 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         window.google.maps.event.removeListener(listener);
       }
     };
-  }, []);
+  }, [formData]); // Add formData to dependencies to ensure updates are applied correctly
 
-  const verifyWebsite = async (rawUrl?: string) => {
-    const urlToVerify = rawUrl || (formData.website || "").trim();
-    if (!urlToVerify) return;
+  // const verifyWebsite = async (rawUrl?: string) => {
+  //   const urlToVerify = rawUrl || (formData.website || "").trim();
+  //   if (!urlToVerify) return;
 
-    let url = urlToVerify.replace(/^https?:\/\//i, "");
-    url = `https://${url}`;
+  //   let url = urlToVerify.replace(/^https?:\/\//i, "");
+  //   url = `https://${url}`;
 
-    setIsVerifying(true);
-    try {
-      const result = await validateWebsite(url);
-      const isValid = result?.valid === true || String(result?.valid).toLowerCase() === "true";
-      setIsWebsiteValid(isValid);
-      setFormData((p) => ({ ...p, website: url }));
+  //   setIsVerifying(true);
+  //   try {
+  //     const result = await validateWebsite(url);
+  //     const isValid = result?.valid === true || String(result?.valid).toLowerCase() === "true";
+  //     setIsWebsiteValid(isValid);
+  //     setFormData((prev) => ({ ...prev, website: url }));
 
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem("businessUrl", url);
-        localStorage.setItem("isVerified", isValid ? "true" : "false");
-      }
+  //     if (typeof window !== "undefined") {
+  //       sessionStorage.setItem("businessUrl", url);
+  //       localStorage.setItem("isVerified", isValid ? "true" : "false");
+  //     }
 
-      if (isValid) {
-        const res = await listSiteMap(url);
-        if (res?.success && Array.isArray(res.urls)) {
-          const filteredUrls = filterCompanyPages(res.urls);
-          if (!filteredUrls.includes(url)) {
-            filteredUrls.unshift(url);
-          }
-          setSitemapUrls(filteredUrls);
-          const formattedUrls = filteredUrls.map((link) => ({
-            url: link,
-            checkedStatus: true,
-          }));
-          localStorage.setItem("selectedSitemapUrls", JSON.stringify(formattedUrls));
-          localStorage.setItem("sitemapUrls", JSON.stringify(filteredUrls));
-        } else {
-          setSitemapUrls([]);
+  //     if (isValid) {
+  //       const res = await listSiteMap(url);
+  //       if (res?.success && Array.isArray(res.urls)) {
+  //         const filteredUrls = filterCompanyPages(res.urls);
+  //         if (!filteredUrls.includes(url)) {
+  //           filteredUrls.unshift(url);
+  //         }
+  //         setSitemapUrls(filteredUrls);
+  //         setSelectedUrls(new Set(filteredUrls));
+  //         const formattedUrls = filteredUrls.map((link) => ({
+  //           url: link,
+  //           checkedStatus: true,
+  //         }));
+  //         localStorage.setItem("selectedSitemapUrls", JSON.stringify(formattedUrls));
+  //         localStorage.setItem("sitemapUrls", JSON.stringify(filteredUrls));
+  //       } else {
+  //         setSitemapUrls([]);
+  //       }
+  //     } else {
+  //       setSitemapUrls([]);
+  //     }
+  //   } catch (err) {
+  //     console.error("Website verification error:", err);
+  //     setIsWebsiteValid(false);
+  //     setSitemapUrls([]);
+  //     localStorage.setItem("isVerified", "false");
+  //   } finally {
+  //     setIsVerifying(false);
+  //   }
+  // };
+
+  // const handleWebsiteBlur = () => {
+  //   verifyWebsite();
+  // };
+
+
+
+const verifyWebsite = async (rawUrl?: string) => {
+  const urlToVerify = rawUrl || (formData.website || "").trim();
+  if (!urlToVerify) return;
+
+  let url = urlToVerify.replace(/^https?:\/\//i, "");
+  url = `https://${url}`;
+
+  // ✅ Check if same as last verified URL
+  const lastVerifiedUrl = localStorage.getItem("lastVerifiedUrl");
+  const lastVerifiedStatus = localStorage.getItem("isVerified");
+
+  if (lastVerifiedUrl === url && lastVerifiedStatus === "true") {
+    // Skip verification, just restore state
+    setIsWebsiteValid(true);
+    setFormData((prev) => ({ ...prev, website: url }));
+
+    const storedSitemap = localStorage.getItem("sitemapUrls");
+    if (storedSitemap) {
+      const urls = JSON.parse(storedSitemap);
+      setSitemapUrls(urls);
+      setSelectedUrls(new Set(urls));
+    }
+    return;
+  }
+
+  setIsVerifying(true);
+  try {
+    const result = await validateWebsite(url);
+    const isValid = result?.valid === true || String(result?.valid).toLowerCase() === "true";
+    setIsWebsiteValid(isValid);
+    setFormData((prev) => ({ ...prev, website: url }));
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("businessUrl", url);
+      localStorage.setItem("isVerified", isValid ? "true" : "false");
+      localStorage.setItem("lastVerifiedUrl", url); // ✅ Save last verified URL
+    }
+
+    if (isValid) {
+      const res = await listSiteMap(url);
+      if (res?.success && Array.isArray(res.urls)) {
+        const filteredUrls = filterCompanyPages(res.urls);
+        if (!filteredUrls.includes(url)) {
+          filteredUrls.unshift(url);
         }
+        setSitemapUrls(filteredUrls);
+        setSelectedUrls(new Set(filteredUrls));
+        const formattedUrls = filteredUrls.map((link) => ({
+          url: link,
+          checkedStatus: true,
+        }));
+        localStorage.setItem("selectedSitemapUrls", JSON.stringify(formattedUrls));
+        localStorage.setItem("sitemapUrls", JSON.stringify(filteredUrls));
       } else {
         setSitemapUrls([]);
       }
-    } catch (err) {
-      console.error("Website verification error:", err);
-      setIsWebsiteValid(false);
+    } else {
       setSitemapUrls([]);
-      localStorage.setItem("isVerified", "false");
-    } finally {
-      setIsVerifying(false);
     }
-  };
+  } catch (err) {
+    console.error("Website verification error:", err);
+    setIsWebsiteValid(false);
+    setSitemapUrls([]);
+    localStorage.setItem("isVerified", "false");
+  } finally {
+    setIsVerifying(false);
+  }
+};
 
-  const handleWebsiteBlur = () => {
-    verifyWebsite();
-  };
+const handleWebsiteBlur = () => {
+  verifyWebsite();
+};
+
 
   const filterCompanyPages = (urls: string[]) => {
     const companyKeywords = [
@@ -1320,7 +1475,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     if (formData.about && /[!@#$%^&*(),.?":{}|<>]/.test(formData.about)) {
       newErrors.about = "About Business cannot contain special characters or emojis";
     }
-    const userId = localStorage.getItem("userId") || "RX0ZYQ1757328630";
+    const userId = localStorage.getItem("AgentForUserId") || "RX0ZYQ1757328630";
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
@@ -1333,7 +1488,6 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
     const userId = localStorage.getItem("userId") || "RX0ZYQ1757328630";
 
-    // Extract address components
     const getAddressComponent = (type: string, field: "long_name" | "short_name") =>
       addressComponents.find((c) => c.types.includes(type))?.[field] || "";
 
@@ -1348,7 +1502,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       customServices: formData.customServices || [],
       buisnessEmail: formData.email || "",
       address1: formData.address || "",
-      address2: "", // Optional, can be populated if needed
+      address2: "",
       city: getAddressComponent("locality", "long_name") || getAddressComponent("postal_town", "long_name") || "",
       state: getAddressComponent("administrative_area_level_1", "short_name") || "",
       country: getAddressComponent("country", "long_name") || "",
@@ -1379,9 +1533,9 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         });
       }
 
-      const businessId = editingBusiness?.id || res.data.record?.businessId || `BIZ${Date.now()}`;
+      const businessId = editingBusiness?.id || res.data.record?.businessId;
       localStorage.setItem("BusinessId", businessId);
-      localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
+      localStorage.setItem("agentCode", res.data.agentCode);
       const knowledge_base_name = localStorage.getItem("knowledgebaseName") || "My Business KB";
 
       if (true) {
@@ -1414,7 +1568,6 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             console.log(`Knowledge base ${prevKb} deleted successfully.`);
           } catch (error) {
             console.error(`Failed to delete knowledge base ${prevKb}:`, error.response?.status || error.message);
-            // Continue execution even if the delete fails (e.g., 404 not found)
           }
         }
 
@@ -1473,7 +1626,10 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       };
 
       onUpdate({ business: savedBusiness });
-      localStorage.setItem('addressComponents', JSON.stringify(savedBusiness));
+      localStorage.setItem("addressComponents", JSON.stringify(addressComponents)); // Store addressComponents separately
+      localStorage.setItem("businessType", formData.type || "");
+      localStorage.setItem("businessServices", JSON.stringify(formData.services || []));
+      localStorage.setItem("customServices", JSON.stringify(formData.customServices || []));
       fetchBusinesses();
 
       Swal.fire({
@@ -1500,6 +1656,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       });
     }
   };
+
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSaveBusiness();
@@ -1515,20 +1672,31 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               onValueChange={(val) => {
                 if (val === "Other") {
                   setSelectedType("Other");
-                  setFormData({ ...formData, type: "", subtype: "", icon: "", services: [], customServices: [] });
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: "",
+                    subtype: "",
+                    icon: "",
+                    services: [],
+                    customServices: [],
+                  }));
                   localStorage.setItem("businessType", "");
+                  localStorage.setItem("businessServices", JSON.stringify([]));
+                  localStorage.setItem("customServices", JSON.stringify([]));
                 } else {
                   const selected = allBusinessTypes.find((b) => b.type === val);
                   setSelectedType(val);
-                  setFormData({
-                    ...formData,
+                  setFormData((prev) => ({
+                    ...prev,
                     type: val,
                     subtype: selected?.subtype || "",
                     icon: selected?.icon || "",
                     services: [],
                     customServices: [],
-                  });
+                  }));
                   localStorage.setItem("businessType", val);
+                  localStorage.setItem("businessServices", JSON.stringify([]));
+                  localStorage.setItem("customServices", JSON.stringify([]));
                 }
                 setErrors((prev) => ({ ...prev, type: "" }));
               }}
@@ -1561,17 +1729,19 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 onBlur={() => {
                   const trimmed = newBusinessType.trim();
                   if (trimmed && !allBusinessTypes.some((b) => b.type.toLowerCase() === trimmed.toLowerCase())) {
-                    setFormData({
-                      ...formData,
+                    setFormData((prev) => ({
+                      ...prev,
                       type: trimmed,
                       subtype: "Custom",
                       icon: "svg/Web-Design-Agency-icon.svg",
                       services: [],
                       customServices: [],
-                    });
+                    }));
                     setAllServices((prev) => ({ ...prev, [trimmed]: [] }));
                     setSelectedType(trimmed);
                     localStorage.setItem("businessType", trimmed);
+                    localStorage.setItem("businessServices", JSON.stringify([]));
+                    localStorage.setItem("customServices", JSON.stringify([]));
                   }
                   setNewBusinessType("");
                 }}
@@ -1593,7 +1763,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                     const updated = current.includes(service)
                       ? current.filter((s) => s !== service)
                       : [...current, service];
-                    setFormData({ ...formData, services: updated });
+                    setFormData((prev) => ({ ...prev, services: updated }));
+                    localStorage.setItem("businessServices", JSON.stringify(updated));
                   }}
                 />
                 {service}
@@ -1612,12 +1783,19 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                   onClick={() => {
                     const trimmed = newService.trim();
                     if (trimmed && !(allServices[selectedType] || []).includes(trimmed)) {
-                      setAllServices((prev) => ({ ...prev, [selectedType]: [...(prev[selectedType] || []), trimmed] }));
-                      setFormData({
-                        ...formData,
-                        services: [...(formData.services || []), trimmed],
-                        customServices: [...(formData.customServices || []), trimmed],
-                      });
+                      const updatedServices = [...(formData.services || []), trimmed];
+                      const updatedCustomServices = [...(formData.customServices || []), trimmed];
+                      setAllServices((prev) => ({
+                        ...prev,
+                        [selectedType]: [...(prev[selectedType] || []), trimmed],
+                      }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        services: updatedServices,
+                        customServices: updatedCustomServices,
+                      }));
+                      localStorage.setItem("businessServices", JSON.stringify(updatedServices));
+                      localStorage.setItem("customServices", JSON.stringify(updatedCustomServices));
                     }
                     setNewService("");
                   }}
@@ -1638,7 +1816,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                     const updated = current.includes("Other")
                       ? current.filter((s) => s !== "Other")
                       : [...current, "Other"];
-                    setFormData({ ...formData, services: updated });
+                    setFormData((prev) => ({ ...prev, services: updated }));
+                    localStorage.setItem("businessServices", JSON.stringify(updated));
                   }}
                 />
                 Add more services
@@ -1657,12 +1836,19 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                   onClick={() => {
                     const trimmed = newService.trim();
                     if (trimmed && !(allServices[selectedType] || []).includes(trimmed)) {
-                      setAllServices((prev) => ({ ...prev, [selectedType]: [...(prev[selectedType] || []), trimmed] }));
-                      setFormData({
-                        ...formData,
-                        services: [...(formData.services || []).filter((s) => s !== "Other"), trimmed],
-                        customServices: [...(formData.customServices || []), trimmed],
-                      });
+                      const updatedServices = [...(formData.services || []).filter((s) => s !== "Other"), trimmed];
+                      const updatedCustomServices = [...(formData.customServices || []), trimmed];
+                      setAllServices((prev) => ({
+                        ...prev,
+                        [selectedType]: [...(prev[selectedType] || []), trimmed],
+                      }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        services: updatedServices,
+                        customServices: updatedCustomServices,
+                      }));
+                      localStorage.setItem("businessServices", JSON.stringify(updatedServices));
+                      localStorage.setItem("customServices", JSON.stringify(updatedCustomServices));
                     }
                     setNewService("");
                   }}
@@ -1682,7 +1868,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               placeholder="Search business via Google (e.g., DesignersX)"
               value={formData.googleBusiness}
               onChange={(e) => {
-                setFormData({ ...formData, googleBusiness: e.target.value });
+                setFormData((prev) => ({ ...prev, googleBusiness: e.target.value }));
                 setHasNoGoogle(false);
                 setErrors((prev) => ({ ...prev, googleBusiness: "" }));
               }}
@@ -1694,7 +1880,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 onChange={(e) => {
                   setHasNoGoogle(e.target.checked);
                   if (e.target.checked) {
-                    setFormData({ ...formData, googleBusiness: "" });
+                    setFormData((prev) => ({ ...prev, googleBusiness: "" }));
                   }
                 }}
               />
@@ -1710,7 +1896,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               placeholder="Website URL include https://"
               value={formData.website}
               onChange={(e) => {
-                setFormData({ ...formData, website: e.target.value });
+                setFormData((prev) => ({ ...prev, website: e.target.value }));
                 setIsWebsiteValid(null);
                 setErrors((prev) => ({ ...prev, googleBusiness: "" }));
               }}
@@ -1722,7 +1908,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 if (key === "Backspace" || key === "Delete") {
                   if (fullSelection) {
                     e.preventDefault();
-                    setFormData({ ...formData, website: HTTPS_PREFIX });
+                    setFormData((prev) => ({ ...prev, website: HTTPS_PREFIX }));
                     requestAnimationFrame(() => input.setSelectionRange(PREFIX_LEN, PREFIX_LEN));
                   }
                   if (selectionStart <= PREFIX_LEN) {
@@ -1740,7 +1926,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               onFocus={(e) => {
                 const input = e.currentTarget;
                 if (!input.value.startsWith(HTTPS_PREFIX)) {
-                  setFormData({ ...formData, website: HTTPS_PREFIX + input.value });
+                  setFormData((prev) => ({ ...prev, website: HTTPS_PREFIX + input.value }));
                   requestAnimationFrame(() => input.setSelectionRange(PREFIX_LEN, PREFIX_LEN));
                 }
               }}
@@ -1757,54 +1943,6 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 ) : null}
               </div>
             )}
-            {isWebsiteValid && sitemapUrls.length > 0 && (
-              <div className="mt-3">
-                <Button
-                  type="button"
-                  onClick={() => setShowSitemap((v) => !v)}
-                  className="bg-purple-600 hover:bg-purple-700"
-                  size="sm"
-                >
-                  View Sitemap
-                </Button>
-                {showSitemap && (
-                  <div className="mt-2 p-4 bg-white shadow-xl rounded-lg">
-                    <div className="flex justify-between mb-2">
-                      <label className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedUrls.size === sitemapUrls.length}
-                          onChange={toggleAll}
-                        />
-                        Select All
-                      </label>
-                      <Button variant="ghost" onClick={() => setShowSitemap(false)}>
-                        Close
-                      </Button>
-                    </div>
-                    <ul className="max-h-48 overflow-y-auto">
-                      {sitemapUrls.map((u) => (
-                        <li key={u} className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedUrls.has(u)}
-                            onChange={() => toggleOne(u)}
-                          />
-                          <a
-                            href={u}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm text-purple-600 hover:underline"
-                          >
-                            {u}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -1813,7 +1951,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               id="name"
               value={formData.name}
               onChange={(e) => {
-                setFormData({ ...formData, name: e.target.value });
+                setFormData((prev) => ({ ...prev, name: e.target.value }));
                 setErrors((prev) => ({ ...prev, name: "" }));
               }}
               placeholder="Enter business name"
@@ -1827,7 +1965,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               id="google-address-autocomplete"
               value={formData.address}
               onChange={(e) => {
-                setFormData({ ...formData, address: e.target.value });
+                setFormData((prev) => ({ ...prev, address: e.target.value }));
                 setErrors((prev) => ({ ...prev, address: "" }));
               }}
               placeholder="Enter address"
@@ -1835,29 +1973,15 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             {errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
           </div>
 
-          {/* <div className="space-y-2">
-            <Label htmlFor="phone">Phone <span className="text-red-500">*</span></Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => {
-                setFormData({ ...formData, phone: e.target.value });
-                setErrors((prev) => ({ ...prev, phone: "" }));
-              }}
-              placeholder="Enter phone number"
-            />
-            {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
-          </div> */}
-
           <div className="space-y-2">
-            <Label htmlFor="internationalPhone"> Phone Number</Label>
+            <Label htmlFor="internationalPhone">Phone Number</Label>
             <Input
               id="internationalPhone"
               value={formData.internationalPhoneNumber || ""}
               onChange={(e) => {
-                setFormData({ ...formData, internationalPhoneNumber: e.target.value });
+                setFormData((prev) => ({ ...prev, internationalPhoneNumber: e.target.value }));
               }}
-              placeholder="Enter  phone number"
+              placeholder="Enter phone number"
             />
           </div>
 
@@ -1868,7 +1992,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               type="email"
               value={formData.email}
               onChange={(e) => {
-                setFormData({ ...formData, email: e.target.value });
+                setFormData((prev) => ({ ...prev, email: e.target.value }));
                 setErrors((prev) => ({ ...prev, email: "" }));
               }}
               placeholder="Enter email"
@@ -1876,27 +2000,13 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
           </div>
 
-          {/* <div className="space-y-2">
-            <Label htmlFor="workingHours">Working Hours</Label>
-            <Textarea
-              id="workingHours"
-              value={
-                formData.workingHours
-                  ? formData.workingHours.weekday_text?.join("\n") || "Not available"
-                  : ""
-              }
-              readOnly
-              placeholder="Working hours will be populated from Google Business"
-            />
-          </div> */}
-
           <div className="space-y-2">
             <Label htmlFor="about">About Business</Label>
             <Textarea
               id="about"
               value={formData.about}
               onChange={(e) => {
-                setFormData({ ...formData, about: e.target.value });
+                setFormData((prev) => ({ ...prev, about: e.target.value }));
                 setErrors((prev) => ({ ...prev, about: "" }));
               }}
               placeholder="Describe your business"
