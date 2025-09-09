@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import StepWrapper from "./StepWrapper";
+import axios from "axios";
 
 interface FormData {
   payment?: {
@@ -32,7 +33,27 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
   const [deferDays, setDeferDays] = useState<number>(data.payment?.deferDays || 0);
   const [error, setError] = useState<string>("");
 
-  const handleSubmit = () => {
+  const URL = process.env.NEXT_PUBLIC_API_URL;
+
+  const createCheckout = async () => {
+    try {
+      const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
+        customerId: localStorage.getItem("customerId"),
+        priceId: localStorage.getItem("priceId"),
+        promotionCode: localStorage.getItem("coupen"),
+        userId: localStorage.getItem("userId"),
+        url: "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+        cancelUrl: "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+      });
+
+      console.log("Checkout session created:", res.data);
+    } catch (err) {
+      console.error("Failed to create checkout session:", err);
+      throw new Error("Checkout session creation failed");
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!selectedMethod) {
       setError("Please select a payment method.");
       return;
@@ -51,6 +72,15 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       deferDays: selectedMethod === "defer" ? deferDays : undefined,
     };
 
+    // If Instant Payment, call checkout API before proceeding
+    if (selectedMethod === "instant") {
+      try {
+        await createCheckout();
+      } catch (error) {
+        return alert("Failed to create checkout session. Please try again.");
+      }
+    }
+
     onUpdate({ payment: updatedPayment });
     onSubmit({ ...data, payment: updatedPayment });
   };
@@ -63,7 +93,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       description="Choose how you would like to pay."
     >
       <div className="flex flex-col items-center space-y-6 w-full max-w-lg mx-auto pt-0 p-4">
-        {/* Options */}
+        {/* Payment Options */}
         <div className="flex w-full gap-6">
           <Button
             type="button"
@@ -87,7 +117,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
           </Button>
         </div>
 
-        {/* Extra field for defer */}
+        {/* Defer Days Input */}
         {selectedMethod === "defer" && (
           <div className="w-full space-y-2">
             <Label>Enter number of days to defer</Label>
@@ -104,9 +134,9 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {/* Actions */}
+        {/* Action Buttons */}
         <div className="flex justify-between w-full mt-6">
-          <Button type="button"  onClick={onPrevious}>
+          <Button type="button" onClick={onPrevious}>
             Previous
           </Button>
           <Button type="button" onClick={handleSubmit}>

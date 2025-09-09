@@ -55,7 +55,8 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
         discountPercent: discount,
       });
 
-      console.log("Coupon Created:", res.data);
+      console.log("Coupon Created:", res?.data?.promoCode?.code);
+      localStorage.setItem("coupen" , res?.data?.promoCode?.code)
       return true;
     } catch (error) {
       console.error("Failed to create coupon:", error);
