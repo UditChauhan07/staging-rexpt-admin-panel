@@ -51,9 +51,19 @@ export default function DemoApp() {
 
     generateSession();
   }, [ router,userId]);
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg font-medium text-gray-700 animate-pulse">Loading...</p>
+      </div>
+    );
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  if (error)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-600 text-lg font-medium">{error}</p>
+      </div>
+    );
 
   return null; // Redirect ho jayega, ye render nahi hoga
 }
