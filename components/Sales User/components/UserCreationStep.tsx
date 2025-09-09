@@ -193,6 +193,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
       const response = await addUser(payload);
       if (response?.status === true) {
         const userId = response?.user?.userId || `USR${Date.now()}`;
+        console.log(userId,"eyigfryqyilye")
         if (typeof window !== "undefined") {
           localStorage.setItem("AgentForUserId", userId);
         }
@@ -255,9 +256,9 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         const response = await check_email_Exsitence(formData.email);
         if (response.exists && !editingUser) {
           setEmailExists(true);
-          setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+          setErrors((prev) => ({ ...prev, email: "User already exists.Create agent directly" }));
           if (typeof window !== "undefined") {
-            localStorage.setItem("AgentForUserId", response.userId || `USR${Date.now()}`);
+            localStorage.setItem("AgentForUserId", response?.user?.userId );
           }
           const existingUser: FormData["user"] = {
             id: response.userId || `USR${Date.now()}`,
@@ -291,9 +292,9 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
       const response = await check_email_Exsitence(formData.email);
       if (response.exists) {
         setEmailExists(true);
-        setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        setErrors((prev) => ({ ...prev, email: "User already exists.Create agent direct" }));
         if (typeof window !== "undefined") {
-          localStorage.setItem("AgentForUserId", response.userId || `USR${Date.now()}`);
+          localStorage.setItem("AgentForUserId", response.user.userId || `USR${Date.now()}`);
         }
       } else {
         setEmailExists(false);
