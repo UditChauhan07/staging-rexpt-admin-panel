@@ -268,8 +268,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchBusinesses();
+    // fetchUsers();
+    // fetchBusinesses();
   }, []);
 
   return (

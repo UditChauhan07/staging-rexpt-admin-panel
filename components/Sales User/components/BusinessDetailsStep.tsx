@@ -1124,10 +1124,11 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     });
     setAllServices(serviceMap);
   }, []);
-
+  const businessDetails = JSON.parse(localStorage.getItem("formData"))
   useEffect(() => {
     if (data.business || editingBusiness) {
-      const business = data.business || editingBusiness;
+      const business = businessDetails.business || editingBusiness;
+      console.log(business.type, "businessbusinessbusiness")
       setFormData(business);
       setSelectedType(business.type);
       setAddressComponents(business.addressComponents || []);
@@ -1190,7 +1191,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       if (!place.place_id) return;
 
       const newWebsite = place.website || "";
-      // Preserve existing type, subtype, icon, services, and customServices
+
       setFormData((prev) => ({
         ...prev,
         googleBusiness: place.name || "",
@@ -1201,6 +1202,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         website: newWebsite,
         workingHours: place.opening_hours || null,
       }));
+
       setAddressComponents(place.address_components || []);
       setSelectedCountry(
         place.address_components?.find((c) => c.types.includes("country"))?.short_name || "US"
@@ -1235,7 +1237,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
     const listener = addressAutocomplete.addListener("place_changed", () => {
       const place = addressAutocomplete.getPlace();
-      // Preserve existing type, subtype, icon, services, and customServices
+
       setFormData((prev) => ({
         ...prev,
         address: place.formatted_address || "",
@@ -1456,9 +1458,9 @@ const handleWebsiteBlur = () => {
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.type) {
-      newErrors.type = "Business type is required";
-    }
+    // if (!formData.type) {
+    //   newErrors.type = "Business type is required";
+    // }
     if (!formData.googleBusiness && !formData.website) {
       newErrors.googleBusiness = "Please enter Google Business or Website URL";
     }

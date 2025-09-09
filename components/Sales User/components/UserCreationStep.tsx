@@ -192,10 +192,12 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     try {
       const response = await addUser(payload);
       if (response?.status === true) {
-        const userId = response?.user?.userId || `USR${Date.now()}`;
-        console.log(userId,"eyigfryqyilye")
+
+        const userId = response?.user?.userId || "";
+
         if (typeof window !== "undefined") {
           localStorage.setItem("AgentForUserId", userId);
+          localStorage.setItem("client_id", response?.user?.client_id || "");
         }
         const savedUser: FormData["user"] = {
           id: userId,
@@ -258,10 +260,12 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
           setEmailExists(true);
           setErrors((prev) => ({ ...prev, email: "User already exists.Create agent directly" }));
           if (typeof window !== "undefined") {
+
             localStorage.setItem("AgentForUserId", response?.user?.userId );
+
           }
           const existingUser: FormData["user"] = {
-            id: response.userId || `USR${Date.now()}`,
+            id: response.userId || "",
             name: formData.name || "",
             email: formData.email,
             phone: formData.phone || "",
@@ -294,7 +298,9 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         setEmailExists(true);
         setErrors((prev) => ({ ...prev, email: "User already exists.Create agent direct" }));
         if (typeof window !== "undefined") {
+
           localStorage.setItem("AgentForUserId", response.user.userId || `USR${Date.now()}`);
+
         }
       } else {
         setEmailExists(false);
