@@ -6,7 +6,7 @@
             fallbackType = null,
             useShort = false
           ) => {
-            const comp = addressComponents.find(
+            const comp = addressComponents?.find(
               (c) =>
                 c.types.includes(primaryType) ||
                 (fallbackType && c.types.includes(fallbackType))

@@ -747,8 +747,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           onNext();
         }, 2000);
 
-    console.log('dsdsddsfreererre',formData,saveRes)
-   if(formData.planType=='free')
+         if(formData.planType=='free')
  
         {
         try{
@@ -759,8 +758,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         });
         }catch(error){
           console.log('error while adding free minutes',error)
-
         }
+      }
       } else {
         throw new Error("Agent creation failed.");
       }
