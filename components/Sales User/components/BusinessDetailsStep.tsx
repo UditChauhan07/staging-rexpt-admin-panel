@@ -1303,9 +1303,9 @@ const businessDetails=JSON.parse(localStorage.getItem("formData"))
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!formData.type) {
-      newErrors.type = "Business type is required";
-    }
+    // if (!formData.type) {
+    //   newErrors.type = "Business type is required";
+    // }
     if (!formData.googleBusiness && !formData.website) {
       newErrors.googleBusiness = "Please enter Google Business or Website URL";
     }
