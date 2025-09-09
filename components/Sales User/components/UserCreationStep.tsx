@@ -45,8 +45,8 @@ interface UserCreationStepProps {
   data: FormData;
   onUpdate: (updates: { user: FormData["user"] }) => void;
   onNext: () => void;
-  editingUser?: User | null; // Added for edit mode
-  fetchUsers: () => void; // Added for updating user list
+  editingUser?: User | null;
+  fetchUsers: () => void;
 }
 
 const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onNext, editingUser, fetchUsers }) => {
@@ -107,7 +107,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         phone: editingUser.phone,
         role: editingUser.role,
         referalName: editingUser.referalName || "",
-        password: "", // Password not pre-filled for security
+        password: "",
       });
       setShowReferralInput(["2", "3"].includes(editingUser.role));
     } else {
@@ -148,9 +148,6 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     if (!formData.phone?.trim() || !validatePhone(formData.phone)) {
       newErrors.phone = "Please enter a valid phone number with country code";
     }
-    if (!formData.role) {
-      newErrors.role = "Role is required";
-    }
     if (showReferralInput) {
       if (!formData.referalName?.trim()) {
         newErrors.referalName = "Referral code is required";
@@ -158,9 +155,9 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         newErrors.referalName = "Referral code is already taken";
       }
     }
-    if (!editingUser && ["2", "3", "4"].includes(formData.role) && !formData.password?.trim()) {
+    if (!editingUser && ["2", "3", "4"].includes(formData.role) && !formData.password?.trim() && !emailExists) {
       newErrors.password = "Password is required";
-    } else if (formData.password) {
+    } else if (formData.password && !emailExists) {
       const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
       if (!strongPasswordRegex.test(formData.password)) {
         newErrors.password = "Password must be at least 8 characters, include uppercase, lowercase, number, and special character";
@@ -171,7 +168,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   };
 
   const handleSaveUser = async () => {
-    if (!validate()) return;
+    if (!validate()) return false;
 
     setLoading(true);
     const payload: any = {
@@ -195,10 +192,9 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     try {
       const response = await addUser(payload);
       if (response?.status === true) {
-        console.log(response)
-        const userId =  response?.user?.userId || `USR${Date.now()}`; // Fallback ID
+        const userId = response?.user?.userId || `USR${Date.now()}`;
         if (typeof window !== "undefined") {
-          localStorage.setItem("userId", userId); // Save user ID to local storage
+          localStorage.setItem("userId", userId);
         }
         const savedUser: FormData["user"] = {
           id: userId,
@@ -211,7 +207,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         };
 
         onUpdate({ user: savedUser });
-        fetchUsers(); // Update user list
+        fetchUsers();
 
         Swal.fire({
           icon: "success",
@@ -221,13 +217,14 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
           showConfirmButton: false,
         });
 
-        onNext(); // Proceed to next step only on success
+        return true;
       } else {
         Swal.fire({
           icon: "error",
           title: "Failed to save user",
           text: response?.data.error || "Something went wrong.",
         });
+        return false;
       }
     } catch (error: any) {
       console.error("Save user error:", error);
@@ -242,6 +239,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
         title: "Error",
         text: errorMsg,
       });
+      return false;
     } finally {
       setLoading(false);
     }
@@ -253,19 +251,56 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
 
     setLoading(true);
     try {
-      if (!emailExists && formData.email?.trim()) {
+      if (formData.email?.trim()) {
         const response = await check_email_Exsitence(formData.email);
         if (response.exists && !editingUser) {
           setEmailExists(true);
           setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+          if (typeof window !== "undefined") {
+            localStorage.setItem("AgentForUserId", response.userId || `USR${Date.now()}`);
+          }
+          const existingUser: FormData["user"] = {
+            id: response.userId || `USR${Date.now()}`,
+            name: formData.name || "",
+            email: formData.email,
+            phone: formData.phone || "",
+            role: formData.role,
+            referalName: formData.referalName || "",
+            password: formData.password || "",
+          };
+          onUpdate({ user: existingUser });
           setLoading(false);
+          onNext(); // Proceed to Business Details step
           return;
         }
       }
-      await handleSaveUser(); // Save user and proceed
+      const success = await handleSaveUser();
+      if (success) {
+        onNext();
+      }
     } catch (err) {
       console.error("Validation error:", err);
+    } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmailBlur = async () => {
+    if (!formData.email?.trim() || editingUser?.email === formData.email) return;
+    try {
+      const response = await check_email_Exsitence(formData.email);
+      if (response.exists) {
+        setEmailExists(true);
+        setErrors((prev) => ({ ...prev, email: "Email already exists" }));
+        if (typeof window !== "undefined") {
+          localStorage.setItem("AgentForUserId", response.userId || `USR${Date.now()}`);
+        }
+      } else {
+        setEmailExists(false);
+        setErrors((prev) => ({ ...prev, email: "" }));
+      }
+    } catch (err) {
+      console.error("Email check failed", err);
     }
   };
 
@@ -280,19 +315,6 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     setErrors({ ...errors, email: "" });
     setEmailExists(false);
     setFormData({ ...formData, email: e.target.value });
-  };
-
-  const handleEmailBlur = async () => {
-    if (!formData.email?.trim() || editingUser?.email === formData.email) return;
-    try {
-      const response = await check_email_Exsitence(formData.email);
-      if (response.exists) {
-        setEmailExists(true);
-        setErrors((prev) => ({ ...prev, email: "Email already exists" }));
-      }
-    } catch (err) {
-      console.error("Email check failed", err);
-    }
   };
 
   const handleReferralChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,7 +369,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
             />
             {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
           </div>
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="role">Role <span className="text-red-500">*</span></Label>
             <Select
               value={formData.role}
@@ -366,7 +388,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
               </SelectContent>
             </Select>
             {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
-          </div>
+          </div> */}
           {showReferralInput && (
             <div className="space-y-2">
               <Label htmlFor="referalName">Referral Code <span className="text-red-500">*</span></Label>
@@ -417,7 +439,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
           <Button
             type="submit"
             className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
-            disabled={emailExists || loading}
+            disabled={loading}
           >
             {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ChevronRight className="w-4 h-4 ml-2" />}
             Next: Business Details
@@ -428,4 +450,6 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   );
 };
 
+
 export default UserCreationStep;
+
