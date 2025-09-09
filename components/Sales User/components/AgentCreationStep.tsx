@@ -65,7 +65,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   const [voiceError, setVoiceError] = useState("");
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
-const [loading,setLoading]=useState(false)
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
     setLoadingVoices(true);
     getRetellVoices()
@@ -742,10 +742,11 @@ const [loading,setLoading]=useState(false)
           timer: 1500,
           showConfirmButton: false,
         });
-           setLoading(false)
+        setLoading(false)
         setTimeout(() => {
           onNext();
         }, 2000);
+
     console.log('dsdsddsfreererre',formData,saveRes)
    if(formData.planType=='free')
  
@@ -758,8 +759,8 @@ const [loading,setLoading]=useState(false)
         });
         }catch(error){
           console.log('error while adding free minutes',error)
+
         }
-      }
       } else {
         throw new Error("Agent creation failed.");
       }
@@ -930,50 +931,50 @@ const [loading,setLoading]=useState(false)
             ))}
             {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
           </div>
-            <div className="space-y-2">
-    <Label>Plan Type <span className="text-red-500">*</span></Label>
-    <select
-      className="border rounded px-2 py-1"
-      value={formData.planType}
-      onChange={(e) => setFormData({ ...formData, planType: e.target.value })}
-    >
-      <option value="">Select Plan Type</option>
-      <option value="free">Free</option>
-      <option value="paid">Paid</option>
-    </select>
-    {errors.planType && <p className="text-sm text-red-600">{errors.planType}</p>}
-  </div>
+          <div className="space-y-2">
+            <Label>Plan Type <span className="text-red-500">*</span></Label>
+            <select
+              className="border rounded px-2 py-1"
+              value={formData.planType}
+              onChange={(e) => setFormData({ ...formData, planType: e.target.value })}
+            >
+              <option value="">Select Plan Type</option>
+              <option value="free">Free</option>
+              <option value="paid">Paid</option>
+            </select>
+            {errors.planType && <p className="text-sm text-red-600">{errors.planType}</p>}
+          </div>
 
-  {/* Free Minutes Input (shown only if "Free" is selected) */}
-  {formData.planType === 'free' && (
-    <div className="space-y-2">
-      <Label>Free Minutes <span className="text-red-500">*</span></Label>
-      <input
-        type="number"
-        className="border rounded px-2 py-1 w-full"
-        value={formData.freeMinutes || ''}
-        onChange={(e) =>
-          setFormData({ ...formData, freeMinutes: e.target.value })
-        }
-        placeholder="Enter number of free minutes"
-      />
-      {errors.freeMinutes && <p className="text-sm text-red-600">{errors.freeMinutes}</p>}
-    </div>
-  )}
+          {/* Free Minutes Input (shown only if "Free" is selected) */}
+          {formData.planType === 'free' && (
+            <div className="space-y-2">
+              <Label>Free Minutes <span className="text-red-500">*</span></Label>
+              <input
+                type="number"
+                className="border rounded px-2 py-1 w-full"
+                value={formData.freeMinutes || ''}
+                onChange={(e) =>
+                  setFormData({ ...formData, freeMinutes: e.target.value })
+                }
+                placeholder="Enter number of free minutes"
+              />
+              {errors.freeMinutes && <p className="text-sm text-red-600">{errors.freeMinutes}</p>}
+            </div>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
           <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
             <ChevronLeft className="w-4 h-4 mr-2" /> Previous
           </Button>
 
-          <Button 
-  type="submit" 
-  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700" 
-  onClick={handleSubmit}
-  disabled={loading} // 👈 yeh line add karo
->
-  {loading ? "Loading..." : "Next: Payment"}
-</Button>
+          <Button
+            type="submit"
+            className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
+            onClick={handleSubmit}
+            disabled={loading} // 👈 yeh line add karo
+          >
+            {loading ? "Loading..." : "Next: Payment"}
+          </Button>
 
         </div>
       </form>
