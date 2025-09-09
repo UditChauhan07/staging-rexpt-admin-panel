@@ -194,7 +194,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
       if (response?.status === true) {
         const userId = response?.user?.userId || `USR${Date.now()}`;
         if (typeof window !== "undefined") {
-          localStorage.setItem("userId", userId);
+          localStorage.setItem("AgentForUserId", userId);
         }
         const savedUser: FormData["user"] = {
           id: userId,
