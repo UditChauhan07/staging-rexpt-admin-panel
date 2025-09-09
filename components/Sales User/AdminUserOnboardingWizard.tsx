@@ -52,6 +52,9 @@ const AdminUserOnboardingWizard: React.FC = () => {
   const [editingUser, setEditingUser] = useState<FormData["user"] | null>(null);
   const [editingBusiness, setEditingBusiness] = useState<FormData["business"] | null>(null);
 
+  const URL = process.env.NEXT_PUBLIC_API_URL;
+  const token = localStorage.getItem("token");
+
   const handleUpdate = (updates: Partial<FormData>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
@@ -63,6 +66,47 @@ const AdminUserOnboardingWizard: React.FC = () => {
   const handlePrevious = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
+
+  const agentCreationFinal = async () => {
+    const finalData = {
+      customer_id: "cus_T1OnUkWZ3qEyyO",   // ✅ fill with real values
+      plan_details: {
+        id: "price_starter_001",
+        name: "Starter",
+        desc: "Basic monthly plan",
+        amount: 29.99,
+        currency: "USD",
+        interval: "month",
+        created: new Date().toISOString(),
+        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        mins: 600,
+        original_plan_amount: 29.99,
+      },
+      agent_id: "agent_232733fa6fbf8f6942e4f15508",
+      user_id: "user_12345",
+      defer_days: 7, // example: 7 days defer
+    };
+    try {
+      const res = await axios.get(`${URL}/api/admin-static-defer-payment`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // check if API returned success:true
+      if (res.data && res.data.success) {
+        console.log("✅ Subscription created");
+
+        // you can also access res.data.id or res.data.data.subscription_id
+        return true; // signal success
+      } else {
+        console.warn("⚠️ Subscription creation failed:", res.data);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Failed to create agent", error);
+      return false;
+    }
+  };
+
 
   const handleSubmit = async (data: FormData) => {
     console.log("Final Form Data:", data);
