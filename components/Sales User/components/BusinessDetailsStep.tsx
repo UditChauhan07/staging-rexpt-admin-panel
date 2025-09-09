@@ -613,7 +613,6 @@ About Business: ${formData.about || "N/A"}`
       });
     }
   };
-
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSaveBusiness();
