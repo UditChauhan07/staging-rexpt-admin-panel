@@ -746,11 +746,12 @@ const [loading,setLoading]=useState(false)
         setTimeout(() => {
           onNext();
         }, 2000);
-
-   if(formData.agent.planType=='free')
+    console.log('dsdsddsfreererre',formData,saveRes)
+   if(formData.planType=='free')
+ 
         {
         try{
-          const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, {agentId:saveRes.agentId.planType,mins:formData.agent.freeMinutes}, {
+          const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, {agentId:saveRes?.data?.agent_id,mins:formData?.freeMinutes}, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
