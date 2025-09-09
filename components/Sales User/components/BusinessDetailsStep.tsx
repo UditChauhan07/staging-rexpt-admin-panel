@@ -1468,6 +1468,7 @@ if (prevKb && prevKb !== "null" && prevKb !== "undefined") {
       };
 
       onUpdate({ business: savedBusiness });
+      localStorage.setItem('addressComponents', JSON.stringify(addressComponents));
       fetchBusinesses();
 
       Swal.fire({
