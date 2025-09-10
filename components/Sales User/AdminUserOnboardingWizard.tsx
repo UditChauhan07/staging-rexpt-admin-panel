@@ -308,7 +308,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
         //     : "Onboarding completed! ✅ Subscription created."
         // );
       } else {
-        alert("⚠️ Onboarding finished, but subscription creation failed.");
+        // alert("⚠️ Onboarding finished, but subscription creation failed.");
       }
     } catch (err) {
       console.error("❌ Unexpected error in handleSubmit:", err);
