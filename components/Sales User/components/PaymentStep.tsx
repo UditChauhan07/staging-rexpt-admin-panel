@@ -73,7 +73,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   const getProducts = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${URL}/api/products`, {
+      const res = await axios.get(`${URL}/api/products/admin`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 

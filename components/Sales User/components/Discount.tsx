@@ -59,7 +59,8 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
         interval,  // Send interval (once or forever)
       });
 
-      localStorage.setItem("coupen", res?.data?.promoCode?.id);
+      localStorage.setItem("coupen", res?.data?.promoCode?.id)
+      localStorage.setItem("discount" ,discount )
       return true;
     } catch (error) {
       console.error("Failed to create coupon:", error);
