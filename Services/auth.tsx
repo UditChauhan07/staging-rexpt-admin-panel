@@ -298,4 +298,14 @@ export const importPhoneToAgentFromAdmin = async (token,customPhoneInput, agentI
   }
 }
 
+export const sendAgentCreationEmail=async(agentId)=>{
+    try {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/salesagentemail`, {agentId:agentId} , {
+    })
+    return res.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 

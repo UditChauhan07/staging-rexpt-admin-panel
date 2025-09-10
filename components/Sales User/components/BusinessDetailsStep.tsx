@@ -1063,9 +1063,9 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [addressComponents, setAddressComponents] = useState<any[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("US");
-  const[googlelisting,setGoogleListing]=useState()
-  const [loading,setLoading]=useState(false)
-console.log('dsadasas',addressComponents)
+  const [googlelisting, setGoogleListing] = useState()
+  const [loading, setLoading] = useState(false)
+  console.log('dsadasas', addressComponents)
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
   useEffect(() => {
@@ -1348,7 +1348,7 @@ console.log('dsadasas',addressComponents)
     }
     if (!formData.name) newErrors.name = "Business name is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.phone ) {
+    if (!formData.phone) {
       newErrors.phone = "Valid phone number is required";
     }
     // if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -1361,9 +1361,9 @@ console.log('dsadasas',addressComponents)
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
-    console.log('errors',newErrors)
+    console.log('errors', newErrors)
     setErrors(newErrors);
-    
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -1389,17 +1389,17 @@ console.log('dsadasas',addressComponents)
       address1: formData.address || "",
       address2: "", // Optional, can be populated if needed
       city: getAddressComponent("locality", "long_name") || getAddressComponent("postal_town", "long_name") || "",
-    state: getAddressComponent("administrative_area_level_1", "short_name") || "",
-    country: getAddressComponent("country", "long_name") || "",
-    postal_code: getAddressComponent("postal_code", "long_name") || "",
-    street_number: getAddressComponent("street_number", "long_name") || "",
-    zip: getAddressComponent("postal_code", "long_name") || "",
+      state: getAddressComponent("administrative_area_level_1", "short_name") || "",
+      country: getAddressComponent("country", "long_name") || "",
+      postal_code: getAddressComponent("postal_code", "long_name") || "",
+      street_number: getAddressComponent("street_number", "long_name") || "",
+      zip: getAddressComponent("postal_code", "long_name") || "",
       isGoogleListing: !!formData.googleBusiness,
       isWebsiteUrl: !!formData.website,
-      googleUrl:googlelisting|| "",
-      webUrl:formData.website,
-      phoneNumber:formData.internationalPhoneNumber||formData.phone,
-      aboutBusiness:formData.about,
+      googleUrl: googlelisting || "",
+      webUrl: formData.website,
+      phoneNumber: formData.internationalPhoneNumber || formData.phone,
+      aboutBusiness: formData.about,
       // googleBusinessName:,
       scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
     };
@@ -1409,7 +1409,7 @@ console.log('dsadasas',addressComponents)
     );
 
     try {
-          setLoading(true)
+      setLoading(true)
       let res;
       let businessId = localStorage.getItem('BusinessId') || '';
 
@@ -1425,95 +1425,95 @@ console.log('dsadasas',addressComponents)
 
         businessId = res.data.record?.businessId || '';
         localStorage.setItem("agentCode", res.data.agentCode || "");
-      } 
+      }
 
-      
-       const mergedUrls = [];
-            const selected = JSON.parse(
-              localStorage.getItem("sitemapUrls") || "[]"
-            );
-            if(googlelisting){
-               mergedUrls.push(googlelisting);
-            }
-            if (Array.isArray(selected) && selected.length > 0) {
-              mergedUrls.push(...selected);
-            }
-         
+
+      const mergedUrls = [];
+      const selected = JSON.parse(
+        localStorage.getItem("sitemapUrls") || "[]"
+      );
+      if (googlelisting) {
+        mergedUrls.push(googlelisting);
+      }
+      if (Array.isArray(selected) && selected.length > 0) {
+        mergedUrls.push(...selected);
+      }
+
       localStorage.setItem("BusinessId", businessId);
-     
-      const knowledge_base_name = await getKnowledgeBaseName() ||"My Business KB";
-      localStorage.setItem("knowledgebaseName",knowledge_base_name)
-      if(knowledge_base_name)
-      if (true) {
-        const formDataPayload = new FormData();
-        formDataPayload.append("knowledge_base_name", knowledge_base_name);
-        formDataPayload.append("knowledge_base_urls", JSON.stringify(mergedUrls));;
-        formDataPayload.append("enable_auto_refresh", "true");
-        formDataPayload.append(
-          "knowledge_base_texts",
-          JSON.stringify([
-            {
-              title: "Business Details",
-              text: `Business Name: ${formData.name || ""}
+
+      const knowledge_base_name = await getKnowledgeBaseName() || "My Business KB";
+      localStorage.setItem("knowledgebaseName", knowledge_base_name)
+      if (knowledge_base_name)
+        if (true) {
+          const formDataPayload = new FormData();
+          formDataPayload.append("knowledge_base_name", knowledge_base_name);
+          formDataPayload.append("knowledge_base_urls", JSON.stringify(mergedUrls));;
+          formDataPayload.append("enable_auto_refresh", "true");
+          formDataPayload.append(
+            "knowledge_base_texts",
+            JSON.stringify([
+              {
+                title: "Business Details",
+                text: `Business Name: ${formData.name || ""}
                      Address: ${formData.address || ""}
                      Phone: ${formData.internationalPhoneNumber || formData.phone || ""}
                      Website: ${formData.website || "N/A"}
                      Email: ${formData.email || ""}
                      About Business: ${formData.about || ""}
                      Working Hours: ${formData.workingHours ? JSON.stringify(formData.workingHours) : "N/A"}`,
+              },
+            ])
+          );
+
+          const prevKb = localStorage.getItem("knowledgeBaseId");
+          if (prevKb && prevKb !== "null" && prevKb !== "undefined") {
+            try {
+              await axios.delete(`https://api.retellai.com/delete-knowledge-base/${prevKb}`, {
+                headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}` },
+              });
+              console.log(`Knowledge base ${prevKb} deleted successfully.`);
+            } catch (error) {
+              console.error(`Failed to delete knowledge base ${prevKb}:`, error.response?.status || error.message);
+              // Continue execution even if the delete fails (e.g., 404 not found)
+            }
+          }
+
+          const kbRes = await axios.post("https://api.retellai.com/create-knowledge-base", formDataPayload, {
+            headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`, "Content-Type": "multipart/form-data" },
+          });
+
+          const knowledgeBaseId = kbRes?.data?.knowledge_base_id;
+          localStorage.setItem("knowledgeBaseId", knowledgeBaseId);
+          const businessData1 = {
+            businessName: formData.name || "N/A",
+            address: formData.address || "N/A",
+            phone: formData.internationalPhoneNumber || formData.phone || "N/A",
+            website: formData.website || "N/A",
+            email: formData.email || "N/A",
+            aboutBussiness: formData.about || "N/A",
+          };
+          await axios.patch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
+            {
+              knowledge_base_id: knowledgeBaseId,
+              knowledge_base_name: knowledge_base_name,
+              knowledge_base_urls: JSON.stringify([...selectedUrls]),
+              googleUrl: googlelisting || "",   //gmb link
+              webUrl: formData.website,
+              phoneNumber: formData.internationalPhoneNumber || formData.phone,
+              aboutBusiness: formData.about,
+
+              googleBusinessName: formData.googleBusiness,
+              // googleBusinessName:,
+              scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
+              knowledge_base_texts: JSON.stringify(businessData1),
+              agentId: localStorage.getItem("agent_id") || null,
             },
-          ])
-        );
-
-        const prevKb = localStorage.getItem("knowledgeBaseId");
-        if (prevKb && prevKb !== "null" && prevKb !== "undefined") {
-          try {
-            await axios.delete(`https://api.retellai.com/delete-knowledge-base/${prevKb}`, {
-              headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}` },
-            });
-            console.log(`Knowledge base ${prevKb} deleted successfully.`);
-          } catch (error) {
-            console.error(`Failed to delete knowledge base ${prevKb}:`, error.response?.status || error.message);
-            // Continue execution even if the delete fails (e.g., 404 not found)
-          }
+            {
+              headers: { "Content-Type": "application/json" },
+            }
+          );
         }
-
-        const kbRes = await axios.post("https://api.retellai.com/create-knowledge-base", formDataPayload, {
-          headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_RETELL_API}`, "Content-Type": "multipart/form-data" },
-        });
-
-        const knowledgeBaseId = kbRes?.data?.knowledge_base_id;
-        localStorage.setItem("knowledgeBaseId", knowledgeBaseId);
-        const businessData1 = {
-          businessName: formData.name || "N/A",
-          address: formData.address || "N/A",
-          phone: formData.internationalPhoneNumber || formData.phone || "N/A",
-          website:formData.website || "N/A",
-          email: formData.email || "N/A",
-          aboutBussiness:formData.about || "N/A",
-        };
-        await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
-          {
-            knowledge_base_id: knowledgeBaseId,
-            knowledge_base_name: knowledge_base_name,
-            knowledge_base_urls: JSON.stringify([...selectedUrls]),
-            googleUrl:googlelisting|| "",   //gmb link
-            webUrl:formData.website,
-            phoneNumber:formData.internationalPhoneNumber||formData.phone,
-            aboutBusiness:formData.about,
-             
-            googleBusinessName:formData.googleBusiness,
-            // googleBusinessName:,
-            scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
-            knowledge_base_texts: JSON.stringify(businessData1),
-            agentId: localStorage.getItem("agent_id") || null,
-          },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
 
       const savedBusiness: Business = {
         id: businessId,
@@ -1561,19 +1561,20 @@ console.log('dsadasas',addressComponents)
         title: "Error",
         text: errorMsg,
       });
-    }finally{
-          setLoading(false)
+    } finally {
+      setLoading(false)
     }
   };
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSaveBusiness();
   };
-  console.log('as',selectedType,newBusinessType)
+  console.log('as', selectedType, newBusinessType)
   return (
     <StepWrapper step={2} totalSteps={7} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">
-        <div className="space-y-4">
+        <div className={`space-y-4 ${loading ? "pointer-events-none opacity-50" : ""
+          }`}>
           {/* <div className="space-y-2">
             <Label htmlFor="type">Business Type <span className="text-red-500">*</span></Label>
             <Select
@@ -1645,7 +1646,7 @@ console.log('dsadasas',addressComponents)
             )}
             {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}
           </div> */}
-           <div className="space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="type">Business Type <span className="text-red-500">*</span></Label>
             <Select
               onValueChange={(val) => {
@@ -1735,26 +1736,35 @@ console.log('dsadasas',addressComponents)
             {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label>Select Services</Label>
-            {(allServices[selectedType] || []).map((service) => (
-              <div key={service} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.services?.includes(service)}
-                  onChange={() => {
-                    const current = formData.services || [];
-                    const updated = current.includes(service)
-                      ? current.filter((s) => s !== service)
-                      : [...current, service];
-                    setFormData({ ...formData, services: updated });
-                  }}
-                />
-                {service}
-              </div>
-            ))}
+          <div className="space-y-3">
+            <Label className="text-base font-medium">Select Services</Label>
+
+            <div className="grid gap-2">
+              {(allServices[selectedType] || []).map((service) => (
+                <label
+                  key={service}
+                  className="flex items-center gap-2 rounded-lg border p-2 cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                    checked={formData.services?.includes(service)}
+                    onChange={() => {
+                      const current = formData.services || [];
+                      const updated = current.includes(service)
+                        ? current.filter((s) => s !== service)
+                        : [...current, service];
+                      setFormData({ ...formData, services: updated });
+                    }}
+                  />
+                  <span className="text-sm">{service}</span>
+                </label>
+              ))}
+            </div>
+
+            {/* If no services exist, allow adding new */}
             {selectedType && !allServices[selectedType]?.length && (
-              <div className="mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <Input
                   placeholder="Add new service"
                   value={newService}
@@ -1766,7 +1776,10 @@ console.log('dsadasas',addressComponents)
                   onClick={() => {
                     const trimmed = newService.trim();
                     if (trimmed && !(allServices[selectedType] || []).includes(trimmed)) {
-                      setAllServices((prev) => ({ ...prev, [selectedType]: [...(prev[selectedType] || []), trimmed] }));
+                      setAllServices((prev) => ({
+                        ...prev,
+                        [selectedType]: [...(prev[selectedType] || []), trimmed],
+                      }));
                       setFormData({
                         ...formData,
                         services: [...(formData.services || []), trimmed],
@@ -1782,26 +1795,34 @@ console.log('dsadasas',addressComponents)
                 </Button>
               </div>
             )}
-            {allServices[selectedType]?.length > 0 && !allServices[selectedType]?.includes("Other") && (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.services?.includes("Other")}
-                  onChange={() => {
-                    const current = formData.services || [];
-                    const updated = current.includes("Other")
-                      ? current.filter((s) => s !== "Other")
-                      : [...current, "Other"];
-                    setFormData({ ...formData, services: updated });
-                  }}
-                />
-                Add more services
-              </div>
-            )}
+
+            {/* Add "Other" option */}
+            {allServices[selectedType]?.length > 0 &&
+              !allServices[selectedType]?.includes("Other") && (
+                <label className="flex items-center gap-2 mt-2">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500"
+                    checked={formData.services?.includes("Other")}
+                    onChange={() => {
+                      const current = formData.services || [];
+                      const updated = current.includes("Other")
+                        ? current.filter((s) => s !== "Other")
+                        : [...current, "Other"];
+                      setFormData({ ...formData, services: updated });
+                    }}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    Add more services
+                  </span>
+                </label>
+              )}
+
+            {/* If "Other" selected → input field */}
             {formData.services?.includes("Other") && (
-              <div className="mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <Input
-                  placeholder="Add new service"
+                  placeholder="Enter new service"
                   value={newService}
                   onChange={(e) => setNewService(e.target.value)}
                   className="flex-1"
@@ -1811,7 +1832,10 @@ console.log('dsadasas',addressComponents)
                   onClick={() => {
                     const trimmed = newService.trim();
                     if (trimmed && !(allServices[selectedType] || []).includes(trimmed)) {
-                      setAllServices((prev) => ({ ...prev, [selectedType]: [...(prev[selectedType] || []), trimmed] }));
+                      setAllServices((prev) => ({
+                        ...prev,
+                        [selectedType]: [...(prev[selectedType] || []), trimmed],
+                      }));
                       setFormData({
                         ...formData,
                         services: [...(formData.services || []).filter((s) => s !== "Other"), trimmed],
@@ -1827,7 +1851,34 @@ console.log('dsadasas',addressComponents)
                 </Button>
               </div>
             )}
+
+            {/* Selected services badges */}
+            {formData.services?.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {formData.services.map((srv) => (
+                  <span
+                    key={srv}
+                    className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs flex items-center gap-1"
+                  >
+                    {srv}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({
+                          ...formData,
+                          services: (formData.services || []).filter((s) => s !== srv),
+                        })
+                      }
+                      className="text-purple-500 hover:text-purple-700"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="google-autocomplete">Google Business</Label>

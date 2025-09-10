@@ -333,7 +333,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
       localStorage.removeItem("country_code");
       localStorage.removeItem("coupen");
       localStorage.removeItem("state");
-
+      localStorage.removeItem("phoneNumber")
       setStep(1);
       setFormData({});
     }
@@ -362,7 +362,29 @@ const AdminUserOnboardingWizard: React.FC = () => {
     // fetchUsers();
     // fetchBusinesses();
   }, []);
-
+  const handleFreeAgent = () => {
+    localStorage.removeItem("currentStep");
+    localStorage.removeItem("formData");
+    localStorage.removeItem("BusinessId");
+    localStorage.removeItem("agentCode");
+    localStorage.removeItem("knowledgebaseName");
+    localStorage.removeItem("knowledgeBaseId");
+    localStorage.removeItem("businessType");
+    localStorage.removeItem("businessUrl");
+    localStorage.removeItem("isVerified");
+    localStorage.removeItem("selectedSitemapUrls");
+    localStorage.removeItem("sitemapUrls");
+    localStorage.removeItem("addressComponents");
+    localStorage.removeItem("agentName");
+    localStorage.removeItem("agent_id");
+    localStorage.removeItem("city");
+    localStorage.removeItem("country_code");
+    localStorage.removeItem("coupen");
+    localStorage.removeItem("state");
+    localStorage.removeItem("phoneNumber")
+    setStep(1);
+    setFormData({});
+  }
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       {step === 1 && (
@@ -398,6 +420,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
           onUpdate={handleUpdate}
           onNext={handleNext}
           onPrevious={handlePrevious}
+          onFreeAgent={handleFreeAgent}
+
         />
       )}
       {step === 5 && (
