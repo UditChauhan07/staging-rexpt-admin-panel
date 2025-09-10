@@ -1411,29 +1411,36 @@ console.log('dsadasas',addressComponents)
     try {
           setLoading(true)
       let res;
-      if (!localStorage.getItem('businessId')) {
-        // res = await axios.patch(
-        //   `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${localStorage.getItem('businessId')}`,
-        //   payload,
-        //   {
-        //     headers: { "Content-Type": "application/json" },
-        //   }
-        // );
-         res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/create`, payload, {
-          headers: { "Content-Type": "application/json" },
-        });
+      let businessId = localStorage.getItem('BusinessId') || '';
+
+      if (!localStorage.getItem('BusinessId')) {
+        // No BusinessId in localStorage → create new business
+        res = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/create`,
+          payload,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+
+        businessId = res.data.record?.businessId || '';
+        localStorage.setItem("agentCode", res.data.agentCode || "");
       } 
 
-      const businessId = editingBusiness?.id || res.data.record?.businessId || ``;
+      
        const mergedUrls = [];
             const selected = JSON.parse(
               localStorage.getItem("sitemapUrls") || "[]"
             );
+            if(googlelisting){
+               mergedUrls.push(googlelisting);
+            }
             if (Array.isArray(selected) && selected.length > 0) {
               mergedUrls.push(...selected);
             }
+         
       localStorage.setItem("BusinessId", businessId);
-       localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
+     
       const knowledge_base_name = await getKnowledgeBaseName() ||"My Business KB";
       localStorage.setItem("knowledgebaseName",knowledge_base_name)
       if(knowledge_base_name)
@@ -1447,12 +1454,12 @@ console.log('dsadasas',addressComponents)
           JSON.stringify([
             {
               title: "Business Details",
-              text: `Business Name: ${formData.name || "N/A"}
-                     Address: ${formData.address || "N/A"}
-                     Phone: ${formData.internationalPhoneNumber || formData.phone || "N/A"}
+              text: `Business Name: ${formData.name || ""}
+                     Address: ${formData.address || ""}
+                     Phone: ${formData.internationalPhoneNumber || formData.phone || ""}
                      Website: ${formData.website || "N/A"}
-                     Email: ${formData.email || "N/A"}
-                     About Business: ${formData.about || "N/A"}
+                     Email: ${formData.email || ""}
+                     About Business: ${formData.about || ""}
                      Working Hours: ${formData.workingHours ? JSON.stringify(formData.workingHours) : "N/A"}`,
             },
           ])
@@ -1477,7 +1484,14 @@ console.log('dsadasas',addressComponents)
 
         const knowledgeBaseId = kbRes?.data?.knowledge_base_id;
         localStorage.setItem("knowledgeBaseId", knowledgeBaseId);
-
+        const businessData1 = {
+          businessName: formData.name || "N/A",
+          address: formData.address || "N/A",
+          phone: formData.internationalPhoneNumber || formData.phone || "N/A",
+          website:formData.website || "N/A",
+          email: formData.email || "N/A",
+          aboutBussiness:formData.about || "N/A",
+        };
         await axios.patch(
           `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${businessId}`,
           {
@@ -1492,19 +1506,7 @@ console.log('dsadasas',addressComponents)
             googleBusinessName:formData.googleBusiness,
             // googleBusinessName:,
             scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
-            knowledge_base_texts: JSON.stringify([
-              {
-                title: "Business Details",
-                text: `Business Name: ${formData.name || "N/A"}
-                       Address: ${formData.address || "N/A"}
-                       Phone: ${formData.internationalPhoneNumber || formData.phone || "N/A"}
-                       International Phone: ${formData.internationalPhoneNumber || "N/A"}
-                       Website: ${formData.website || "N/A"}
-                       Email: ${formData.email || "N/A"}
-                       About Business: ${formData.about || "N/A"}
-                       Working Hours: ${formData.workingHours ? JSON.stringify(formData.workingHours) : "N/A"}`,
-              },
-            ]),
+            knowledge_base_texts: JSON.stringify(businessData1),
             agentId: localStorage.getItem("agent_id") || null,
           },
           {

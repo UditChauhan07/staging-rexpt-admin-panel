@@ -250,21 +250,21 @@ const AdminUserOnboardingWizard: React.FC = () => {
   };
 
   const fetchUsers = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users`);
-      setUsers(response.data || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
-    }
+    // try {
+    //   const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users`);
+    //   setUsers(response.data || []);
+    // } catch (error) {
+    //   console.error("Error fetching users:", error);
+    // }
   };
 
   const fetchBusinesses = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails`);
-      setBusinesses(response.data || []);
-    } catch (error) {
-      console.error("Error fetching businesses:", error);
-    }
+    // try {
+    //   const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails`);
+    //   setBusinesses(response.data || []);
+    // } catch (error) {
+    //   console.error("Error fetching businesses:", error);
+    // }
   };
 
   useEffect(() => {
