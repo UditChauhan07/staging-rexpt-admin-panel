@@ -373,7 +373,7 @@ useEffect(()=>{
     }
 },[])
   return (
-    <StepWrapper step={4} totalSteps={5} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
+    <StepWrapper step={4} totalSteps={7} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
       {initialLoading && !isCustomPhone ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin" />

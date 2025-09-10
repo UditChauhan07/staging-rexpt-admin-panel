@@ -135,7 +135,8 @@ import AgentCreationStep from "./components/AgentCreationStep";
 import PaymentStep from "./components/PaymentStep";
 import axios from "axios";
 import AssignNumberStep from "./components/AssignNumberStep";
-
+import DiscountForm from "./components/Discount";
+import PaymentMethod from "./components/PaymentMethod";
 interface FormData {
   user?: {
     id: string;
@@ -218,7 +219,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
   };
 
   const handleNext = () => {
-    setStep((prev) => Math.min(prev + 1, 4));
+    setStep((prev) => Math.min(prev + 1, 7));
   };
 
   const handlePrevious = () => {
@@ -310,11 +311,32 @@ const AdminUserOnboardingWizard: React.FC = () => {
         />
       )}
       {step === 5 && (
-        <PaymentStep
+       <PaymentStep
+          data={formData}
+          onUpdate={handleUpdate}
+          onSubmit={handleSubmit}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+        />
+      )}
+
+        {step === 6 && (
+        <DiscountForm
+          data={formData}
+          onUpdate={handleUpdate}
+          // onSubmit={handleSubmit}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+
+        />
+      )}
+       {step === 7 && (
+        <PaymentMethod
           data={formData}
           onUpdate={handleUpdate}
           onSubmit={handleSubmit}
           onPrevious={handlePrevious}
+
         />
       )}
     </div>

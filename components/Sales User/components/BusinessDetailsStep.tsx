@@ -1506,7 +1506,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   };
 
   return (
-    <StepWrapper step={2} totalSteps={4} title="Business Details" description="Provide details about the business.">
+    <StepWrapper step={2} totalSteps={7} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">

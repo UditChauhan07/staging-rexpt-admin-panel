@@ -1,17 +1,45 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft } from "lucide-react";
 import StepWrapper from "./StepWrapper";
+import axios from "axios";
+import { ClimbingBoxLoader } from "react-spinners";
+
+type Interval = "month" | "year";
+
+interface ProductPrice {
+  id: string;
+  currency: string;
+  unit_amount: number;
+  interval: Interval;
+  metadata?: string;
+  currency_options?: any[];
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;           //
+  prices: ProductPrice[];
+}
 
 interface FormData {
   payment?: {
+    // keep previous fields for compatibility
     plan: string;
     amount: number;
-    cardNumber: string;
-    expiry: string;
-    cvv: string;
+    raw?: {
+      product: Product;
+      price: ProductPrice;
+      derived: {
+        amountUsd: number;
+        amountCents: number;
+        currency: string;
+        interval: "month" | "year";
+        mins?: number;
+      };
+    };
   };
 }
 
@@ -20,78 +48,194 @@ interface PaymentStepProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
+  onNext: () => void;
 }
 
-const PaymentStep: React.FC<PaymentStepProps> = ({ data, onUpdate, onSubmit, onPrevious }) => {
-  const [paymentData, setPaymentData] = useState<FormData["payment"]>(
-    data.payment || { plan: "basic", amount: 10, cardNumber: "", expiry: "", cvv: "" }
+const PaymentStep: React.FC<PaymentStepProps> = ({
+  data,
+  onUpdate,
+  onSubmit,
+  onNext,
+  onPrevious,
+}) => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
+  const [billingInterval, setBillingInterval] = useState<Interval>(
+    (data.payment?.interval as Interval) || "month"
   );
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [loading, setLoading] = useState(false);
 
-  const validate = () => {
-    const newErrors: { [key: string]: string } = {};
-    if (!paymentData.cardNumber?.trim() || paymentData.cardNumber.length !== 16)
-      newErrors.cardNumber = "Valid 16-digit card number is required";
-    if (!paymentData.expiry?.trim() || !/^\d{2}\/\d{2}$/.test(paymentData.expiry))
-      newErrors.expiry = "Valid expiry (MM/YY) is required";
-    if (!paymentData.cvv?.trim() || paymentData.cvv.length !== 3)
-      newErrors.cvv = "Valid 3-digit CVV is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const URL = process.env.NEXT_PUBLIC_API_URL;
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  const getProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${URL}/api/products`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      const mappedProducts: Product[] = res.data.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        amount: p.amount || 0,
+        prices: (p.prices || []).map((pr: any) => ({
+          id: pr.id,
+          currency: pr.currency,
+          unit_amount: pr.unit_amount,
+          interval: pr.interval,
+          metadata: pr.metadata,
+          currency_options: pr.currency_options,
+        })),
+      }));
+
+      setProducts(mappedProducts);
+    } catch (error) {
+      console.error("Failed to fetch products", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
+  useEffect(() => {
+    getProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    onUpdate({ payment: paymentData });
-    onSubmit({ ...data, payment: paymentData });
+  const priceForInterval = (product: Product, interval: Interval) =>
+    product.prices.find((p) => p.interval === interval) || null;
+
+  const formatUSD = (cents?: number) =>
+    typeof cents === "number" ? `$${(cents / 100).toLocaleString("en-US")}` : "-";
+
+  const handleNext = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedPlan) {
+      alert("Please select a product plan");
+      return;
+    }
+
+    const selectedProduct = products.find((p) => p.id === selectedPlan);
+    if (!selectedProduct) {
+      alert("Selected product not found");
+      return;
+    }
+
+    const selPrice = priceForInterval(selectedProduct, billingInterval);
+    if (!selPrice) {
+      alert(`No ${billingInterval} price available for this plan`);
+      return;
+    }
+
+    const amountUsd = selPrice.unit_amount / 100;
+    const mins = selPrice.metadata ? Number(selPrice.metadata) : undefined;
+
+    onUpdate({
+      payment: {
+        plan: selectedProduct.id,     // product id
+        amount: amountUsd,            // in USD
+        raw: {
+          product: selectedProduct,
+          price: selPrice,
+          derived: {
+            amountUsd,
+            amountCents: selPrice.unit_amount,
+            currency: "USD",
+            interval: billingInterval,
+            mins: Number.isFinite(mins) ? mins : undefined,
+          },
+        },
+      },
+    });
+
+    onNext();
   };
 
   return (
-    <StepWrapper step={4} totalSteps={4} title="Payment Details" description="Enter payment information to complete onboarding.">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="cardNumber">Card Number <span className="text-red-500">*</span></Label>
-            <Input
-              id="cardNumber"
-              value={paymentData.cardNumber}
-              onChange={(e) => setPaymentData({ ...paymentData, cardNumber: e.target.value })}
-              placeholder="Enter 16-digit card number"
-            />
-            {errors.cardNumber && <p className="text-sm text-red-600">{errors.cardNumber}</p>}
+    <StepWrapper
+      step={5}
+      totalSteps={7}
+      title="Select a Product Plan"
+      description="Choose the plan and billing interval that suits your needs."
+    >
+      {loading ? (
+        <ClimbingBoxLoader />
+      ) : (
+        <form onSubmit={handleNext} className="space-y-6">
+          {/* Top toggle: Month / Year */}
+          <div className="flex items-center gap-3">
+            <Label className="font-medium">Billing Interval:</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={billingInterval === "month" ? "default" : "outline"}
+                onClick={() => setBillingInterval("month")}
+              >
+                Monthly
+              </Button>
+              <Button
+                type="button"
+                variant={billingInterval === "year" ? "default" : "outline"}
+                onClick={() => setBillingInterval("year")}
+              >
+                Yearly
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="expiry">Expiry Date <span className="text-red-500">*</span></Label>
-            <Input
-              id="expiry"
-              value={paymentData.expiry}
-              onChange={(e) => setPaymentData({ ...paymentData, expiry: e.target.value })}
-              placeholder="MM/YY"
-            />
-            {errors.expiry && <p className="text-sm text-red-600">{errors.expiry}</p>}
+
+          {/* Plans list */}
+          {products.map((product) => {
+            const selPrice = priceForInterval(product, billingInterval);
+            return (
+              <div
+                key={product.id}
+                className={`flex items-start justify-between p-4 border rounded-lg ${selectedPlan === product.id ? "ring-2 ring-blue-500" : ""
+                  }`}
+              >
+                <label className="flex items-start space-x-3 cursor-pointer flex-1">
+                  <input
+                    type="radio"
+                    name="product"
+                    value={product.id}
+                    checked={selectedPlan === product.id}
+                    onChange={() => setSelectedPlan(product.id)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <Label className="font-semibold">{product.name}</Label>
+                    <p className="text-sm text-gray-600">{product.description}</p>
+                    {/* You can show minutes if present in metadata */}
+                    {selPrice?.metadata && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Included minutes: {selPrice.metadata}
+                      </p>
+                    )}
+                  </div>
+                </label>
+
+                {/* Right side: price in USD */}
+                <div className="ml-4 text-right min-w-[120px]">
+                  <div className="text-lg font-semibold">
+                    {formatUSD(selPrice?.unit_amount)} <span className="text-sm">USD</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    /{billingInterval === "month" ? "mo" : "yr"}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="flex justify-between">
+            <Button type="button" onClick={onPrevious}>
+              Previous
+            </Button>
+            <Button type="submit">Next</Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="cvv">CVV <span className="text-red-500">*</span></Label>
-            <Input
-              id="cvv"
-              value={paymentData.cvv}
-              onChange={(e) => setPaymentData({ ...paymentData, cvv: e.target.value })}
-              placeholder="Enter 3-digit CVV"
-            />
-            {errors.cvv && <p className="text-sm text-red-600">{errors.cvv}</p>}
-          </div>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
-          <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
-            <ChevronLeft className="w-4 h-4 mr-2" /> Previous
-          </Button>
-          <Button type="submit" className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700">
-            Complete Onboarding
-          </Button>
-        </div>
-      </form>
+        </form>
+      )}
     </StepWrapper>
   );
 };
