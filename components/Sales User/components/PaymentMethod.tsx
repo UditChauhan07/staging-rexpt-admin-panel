@@ -44,16 +44,20 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
 
   const createCheckout = async () => {
-    const origin = window.location.origin;
-    console.log("origin",origin)
+    // const origin = window.location.origin;
+    // console.log("origin",origin)
+    // console.log("data",data)
     try {
       let userId = data?.user?.id
+      let businessName = data.business?.name
+      let agentName1 = localStorage.getItem("agentName")
+      let agentCode1 = localStorage.getItem("agentCode")
       const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
         customerId: localStorage.getItem("customerId"),
         priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
         userId: userId,
-        // url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+
         // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
         // cancelUrl: "http://admin.rexpt.in/", // Live 
         // cancelUrl: "http://localhost:4000/", // local
