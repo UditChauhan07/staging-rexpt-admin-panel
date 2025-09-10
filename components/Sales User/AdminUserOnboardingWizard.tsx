@@ -428,6 +428,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
   return (
      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
+       { step != 1 &&
         <div className="flex justify-end mb-4">
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -447,6 +448,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
             </AlertDialogContent>
           </AlertDialog>
         </div>
+      }
       {step === 1 && (
         <UserCreationStep
           data={formData}

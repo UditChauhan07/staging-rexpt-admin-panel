@@ -301,10 +301,12 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
       
       if (response.exists) {
         setEmailExists(true);
+    
         setErrors((prev) => ({ ...prev, email: "User already exists.Create agent direct" }));
+        setFormData({ ...formData, name: response?.user?.name ,phone: response?.user?.phone });
         if (typeof window !== "undefined") {
 
-          localStorage.setItem("AgentForUserId", response.user.userId || `USR${Date.now()}`);
+          localStorage.setItem("AgentForUserId", response?.user?.userId );
           // localStorage.setItem("customerId", response.user.userId );
 
         }
@@ -321,7 +323,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     const fullName = e.target.value;
     const firstName = fullName.split(" ")[0]?.toLowerCase().replace(/\s+/g, "-") || "";
     setErrors({ ...errors, name: "" });
-    setFormData({ ...formData, name: fullName, referalName: firstName });
+    setFormData({ ...formData, name: fullName, phone: firstName });
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -348,12 +350,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     <StepWrapper step={1} totalSteps={7} title="User Creation" description="Create or edit a user account.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
-            <Input id="name" value={formData.name} onChange={handleNameChange} placeholder="Enter full name" />
-            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
-          </div>
-          <div className="space-y-2">
+             <div className="space-y-2">
             <Label htmlFor="email">Email Address <span className="text-red-500">*</span></Label>
             <Input
               id="email"
@@ -367,8 +364,16 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
             {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
           </div>
           <div className="space-y-2">
+            <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
+            <Input id="name" value={formData.name}  readOnly={emailExists} 
+ onChange={handleNameChange} placeholder="Enter full name" />
+            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+          </div>
+       
+          <div className="space-y-2">
             <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
             <PhoneInput
+             disabled={emailExists}
               country="in"
               value={formData.phone}
               onChange={(phone) => {
@@ -379,6 +384,8 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
               containerClass="!w-full"
               inputProps={{ name: "phone", id: "phone", required: true }}
               specialLabel=""
+             
+
             />
             {errors.phone && <p className="text-sm text-red-600">{errors.phone}</p>}
           </div>
