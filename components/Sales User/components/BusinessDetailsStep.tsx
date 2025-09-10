@@ -1063,10 +1063,11 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [addressComponents, setAddressComponents] = useState<any[]>([]);
   const [selectedCountry, setSelectedCountry] = useState("US");
-
+  const[googlelisting,setGoogleListing]=useState()
+  const [loading,setLoading]=useState(false)
+console.log('dsadasas',addressComponents)
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
-
   useEffect(() => {
     const serviceMap: { [key: string]: string[] } = {};
     businessServices.forEach((b) => {
@@ -1088,6 +1089,40 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       }
     }
   }, [data.business, editingBusiness]);
+
+  const generateGoogleListingUrl = (place) => {
+    const address = [
+      place.address_components.find((c) => c.types.includes("street_number"))
+        ?.long_name,
+      place.address_components.find((c) => c.types.includes("route"))
+        ?.long_name,
+      place.address_components.find((c) => c.types.includes("premise"))
+        ?.long_name,
+      place.address_components.find((c) => c.types.includes("subpremise"))
+        ?.long_name,
+      place.address_components.find((c) =>
+        c.types.includes("sublocality_level_1")
+      )?.long_name,
+      place.address_components.find((c) => c.types.includes("locality"))
+        ?.long_name,
+      place.address_components.find((c) =>
+        c.types.includes("administrative_area_level_2")
+      )?.long_name,
+      place.address_components.find((c) =>
+        c.types.includes("administrative_area_level_1")
+      )?.long_name,
+      place.address_components.find((c) =>
+        c.types.includes("postal_code")
+      )?.long_name
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const googleLink = `https://www.google.com/search?q=${encodeURIComponent(
+      place.name + " " + address
+    )}`;
+    setGoogleListing(googleLink);
+  };
 
   useEffect(() => {
     if (!window.google?.maps?.places) return;
@@ -1112,6 +1147,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
     const listener = businessAutocomplete.addListener("place_changed", () => {
       const place = businessAutocomplete.getPlace();
+
+      generateGoogleListingUrl(place);
       if (!place.place_id) return;
 
       const newWebsite = place.website || "";
@@ -1299,7 +1336,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
   useEffect(() => {
     fetchKnowledgeBaseName();
-  }, []);
+  }, [localStorage.getItem('BusinessId')]);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -1311,32 +1348,34 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     }
     if (!formData.name) newErrors.name = "Business name is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.phone || !validatePhoneNumber(formData.phone)) {
+    if (!formData.phone ) {
       newErrors.phone = "Valid phone number is required";
     }
-    if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Valid email is required";
-    }
+    // if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    //   newErrors.email = "Valid email is required";
+    // }
     if (formData.about && /[!@#$%^&*(),.?":{}|<>]/.test(formData.about)) {
       newErrors.about = "About Business cannot contain special characters or emojis";
     }
-    const userId = localStorage.getItem("userId") || "RX0ZYQ1757328630";
+    const userId = localStorage.getItem("AgentForUserId") || "RX0ZYQ1757328630";
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
+    console.log('errors',newErrors)
     setErrors(newErrors);
+    
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveBusiness = async () => {
     if (!validate()) return;
-
-    const userId = localStorage.getItem("userId") || "RX0ZYQ1757328630";
+    toggleAll();
+    const userId = localStorage.getItem("AgentForUserId") || "";
+    const sessionSelectedSiteMapUrls1 = JSON.parse(localStorage.getItem("selectedSitemapUrls"))
 
     // Extract address components
     const getAddressComponent = (type: string, field: "long_name" | "short_name") =>
       addressComponents.find((c) => c.types.includes(type))?.[field] || "";
-
     const payload = {
       userId,
       googleBusinessName: formData.googleBusiness || null,
@@ -1350,13 +1389,19 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
       address1: formData.address || "",
       address2: "", // Optional, can be populated if needed
       city: getAddressComponent("locality", "long_name") || getAddressComponent("postal_town", "long_name") || "",
-      state: getAddressComponent("administrative_area_level_1", "short_name") || "",
-      country: getAddressComponent("country", "long_name") || "",
-      postal_code: getAddressComponent("postal_code", "long_name") || "",
-      street_number: getAddressComponent("street_number", "long_name") || "",
-      zip: getAddressComponent("postal_code", "long_name") || "",
+    state: getAddressComponent("administrative_area_level_1", "short_name") || "",
+    country: getAddressComponent("country", "long_name") || "",
+    postal_code: getAddressComponent("postal_code", "long_name") || "",
+    street_number: getAddressComponent("street_number", "long_name") || "",
+    zip: getAddressComponent("postal_code", "long_name") || "",
       isGoogleListing: !!formData.googleBusiness,
       isWebsiteUrl: !!formData.website,
+      googleUrl:googlelisting|| "",
+      webUrl:formData.website,
+      phoneNumber:formData.internationalPhoneNumber||formData.phone,
+      aboutBusiness:formData.about,
+      // googleBusinessName:,
+      scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
     };
 
     const sessionSelectedSiteMapUrls = JSON.parse(localStorage.getItem("selectedSitemapUrls") || "[]").map(
@@ -1364,30 +1409,37 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     );
 
     try {
+          setLoading(true)
       let res;
-      if (editingBusiness?.id) {
-        res = await axios.patch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/update/${editingBusiness.id}`,
-          payload,
-          {
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      } else {
-        res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/create`, payload, {
+      if (!localStorage.getItem('businessId')) {
+        // res = await axios.patch(
+        //   `${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/updateKnowledeBase/${localStorage.getItem('businessId')}`,
+        //   payload,
+        //   {
+        //     headers: { "Content-Type": "application/json" },
+        //   }
+        // );
+         res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/businessDetails/create`, payload, {
           headers: { "Content-Type": "application/json" },
         });
-      }
+      } 
 
-      const businessId = editingBusiness?.id || res.data.record?.businessId || `BIZ${Date.now()}`;
+      const businessId = editingBusiness?.id || res.data.record?.businessId || ``;
+       const mergedUrls = [];
+            const selected = JSON.parse(
+              localStorage.getItem("sitemapUrls") || "[]"
+            );
+            if (Array.isArray(selected) && selected.length > 0) {
+              mergedUrls.push(...selected);
+            }
       localStorage.setItem("BusinessId", businessId);
       localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
-      const knowledge_base_name = localStorage.getItem("knowledgebaseName") || "My Business KB";
-
+      const knowledge_base_name = await getKnowledgeBaseName()||localStorage.getItem("knowledgebaseName") || "My Business KB";
+      if(knowledge_base_name)
       if (true) {
         const formDataPayload = new FormData();
         formDataPayload.append("knowledge_base_name", knowledge_base_name);
-        formDataPayload.append("knowledge_base_urls", JSON.stringify([...selectedUrls]));
+        formDataPayload.append("knowledge_base_urls", JSON.stringify(mergedUrls));;
         formDataPayload.append("enable_auto_refresh", "true");
         formDataPayload.append(
           "knowledge_base_texts",
@@ -1431,6 +1483,14 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             knowledge_base_id: knowledgeBaseId,
             knowledge_base_name: knowledge_base_name,
             knowledge_base_urls: JSON.stringify([...selectedUrls]),
+            googleUrl:googlelisting|| "",   //gmb link
+            webUrl:formData.website,
+            phoneNumber:formData.internationalPhoneNumber||formData.phone,
+            aboutBusiness:formData.about,
+             
+            googleBusinessName:formData.googleBusiness,
+            // googleBusinessName:,
+            scrapedUrls: JSON.stringify(sessionSelectedSiteMapUrls1) || [],
             knowledge_base_texts: JSON.stringify([
               {
                 title: "Business Details",
@@ -1498,13 +1558,14 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
         title: "Error",
         text: errorMsg,
       });
+    }finally{
+          setLoading(false)
     }
   };
   const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     await handleSaveBusiness();
   };
-
   return (
     <StepWrapper step={2} totalSteps={4} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">
@@ -1757,6 +1818,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 ) : null}
               </div>
             )}
+            {/* <>
             {isWebsiteValid && sitemapUrls.length > 0 && (
               <div className="mt-3">
                 <Button
@@ -1805,6 +1867,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 )}
               </div>
             )}
+            </> */}
           </div>
 
           <div className="space-y-2">
@@ -1862,7 +1925,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email <span className="text-red-500">*</span></Label>
+            <Label htmlFor="email">Email </Label>
             <Input
               id="email"
               type="email"
@@ -1912,7 +1975,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
           <Button
             type="submit"
             className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
-            disabled={isVerifying}
+            disabled={isVerifying || loading}
           >
             {isVerifying ? (
               <span className="flex items-center">
