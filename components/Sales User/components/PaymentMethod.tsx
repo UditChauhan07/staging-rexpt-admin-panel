@@ -61,8 +61,8 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
         // cancelUrl: "http://admin.rexpt.in/", // Live 
         // cancelUrl: "http://localhost:4000/", // local
-    url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
-    cancelUrl: "`https://rexptin.vercel.app/cancel"
+        url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+        cancelUrl: "`https://rexptin.vercel.app/cancel"
       });
 
       console.log("Checkout session created:", res.data);
@@ -100,8 +100,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
     onUpdate({ payment: updatedPayment });
 
     if (selectedMethod === "instant") {
-      const agentId = localStorage.getItem("agent_Id");
+      const agentId = localStorage.getItem("agent_id");
       const userId = data?.user?.id;
+      let businessName = data?.business?.name
+      let agentName1 = localStorage.getItem("agentName")
+      let agentCode1 = localStorage.getItem("agentCode")
 
       try {
         let checkoutUrl = "";
@@ -118,10 +121,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             userId,
             priceId: data?.payment?.raw?.price?.id,
             promoCode: localStorage.getItem("coupen"),
-            successUrl: `https://rexptin.vercel.app//thankyou/update?agentId=${agentId}&userId=${userId}`,
+            successUrl: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+            // successUrl: `http://localhost:3000/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
             cancelUrl:
               "https://rexptin.vercel.app/cancel",
-            
+
           });
 
           checkoutUrl = res?.data?.url;
@@ -131,9 +135,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             priceId: data?.payment?.raw?.price?.id,
             promotionCode: localStorage.getItem("coupen"),
             userId,
-            url: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
+            // url: `http://localhost:3000/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+            url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+
             cancelUrl:
-              "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+              "https://rexptin.vercel.app/cancel",
           });
 
           checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
@@ -164,6 +170,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       }
     }
 
+    if (selectedMethod === "defer") {
+      alert("Coming Soon")
+      return
+    }
+
     setIsLoading(false);
     onSubmit({ ...data, payment: updatedPayment });
   };
@@ -187,7 +198,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             💳 Instant Payment
           </Button>
 
-          <Button
+          {/* <Button
             type="button"
             variant="outline"
             className={`flex-1 h-32 text-xl font-semibold ${selectedMethod === "defer" ? "ring-4 ring-blue-500" : ""
@@ -195,7 +206,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             onClick={() => setSelectedMethod("defer")}
           >
             ⏳ Defer Payment
-          </Button>
+          </Button> */}
         </div>
 
         {/* Defer Days Input */}
