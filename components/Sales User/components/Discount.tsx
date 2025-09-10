@@ -9,6 +9,8 @@ interface FormData {
     plan: string;
     amount: number;
     discount?: number;
+    interval?: string;
+    duration?: string;
   };
 }
 
@@ -28,6 +30,7 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
   onNext,
 }) => {
   const [discount, setDiscount] = useState<number>(data.payment?.discount || 0);
+  const [interval, setInterval] = useState<string>(data.payment?.interval || "once");
   const [error, setError] = useState<string>("");
   const URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -53,10 +56,10 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
         customerId,
         promotionCode: code,
         discountPercent: discount,
+        interval,  // Send interval (once or forever)
       });
 
-
-      localStorage.setItem("coupen" , res?.data?.promoCode?.id)
+      localStorage.setItem("coupen", res?.data?.promoCode?.id);
       return true;
     } catch (error) {
       console.error("Failed to create coupon:", error);
@@ -67,8 +70,13 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (discount <= 0 || discount > 100) {
-      setError("Discount must be between 1 and 100%");
+    if (discount <= 0 || discount >= 100) {
+      setError("Discount must be between 1 and 99%");
+      return;
+    }
+
+    if (!interval) {
+      setError("Please select an interval");
       return;
     }
 
@@ -77,15 +85,14 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
     const updatedPayment = {
       ...data.payment,
       discount,
+      interval,
     };
 
     onUpdate({ payment: updatedPayment });
 
-    // First, create the coupon
     const couponCreated = await createCoupen();
 
     if (couponCreated) {
-      // Proceed to next step only if coupon is successfully created
       onNext?.();
     } else {
       setError("Failed to create coupon, please try again.");
@@ -97,20 +104,32 @@ const DiscountForm: React.FC<DiscountFormProps> = ({
       step={6}
       totalSteps={7}
       title="Apply Discount"
-      description="Enter a percentage discount to apply."
+      description="Enter discount percentage and select interval."
     >
       <form onSubmit={handleSubmit} className="space-y-4 p-4 max-w-md">
         <Label className="font-semibold">Discount Percentage (%)</Label>
         <input
           type="number"
           min={1}
-          max={100}
+          max={99}
           step={0.1}
           value={discount}
           onChange={(e) => setDiscount(parseFloat(e.target.value))}
           className="border p-2 rounded w-full"
           placeholder="Enter discount percent"
+          required
         />
+
+        <Label className="font-semibold">Interval</Label>
+        <select
+          value={interval}
+          onChange={(e) => setInterval(e.target.value)}
+          className="border p-2 rounded w-full"
+          required
+        >
+          <option value="once">Once</option>
+          <option value="forever">Forever</option>
+        </select>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
