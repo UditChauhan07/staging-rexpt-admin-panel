@@ -1328,15 +1328,15 @@ console.log('dsadasas',addressComponents)
     return phoneNumberObj && phoneNumberObj.isValid();
   };
 
-  const fetchKnowledgeBaseName = async () => {
-    const name = await getKnowledgeBaseName();
-    console.log("Knowledge base name:", name);
-    localStorage.setItem("knowledgebaseName", name);
-  };
+  // const fetchKnowledgeBaseName = async () => {
+  //   const name = await getKnowledgeBaseName();
+  //   console.log("Knowledge base name:", name);
+  //   localStorage.setItem("knowledgebaseName", name);
+  // };
 
-  useEffect(() => {
-    fetchKnowledgeBaseName();
-  }, [localStorage.getItem('BusinessId')]);
+  // useEffect(() => {
+  //   fetchKnowledgeBaseName();
+  // }, [localStorage.getItem('BusinessId')]);
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
@@ -1382,7 +1382,7 @@ console.log('dsadasas',addressComponents)
       businessType: formData.type || "Other",
       businessName: formData.name || "",
       businessSize: formData.size || "",
-      customBuisness: selectedType === "Other" ? newBusinessType || "Business" : "",
+      customBuisness: selectedType == "Other" ? newBusinessType || "Business" : "",
       buisnessService: formData.services || [],
       customServices: formData.customServices || [],
       buisnessEmail: formData.email || "",
@@ -1433,8 +1433,9 @@ console.log('dsadasas',addressComponents)
               mergedUrls.push(...selected);
             }
       localStorage.setItem("BusinessId", businessId);
-      localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
-      const knowledge_base_name = await getKnowledgeBaseName()||localStorage.getItem("knowledgebaseName") || "My Business KB";
+       localStorage.setItem("agentCode", res.data.agentCode || `AGENT${Date.now()}`);
+      const knowledge_base_name = await getKnowledgeBaseName() ||"My Business KB";
+      localStorage.setItem("knowledgebaseName",knowledge_base_name)
       if(knowledge_base_name)
       if (true) {
         const formDataPayload = new FormData();
@@ -1566,18 +1567,19 @@ console.log('dsadasas',addressComponents)
     e.preventDefault();
     await handleSaveBusiness();
   };
+  console.log('as',selectedType,newBusinessType)
   return (
     <StepWrapper step={2} totalSteps={4} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="type">Business Type <span className="text-red-500">*</span></Label>
             <Select
               onValueChange={(val) => {
                 if (val === "Other") {
                   setSelectedType("Other");
-                  setFormData({ ...formData, type: "", subtype: "", icon: "", services: [], customServices: [] });
-                  localStorage.setItem("businessType", "");
+                  setFormData({ ...formData, type: "Other", subtype: "", icon: "", services: [], customServices: [] });
+                  localStorage.setItem("businessType", "Other");
                 } else {
                   const selected = allBusinessTypes.find((b) => b.type === val);
                   setSelectedType(val);
@@ -1635,6 +1637,95 @@ console.log('dsadasas',addressComponents)
                     localStorage.setItem("businessType", trimmed);
                   }
                   setNewBusinessType("");
+                }}
+                className="mt-2"
+              />
+            )}
+            {errors.type && <p className="text-sm text-red-600">{errors.type}</p>}
+          </div> */}
+           <div className="space-y-2">
+            <Label htmlFor="type">Business Type <span className="text-red-500">*</span></Label>
+            <Select
+              onValueChange={(val) => {
+                if (val === "Other") {
+                  setSelectedType("Other");
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: "Other",
+                    subtype: "Other",
+                    icon: "",
+                    services: [],
+                    customServices: [],
+                  }));
+                  localStorage.setItem("businessType", "");
+                  localStorage.setItem("businessServices", JSON.stringify([]));
+                  localStorage.setItem("customServices", JSON.stringify([]));
+                } else {
+                  const selected = allBusinessTypes.find((b) => b.type === val);
+                  setSelectedType(val);
+                  setFormData((prev) => ({
+                    ...prev,
+                    type: val,
+                    subtype: selected?.subtype || "",
+                    icon: selected?.icon || "",
+                    services: [],
+                    customServices: [],
+                  }));
+                  localStorage.setItem("businessType", val);
+                  localStorage.setItem("businessServices", JSON.stringify([]));
+                  localStorage.setItem("customServices", JSON.stringify([]));
+                }
+                setErrors((prev) => ({ ...prev, type: "" }));
+              }}
+              value={selectedType || data?.business?.type}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <Input
+                  placeholder="Search business..."
+                  value={businessSearch}
+                  onChange={(e) => setBusinessSearch(e.target.value)}
+                  className="mb-2 mx-2"
+                />
+                {allBusinessTypes
+                  .filter((b) => `${b.type} ${b.subtype}`.toLowerCase().includes(businessSearch.toLowerCase()))
+                  .map((b) => (
+                    <SelectItem key={b.type} value={b.type}>
+                      {b.type} - {b.subtype}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {selectedType === "Other" && (
+              <Input
+                placeholder="Add new business type"
+                value={newBusinessType}
+                onChange={(e) => setNewBusinessType(e.target.value)}
+                onBlur={() => {
+                  const trimmed = newBusinessType.trim();
+                  if (trimmed && !allBusinessTypes.some((b) => b.type.toLowerCase() === trimmed.toLowerCase())) {
+                    // Add the new business type to allBusinessTypes
+                    setAllBusinessTypes((prev) => [
+                      ...prev,
+                      { type: trimmed, subtype: "Custom", icon: "svg/Web-Design-Agency-icon.svg" },
+                    ]);
+                    setFormData((prev) => ({
+                      ...prev,
+                      type: trimmed,
+                      subtype: "Custom",
+                      icon: "svg/Web-Design-Agency-icon.svg",
+                      services: [],
+                      customServices: [],
+                    }));
+                    setAllServices((prev) => ({ ...prev, [trimmed]: [] }));
+                    setSelectedType(trimmed); // Update selectedType to new type
+                    localStorage.setItem("businessType", trimmed);
+                    localStorage.setItem("businessServices", JSON.stringify([]));
+                    localStorage.setItem("customServices", JSON.stringify([]));
+                    setNewBusinessType(""); // Clear input after adding
+                  }
                 }}
                 className="mt-2"
               />
