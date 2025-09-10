@@ -34,6 +34,8 @@ interface FormData {
     avatar: string;
     role: string;
     selectedVoice?: any;
+    planType?: "free" | "paid" | "";
+    freeMinutes?: number | string;
   };
 }
 interface AgentCreationStepProps {
@@ -43,6 +45,18 @@ interface AgentCreationStepProps {
   onPrevious: () => void;
 }
 const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, onNext, onPrevious }) => {
+  const defaultAgent: AgentForm = {
+    name: "",
+    language: "",
+    agentLanguage: "",
+    gender: "",
+    voice: "",
+    avatar: "",
+    role: "",
+    planType: "",
+    freeMinutes: "",
+  };
+
   const [formData, setFormData] = useState<FormData["agent"]>(() => {
     // Try to load from localStorage
     const saved = localStorage.getItem("formData");
@@ -50,13 +64,19 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return parsed.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
+        return parsed.agent || {
+          name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "", planType: "",
+          freeMinutes: "",
+        };
       } catch (e) {
         console.error("Invalid JSON in localStorage:", e);
       }
     }
     // If nothing in localStorage, fallback to data.agent
-    return data.agent || { name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "" };
+    return data.agent || {
+      name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "", planType: "",
+      freeMinutes: "",
+    };
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [retellVoices, setRetellVoices] = useState<{ voice_id: string; voice_name: string; gender: string; accent?: string; provider: string; preview_audio_url: string }[]>([]);
@@ -67,6 +87,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
    const [callRecording, setCallRecording] = useState(  );
   const [loading, setLoading] = useState(false)
+  const [isFormValid, setIsFormValid] = useState(false);
+
   useEffect(() => {
     setLoadingVoices(true);
     getRetellVoices()
@@ -118,6 +140,18 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     if (!formData.voice) newErrors.voice = "Voice is required";
     if (!formData.avatar) newErrors.avatar = "Avatar is required";
     if (!formData.role) newErrors.role = "Role is required";
+    if (!formData.planType) {
+      newErrors.planType = "Plan type is required";
+    }
+
+    if (formData.planType === "free") {
+      const val = formData.freeMinutes;
+      // treat empty, zero, non-number as invalid
+      if (val === "" || val === undefined || val === null || isNaN(Number(val)) || Number(val) <= 0) {
+        newErrors.freeMinutes = "Free minutes are required and must be a positive number";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -208,12 +242,12 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         customBuisness,
         role,
       } = formData;
-      const businessType=localStorage.getItem('businessType')
-      console.log()
+      const businessType = localStorage.getItem('businessType')
+      
       setLoading(true)
       const form = extractedDetails
-      console.log('form',form)
-      localStorage.setItem("agentName",formData?.name)
+      console.log('form', form)
+      localStorage.setItem("agentName", formData?.name)
       const selectedRole = form.role || "General Receptionist"
       const addressFields = JSON.parse(localStorage.getItem('addressComponents'));
       const bssinessDetails = extractAddressFields(addressFields?.addressComponents)
@@ -292,8 +326,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         plan,
         initialCallRecording,
       });
-      console.log('filledPrompt',filledPrompt);
-      
+      console.log('filledPrompt', filledPrompt);
+
       const filledPrompt2 = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: selectedRole,
@@ -754,19 +788,17 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           onNext();
         }, 2000);
 
-         if(formData.planType=='free')
- 
-        {
-        try{
-          const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, {agentId:saveRes?.data?.agent_id,mins:formData?.freeMinutes}, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        }catch(error){
-          console.log('error while adding free minutes',error)
+        if (formData.planType == 'free') {
+          try {
+            const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, { agentId: saveRes?.data?.agent_id, mins: formData?.freeMinutes }, {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
+              },
+            });
+          } catch (error) {
+            console.log('error while adding free minutes', error)
+          }
         }
-      }
       } else {
         throw new Error("Agent creation failed.");
       }
@@ -775,6 +807,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       alert("Agent creation failed. Please check console for details.");
     }
   };
+  useEffect(() => {
+    setIsFormValid(validate());
+  }, [formData]);
+
   return (
     <StepWrapper step={3} totalSteps={4} title="Agent Creation" description="Configure the agent for the business.">
       <form onSubmit={handleNext} className="space-y-6">
@@ -954,13 +990,21 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
             <select
               className="border rounded px-2 py-1"
               value={formData.planType}
-              onChange={(e) => setFormData({ ...formData, planType: e.target.value })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  planType: e.target.value,
+                  freeMinutes: e.target.value === "free" ? formData.freeMinutes : "", // clear freeMinutes if paid
+                })
+              }
             >
               <option value="">Select Plan Type</option>
               <option value="free">Free</option>
               <option value="paid">Paid</option>
             </select>
-            {errors.planType && <p className="text-sm text-red-600">{errors.planType}</p>}
+            {errors.planType && (
+              <p className="text-sm text-red-600">{errors.planType}</p>
+            )}
           </div>
 
           {/* Free Minutes Input (shown only if "Free" is selected) */}
@@ -969,10 +1013,15 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
               <Label>Free Minutes <span className="text-red-500">*</span></Label>
               <input
                 type="number"
+                min={1}
                 className="border rounded px-2 py-1 w-full"
-                value={formData.freeMinutes || ''}
+                value={formData.freeMinutes ?? ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, freeMinutes: e.target.value })
+                  setFormData({
+                    ...formData,
+                    // keep empty string for blank; otherwise convert to number
+                    freeMinutes: e.target.value === "" ? "" : Number(e.target.value),
+                  })
                 }
                 placeholder="Enter number of free minutes"
               />
@@ -987,11 +1036,11 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
 
           <Button
             type="submit"
-            className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
+            className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700  disabled:cursor-not-allowed"
             onClick={handleSubmit}
-            disabled={loading} // 👈 yeh line add karo
+            disabled={loading || !isFormValid} // 👈 yeh line add karo
           >
-            {loading ? "Loading..." : "Next: Payment"}
+            {loading ? "Loading..." : "Next: Assign Number "}
           </Button>
 
         </div>

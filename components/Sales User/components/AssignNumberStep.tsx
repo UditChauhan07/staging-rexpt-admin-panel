@@ -12,11 +12,9 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import 'react-phone-input-2/lib/style.css'
 import PhoneInput from 'react-phone-input-2'
-import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, updateAgent} from "@/Services/auth";
+import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, updateAgent } from "@/Services/auth";
 import { User, Building2 } from "lucide-react";
-
-// Debug imports
-
+import { checkDomainOfScale } from "recharts/types/util/ChartUtils";
 
 interface FormData {
   agent?: {
@@ -70,7 +68,6 @@ const languages = [
     flag: "/images/fr-CA.png",
   },
 ];
-
 const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onNext, onPrevious }) => {
   const [phoneData, setPhoneData] = useState<FormData["phone"]>({
     countryCode: data.business?.countryCode || localStorage.getItem("phoneFormData") ? JSON.parse(localStorage.getItem("phoneFormData")!).countryCode : "US",
@@ -94,11 +91,21 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   const requestVersion = useRef(0);
   const token = localStorage.getItem("token") || "";
   const [googlePlacesLoaded, setGooglePlacesLoaded] = useState(false);
-  const details=JSON.parse(localStorage.getItem("formData"))
-  const businessName=details?.business?.name
-  const agentName=localStorage.getItem("agentName")
-   const state=localStorage.getItem("state")
-      const agentId =  localStorage.getItem("agent_id");
+  const details = JSON.parse(localStorage.getItem("formData"))
+  const businessName = details?.business?.name
+  const agentName = localStorage.getItem("agentName")
+  const state = localStorage.getItem("state")
+  const agentId = localStorage.getItem("agent_id");
+  const [hasPhoneNumber, setHasPhoneNumber] = useState(false);
+  const [customNoBtnLoading,setCustomNoBtnLoading]=useState(false)
+  useEffect(() => {
+    const savedPhone = localStorage.getItem("phoneNumber");
+    if (savedPhone) {
+      setHasPhoneNumber(true);
+    } else {
+      setHasPhoneNumber(false);
+    }
+  }, []);
   useEffect(() => {
     if (window.google?.maps?.places) {
       setGooglePlacesLoaded(true);
@@ -127,7 +134,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         city: data.business.city || "",
         selectedNumber: "",
       });
-      setStateNameFull(state|| "");
+      setStateNameFull(state || "");
     }
 
     if (phoneData.countryCode && phoneData.stateCode && token && !isCustomPhone) {
@@ -147,7 +154,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   }, [data.business, isCustomPhone]);
 
   useEffect(() => {
-    localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state:state }));
+    localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: state }));
   }, [phoneData, state]);
 
   useEffect(() => {
@@ -213,7 +220,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         setAvailableNumbers(res.data.map((item: any) => item.phone_number));
       } else {
         const fallbackRes = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, "", phoneData.stateCode);
-        
+
         if (requestVersion.current !== currentVersion) return;
         if (fallbackRes?.success && fallbackRes?.data?.length > 0) {
           setPhoneData((prev) => ({ ...prev, city: "" }));
@@ -308,18 +315,31 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     setErrors((prev) => ({ ...prev, selectedNumber: "" }));
   };
 
-  const handleCustomPhoneSubmit = async() => {
-    alert("ok")
-    console.log(customPhoneInput,"ureutretretre")
-    return
-    if (validate()) {
-   
-      const response=await importPhoneToAgentFromAdmin(token,phone_number,agentId,agentId)
+  const handleCustomPhoneSubmit = async () => {
 
-      setPhoneData((prev) => ({ ...prev, selectedNumber: customPhoneInput }));
-      setModalOpen(true);
-      setErrors((prev) => ({ ...prev, selectedNumber: "", customPhone: "" }));
+    setCustomNoBtnLoading(true)
+    const response = await importPhoneToAgentFromAdmin(token, customPhoneInput, agentId, agentId)
+    if (response) {
+      setHasPhoneNumber(true)
+      localStorage.setItem("phoneNumber", customPhoneInput);
+      Swal.fire({
+        icon: "success",
+        title: "Number Assigned",
+        text: "Phone number assigned successfully!",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+      setCustomNoBtnLoading(false)
     }
+    else {
+       setCustomNoBtnLoading(false)
+      Swal.fire({
+        icon: "error",
+        title: "Wrong Number",
+        text: "The phone number could not be assigned. Please check and try again.",
+      });
+    }
+
   };
 
   const handleBuyNumber = async () => {
@@ -329,13 +349,13 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     }
     setLoading(true);
     try {
-   
+
       if (!agentId) {
         throw new Error("Agent ID is missing");
       }
-    const a=  await createNumberOrder(token,phoneData.selectedNumber, agentId);
-      await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
-      onUpdate({ phone: phoneData });
+      // const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
+      // await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
+      // onUpdate({ phone: phoneData });
       localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: stateNameFull }));
       setModalOpen(false);
       setCustomPhoneInput("");
@@ -346,6 +366,9 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         timer: 1500,
         showConfirmButton: false,
       });
+      setHasPhoneNumber(true)
+      localStorage.setItem("phoneNumber", phoneData.selectedNumber);
+      onUpdate({ phone: phoneData });
       onNext();
     } catch (error: any) {
       console.error("Error assigning number:", error);
@@ -367,11 +390,11 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   };
 
   const filteredNumbers = availableNumbers.filter((num) => num.includes(search.trim()));
-useEffect(()=>{
-  if (phoneData.countryCode ) {
+  useEffect(() => {
+    if (phoneData.countryCode) {
       fetchNumbersWithFallback();
     }
-},[])
+  }, [])
   return (
     <StepWrapper step={4} totalSteps={5} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
       {initialLoading && !isCustomPhone ? (
@@ -379,7 +402,8 @@ useEffect(()=>{
           <Loader2 className="w-8 h-8 animate-spin" />
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-6"  >
+
           <div className="flex justify-start">
             <Button
               variant="outline"
@@ -395,167 +419,167 @@ useEffect(()=>{
               {isCustomPhone ? "Select from Available Numbers" : "Use Custom Phone Number"}
             </Button>
           </div>
-          {isCustomPhone ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="customPhone">Enter Phone Number <span className="text-red-500">*</span></Label>
-                {/* <Input
-                  id="customPhone"
-                  value={customPhoneInput}
-                  onChange={(e) => {
-                    setCustomPhoneInput(e.target.value);
-                    setErrors((prev) => ({ ...prev, customPhone: "" }));
-                  }}
-                  placeholder="Enter phone number (e.g., +1234567890)"
-                  className="w-full"
-                /> */}
-                  <PhoneInput
-                    country={'in'} // default country
-                //     value={formData.phone}
-                //     onChange={(phone) => {
-                //   setFormData({ ...formData, phone });
-                //   setErrors({ ...errors, phone: "" });
-                // }}
-                
-                    inputClass="!w-full  !text-sm !rounded !border !border-gray-300"
-                    containerClass="!w-full"
-                    inputProps={{
-                      name: 'phone',
-                      required: true,
-                      id: 'contactNumber',
-                    }}
-                    specialLabel={''}
-                  />
-                {errors.customPhone && <p className="text-sm text-red-600">{errors.customPhone}</p>}
-              </div>
-              <Button
-                onClick={handleCustomPhoneSubmit}
-                disabled={loading || !customPhoneInput}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                Add Number
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="countryCode">Country <span className="text-red-500">*</span></Label>
-                <Select
-                  value={phoneData.countryCode}
-                  onValueChange={(v) => {
-                    setPhoneData((prev) => ({ ...prev, countryCode: v, stateCode: "", city: "", selectedNumber: "" }));
-                    setStateNameFull("");
-                    setAvailableNumbers([]);
-                    setErrors((prev) => ({ ...prev, countryCode: "", selectedNumber: "" }));
-                    if (v) fetchNumbersWithFallback();
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.countryCode} value={lang.countryCode}>
-                        <span className="flex items-center gap-2">
-                          <img
-                            src={`https://flagcdn.com/w20/${lang.locale.split("-")[1]?.toLowerCase()}.png`}
-                            alt={lang.countryName}
-                            className="w-5 h-5"
-                          />
-                          {lang.countryName}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.countryCode && <p className="text-sm text-red-600">{errors.countryCode}</p>}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="state">State/Province <span className="text-red-500">*</span></Label>
+          <div className={`space-y-4 ${hasPhoneNumber ? "opacity-50 pointer-events-none" : ""}`}>
+            {isCustomPhone ? (
+              <div className={`space-y-4 ${hasPhoneNumber ? "opacity-50 pointer-events-none" : ""}`}>
+
+                <div className="space-y-2">
+                  <Label htmlFor="customPhone">Enter Phone Number <span className="text-red-500">*</span></Label>
                   <Input
-                    id="state"
-                    ref={stateInputRef}
-                    value={stateNameFull}
+                    id="customPhone"
+                    value={customPhoneInput}
                     onChange={(e) => {
-                      setStateNameFull(e.target.value);
-                      setErrors((prev) => ({ ...prev, stateCode: "" }));
-                      if (!googlePlacesLoaded) {
-                        setPhoneData((prev) => ({ ...prev, stateCode: e.target.value }));
-                      }
+                      setCustomPhoneInput(e.target.value);
+                      setErrors((prev) => ({ ...prev, customPhone: "" }));
                     }}
-                    placeholder="Enter state"
-                    onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
+                    placeholder="Enter phone number (e.g., +1234567890)"
+                    className="w-full"
                   />
-                  {errors.stateCode && <p className="text-sm text-red-600">{errors.stateCode}</p>}
-                </div>
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    ref={cityInputRef}
-                    value={phoneData.city}
-                    onChange={(e) => {
-                      setPhoneData((prev) => ({ ...prev, city: e.target.value }));
-                      setErrors((prev) => ({ ...prev, city: "" }));
-                    }}
-                    placeholder="Enter city"
-                    onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="search">Search Number</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="search"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search phone number"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={handleRefresh}
-                    disabled={isRotating || loading || !phoneData.countryCode || !phoneData.stateCode}
-                    className={isRotating ? "animate-spin" : ""}
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Available Numbers <span className="text-red-500">*</span></Label>
-                <div className="max-h-64 overflow-y-auto border rounded-md p-2">
-                  {loading ? (
-                    <div className="flex justify-center items-center">
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    </div>
-                  ) : filteredNumbers.length > 0 ? (
-                    filteredNumbers.map((num) => (
-                      <div
-                        key={num}
-                        className={`flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100 ${phoneData.selectedNumber === num ? "bg-purple-100" : ""}`}
-                        onClick={() => handleNumberClick(num)}
-                      >
-                        <input
-                          type="radio"
-                          name="phoneNumber"
-                          value={num}
-                          checked={phoneData.selectedNumber === num}
-                          onChange={() => handleNumberClick(num)}
-                          className="cursor-pointer"
-                        />
-                        <span>{num}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No numbers available. Try refreshing or changing location.</p>
+                  {!/^\+\d{1,15}$/.test(customPhoneInput) && customPhoneInput && (
+                    <p className="text-sm text-red-600">
+                      ⚠ Please enter a valid number starting with + and country code.
+                    </p>
                   )}
+                  {errors.customPhone && <p className="text-sm text-red-600">{errors.customPhone}</p>}
                 </div>
-                {errors.selectedNumber && <p className="text-sm text-red-600">{errors.selectedNumber}</p>}
+                <Button
+                  onClick={handleCustomPhoneSubmit}
+                  disabled={
+                    loading || hasPhoneNumber ||
+                    !customPhoneInput ||
+                    !/^\+\d{1,15}$/.test(customPhoneInput) // ✅ validation yahan
+                  }
+                  className={`bg-purple-600 hover:bg-purple-700 ${loading ||
+                    !customPhoneInput ||
+                    !/^\+\d{1,15}$/.test(customPhoneInput)
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                    }`}
+                >
+                  Add Number
+                </Button>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="countryCode">Country <span className="text-red-500">*</span></Label>
+                  <Select
+                    value={phoneData.countryCode}
+                    onValueChange={(v) => {
+                      setPhoneData((prev) => ({ ...prev, countryCode: v, stateCode: "", city: "", selectedNumber: "" }));
+                      setStateNameFull("");
+                      setAvailableNumbers([]);
+                      setErrors((prev) => ({ ...prev, countryCode: "", selectedNumber: "" }));
+                      if (v) fetchNumbersWithFallback();
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {languages.map((lang) => (
+                        <SelectItem key={lang.countryCode} value={lang.countryCode}>
+                          <span className="flex items-center gap-2">
+                            <img
+                              src={`https://flagcdn.com/w20/${lang.locale.split("-")[1]?.toLowerCase()}.png`}
+                              alt={lang.countryName}
+                              className="w-5 h-5"
+                            />
+                            {lang.countryName}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.countryCode && <p className="text-sm text-red-600">{errors.countryCode}</p>}
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="space-y-2 flex-1">
+                    <Label htmlFor="state">State/Province <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="state"
+                      ref={stateInputRef}
+                      value={stateNameFull}
+                      onChange={(e) => {
+                        setStateNameFull(e.target.value);
+                        setErrors((prev) => ({ ...prev, stateCode: "" }));
+                        if (!googlePlacesLoaded) {
+                          setPhoneData((prev) => ({ ...prev, stateCode: e.target.value }));
+                        }
+                      }}
+                      placeholder="Enter state"
+                      onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
+                    />
+                    {errors.stateCode && <p className="text-sm text-red-600">{errors.stateCode}</p>}
+                  </div>
+                  <div className="space-y-2 flex-1">
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      ref={cityInputRef}
+                      value={phoneData.city}
+                      onChange={(e) => {
+                        setPhoneData((prev) => ({ ...prev, city: e.target.value }));
+                        setErrors((prev) => ({ ...prev, city: "" }));
+                      }}
+                      placeholder="Enter city"
+                      onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="search">Search Number</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="search"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Search phone number"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={handleRefresh}
+                      disabled={isRotating || loading || !phoneData.countryCode || !phoneData.stateCode}
+                      className={isRotating ? "animate-spin" : ""}
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Available Numbers <span className="text-red-500">*</span></Label>
+                  <div className="max-h-64 overflow-y-auto border rounded-md p-2">
+                    {loading ? (
+                      <div className="flex justify-center items-center">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      </div>
+                    ) : filteredNumbers.length > 0 ? (
+                      filteredNumbers.map((num) => (
+                        <div
+                          key={num}
+                          className={`flex items-center gap-2 p-2 cursor-pointer hover:bg-gray-100 ${phoneData.selectedNumber === num ? "bg-purple-100" : ""}`}
+                          onClick={() => handleNumberClick(num)}
+                        >
+                          <input
+                            type="radio"
+                            name="phoneNumber"
+                            value={num}
+                            checked={phoneData.selectedNumber === num}
+                            onChange={() => handleNumberClick(num)}
+                            className="cursor-pointer"
+                          />
+                          <span>{num}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No numbers available. Try refreshing or changing location.</p>
+                    )}
+                  </div>
+                  {errors.selectedNumber && <p className="text-sm text-red-600">{errors.selectedNumber}</p>}
+                </div>
+              </div>
+            )}
+          </div>
           <Dialog.Root open={isModalOpen} onOpenChange={setModalOpen}>
             <Dialog.Portal>
               <Dialog.Overlay className="fixed inset-0 bg-black/50" />
@@ -566,21 +590,21 @@ useEffect(()=>{
                 </Dialog.Description>
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                       <User className="w-5 h-5 text-blue-500" />
+                    <User className="w-5 h-5 text-blue-500" />
 
                     <span>
-                    
+
                       <strong>Agent Name:</strong> {agentName || "Unknown"}
                     </span>
                   </div>
-                 
+
                   <div className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-indigo-500" />
                     <span>
                       <strong>Business:</strong> {businessName || "Unknown"}
                     </span>
                   </div>
-                 
+
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setModalOpen(false)}>
@@ -604,23 +628,21 @@ useEffect(()=>{
             </Dialog.Portal>
           </Dialog.Root>
           <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
-            <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
+            {agentId ? "" : <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
               <ChevronLeft className="w-4 h-4 mr-2" /> Previous
-            </Button>
-            {!isCustomPhone && (
-              <Button
-                type="button"
-                onClick={() => {
-                  if (validate()) {
-                    handleNumberClick(phoneData.selectedNumber);
-                  }
-                }}
-                disabled={loading || !phoneData.selectedNumber}
-                className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
-              >
-                Next: Payment <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            )}
+            </Button>}
+            {/* {!isCustomPhone && ( */}
+            {hasPhoneNumber ? <Button
+              type="button"
+              disabled={!hasPhoneNumber}
+              className={`w-full sm:w-auto bg-purple-600 hover:bg-purple-700 ${!hasPhoneNumber
+                ? "cursor-not-allowed opacity-50"
+                : ""
+                }`}
+            >
+              Next: Payment <ChevronRight className="w-4 h-4 ml-2" />
+            </Button> : ""}
+            {/* )} */}
           </div>
         </div>
       )}
