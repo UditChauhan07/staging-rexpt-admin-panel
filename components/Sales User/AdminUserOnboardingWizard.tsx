@@ -315,27 +315,27 @@ const AdminUserOnboardingWizard: React.FC = () => {
     } finally {
       // ✅ Always clear/reset, no matter success or failure
       console.log("Final Form Data:", data);
-      localStorage.removeItem("currentStep");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("BusinessId");
-      localStorage.removeItem("agentCode");
-      localStorage.removeItem("knowledgebaseName");
-      localStorage.removeItem("knowledgeBaseId");
-      localStorage.removeItem("businessType");
-      localStorage.removeItem("businessUrl");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("selectedSitemapUrls");
-      localStorage.removeItem("sitemapUrls");
-      localStorage.removeItem("addressComponents");
-      localStorage.removeItem("agentName");
-      localStorage.removeItem("agent_id");
-      localStorage.removeItem("city");
-      localStorage.removeItem("country_code");
-      localStorage.removeItem("coupen");
-      localStorage.removeItem("state");
+      // localStorage.removeItem("currentStep");
+      // localStorage.removeItem("formData");
+      // localStorage.removeItem("BusinessId");
+      // localStorage.removeItem("agentCode");
+      // localStorage.removeItem("knowledgebaseName");
+      // localStorage.removeItem("knowledgeBaseId");
+      // localStorage.removeItem("businessType");
+      // localStorage.removeItem("businessUrl");
+      // localStorage.removeItem("isVerified");
+      // localStorage.removeItem("selectedSitemapUrls");
+      // localStorage.removeItem("sitemapUrls");
+      // localStorage.removeItem("addressComponents");
+      // localStorage.removeItem("agentName");
+      // localStorage.removeItem("agent_id");
+      // localStorage.removeItem("city");
+      // localStorage.removeItem("country_code");
+      // localStorage.removeItem("coupen");
+      // localStorage.removeItem("state");
 
-      setStep(1);
-      setFormData({});
+      // setStep(1);
+      // setFormData({});
     }
   };
 
