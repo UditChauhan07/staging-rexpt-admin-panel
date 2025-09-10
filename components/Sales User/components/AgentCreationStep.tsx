@@ -812,7 +812,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   }, [formData]);
 
   return (
-    <StepWrapper step={3} totalSteps={4} title="Agent Creation" description="Configure the agent for the business.">
+    <StepWrapper step={3} totalSteps={7} title="Agent Creation" description="Configure the agent for the business.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">

@@ -135,7 +135,8 @@ import AgentCreationStep from "./components/AgentCreationStep";
 import PaymentStep from "./components/PaymentStep";
 import axios from "axios";
 import AssignNumberStep from "./components/AssignNumberStep";
-
+import DiscountForm from "./components/Discount";
+import PaymentMethod from "./components/PaymentMethod";
 interface FormData {
   user?: {
     id: string;
@@ -163,7 +164,7 @@ interface FormData {
     about: string;
     addressComponents: any[];
   };
-   agent?: {
+  agent?: {
     agentId?: string;
     llmId?: string;
     agentCode?: string;
@@ -207,6 +208,11 @@ const AdminUserOnboardingWizard: React.FC = () => {
   const [editingUser, setEditingUser] = useState<FormData["user"] | null>(null);
   const [editingBusiness, setEditingBusiness] = useState<FormData["business"] | null>(null);
 
+  const customerId = localStorage.getItem("customerId") || "";
+
+  const URL = process.env.NEXT_PUBLIC_API_URL;
+  const token = localStorage.getItem("token");
+
   // Save step and form data to local storage whenever they change
   useEffect(() => {
     localStorage.setItem("currentStep", step.toString());
@@ -218,17 +224,97 @@ const AdminUserOnboardingWizard: React.FC = () => {
   };
 
   const handleNext = () => {
-    setStep((prev) => Math.min(prev + 1, 4));
+    setStep((prev) => Math.min(prev + 1, 7));
+    console.log("📌 Current Form Data before moving to next step:", formData);
+
   };
 
   const handlePrevious = () => {
     setStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const handleSubmit = async (data: FormData) => {
+  const agentCreationFinal = async (finalData: any) => {
     try {
+      const res = await axios.post(
+        `${URL}/api/admin-static-defer-payment`,
+        finalData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // check if API returned success:true
+      if (res.data && res.data.success) {
+        console.log("✅ Subscription created");
+
+        // you can also access res.data.id or res.data.data.subscription_id
+        return true; // signal success
+      } else {
+        console.warn("⚠️ Subscription creation failed:", res.data);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Failed to create agent", error);
+      return false;
+    }
+  };
+
+
+  const handleSubmit = async (data: FormData) => {
+    const deferDays =
+      data?.payment?.method === "defer"
+        ? Number((data as any)?.payment?.deferDays) || 0
+        : 0;
+
+    const finalData = {
+      customer_id: customerId || "byAdmin",
+      plan_details: {
+        id: (data as any)?.payment?.raw?.price?.id || "price_static_001",
+        name: (data as any)?.payment?.raw?.product?.name || "Starter",
+        desc: (data as any)?.payment?.raw?.product?.description || "Basic plan",
+        amount:
+          (data as any)?.payment?.raw?.derived?.amountUsd ||
+          (data as any)?.payment?.amount ||
+          0,
+        currency: (data as any)?.payment?.raw?.derived?.currency || "USD",
+        interval: (data as any)?.payment?.raw?.derived?.interval || "month",
+        created: new Date().toISOString(),
+        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        mins: (data as any)?.payment?.raw?.derived?.mins || 0,
+        original_plan_amount:
+          (data as any)?.payment?.raw?.derived?.amountUsd || 0,
+      },
+      agent_id: localStorage.getItem("agent_id") || "NA",
+      user_id: data?.user?.id || "user_static_id",
+      defer_days: deferDays,
+    };
+
+    // console.log("finalData", finalData);
+    console.log("Final Form Data:", data);
+
+    try {
+      let ok = false;
+
+      try {
+        ok = await agentCreationFinal(finalData);
+      } catch (apiError) {
+        console.error("❌ agentCreationFinal threw an error:", apiError);
+        alert("Something went wrong while creating subscription.");
+      }
+
+      if (ok) {
+        // alert(
+        //   deferDays > 0
+        //     ? `Onboarding completed! ✅ Subscription created with ${deferDays} defer day(s).`
+        //     : "Onboarding completed! ✅ Subscription created."
+        // );
+      } else {
+        alert("⚠️ Onboarding finished, but subscription creation failed.");
+      }
+    } catch (err) {
+      console.error("❌ Unexpected error in handleSubmit:", err);
+      alert("Failed to complete onboarding.");
+    } finally {
+      // ✅ Always clear/reset, no matter success or failure
       console.log("Final Form Data:", data);
-      // Clear local storage after successful submission
       localStorage.removeItem("currentStep");
       localStorage.removeItem("formData");
       localStorage.removeItem("BusinessId");
@@ -240,14 +326,19 @@ const AdminUserOnboardingWizard: React.FC = () => {
       localStorage.removeItem("isVerified");
       localStorage.removeItem("selectedSitemapUrls");
       localStorage.removeItem("sitemapUrls");
-      alert("Onboarding completed!");
-      setStep(1); // Reset to first step
-      setFormData({}); // Clear form data
-    } catch (error) {
-      console.error("Error submitting data:", error);
-      alert("Failed to complete onboarding. Please try again.");
+      localStorage.removeItem("addressComponents");
+      localStorage.removeItem("agentName");
+      localStorage.removeItem("agent_id");
+      localStorage.removeItem("city");
+      localStorage.removeItem("country_code");
+      localStorage.removeItem("coupen");
+      localStorage.removeItem("state");
+
+      setStep(1);
+      setFormData({});
     }
   };
+
 
   const fetchUsers = async () => {
     try {
@@ -314,7 +405,28 @@ const AdminUserOnboardingWizard: React.FC = () => {
           data={formData}
           onUpdate={handleUpdate}
           onSubmit={handleSubmit}
+          onNext={handleNext}
           onPrevious={handlePrevious}
+        />
+      )}
+
+      {step === 6 && (
+        <DiscountForm
+          data={formData}
+          onUpdate={handleUpdate}
+          // onSubmit={handleSubmit}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+
+        />
+      )}
+      {step === 7 && (
+        <PaymentMethod
+          data={formData}
+          onUpdate={handleUpdate}
+          onSubmit={handleSubmit}
+          onPrevious={handlePrevious}
+
         />
       )}
     </div>
