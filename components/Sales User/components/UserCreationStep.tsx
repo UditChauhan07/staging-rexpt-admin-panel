@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FadeLoader } from "react-spinners";
+import { ClimbingBoxLoader, FadeLoader } from "react-spinners";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { debounce } from "lodash";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -27,6 +27,7 @@ interface User {
   role: string;
   referalName?: string;
   password?: string;
+  customerId : string
 }
 
 interface FormData {
@@ -38,6 +39,7 @@ interface FormData {
     role: string;
     referalName: string;
     password: string;
+    customerId : string
   };
 }
 
@@ -51,7 +53,7 @@ interface UserCreationStepProps {
 
 const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onNext, editingUser, fetchUsers }) => {
   const [formData, setFormData] = useState<FormData["user"]>(
-    data.user || { name: "", email: "", phone: "", role: "", referalName: "", password: "" }
+    data.user || { name: "", email: "", phone: "", role: "", referalName: "", password: "" , customerId : "" }
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(false);
@@ -98,6 +100,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   useEffect(() => {
     if (data.user) {
       setFormData(data.user);
+      console.log({data})
       setShowReferralInput(["2", "3"].includes(data.user.role));
     } else if (editingUser) {
       setFormData({
@@ -194,7 +197,8 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
       if (response?.status === true) {
 
         const userId = response?.user?.userId || "";
-
+        console.log({response})
+        localStorage.setItem("customerId" ,response?.user?.customerId )
         if (typeof window !== "undefined") {
           localStorage.setItem("AgentForUserId", userId);
           localStorage.setItem("client_id", response?.user?.client_id || "");
@@ -294,12 +298,14 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     if (!formData.email?.trim() || editingUser?.email === formData.email) return;
     try {
       const response = await check_email_Exsitence(formData.email);
+      
       if (response.exists) {
         setEmailExists(true);
         setErrors((prev) => ({ ...prev, email: "User already exists.Create agent direct" }));
         if (typeof window !== "undefined") {
 
           localStorage.setItem("AgentForUserId", response.user.userId || `USR${Date.now()}`);
+          // localStorage.setItem("customerId", response.user.userId );
 
         }
       } else {
@@ -339,7 +345,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   }
 
   return (
-    <StepWrapper step={1} totalSteps={4} title="User Creation" description="Create or edit a user account.">
+    <StepWrapper step={1} totalSteps={7} title="User Creation" description="Create or edit a user account.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
           <div className="space-y-2">

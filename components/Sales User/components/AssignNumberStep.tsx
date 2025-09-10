@@ -299,8 +299,8 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!phoneData.countryCode) newErrors.countryCode = "Country is required";
-    if (!isCustomPhone && !phoneData.stateCode) newErrors.stateCode = "State is required";
+    // if (!phoneData.countryCode) newErrors.countryCode = "Country is required";
+    // if (!isCustomPhone && !phoneData.stateCode) newErrors.stateCode = "State is required";
     if (!phoneData.selectedNumber) newErrors.selectedNumber = "Please select or enter a phone number";
     if (isCustomPhone && !customPhoneInput.match(/^\+?\d{10,15}$/)) {
       newErrors.customPhone = "Please enter a valid phone number (10-15 digits)";
@@ -354,9 +354,11 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         throw new Error("Agent ID is missing");
       }
 
-      // const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
-      // await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
-      // onUpdate({ phone: phoneData });
+
+      const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
+      await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
+      onUpdate({ phone: phoneData });
+
 
       localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: stateNameFull }));
       setModalOpen(false);
@@ -368,9 +370,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         timer: 1500,
         showConfirmButton: false,
       });
-
       setHasPhoneNumber(true)
-
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
       onNext();
@@ -655,4 +655,3 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
 };
 
 export default AssignNumberStep;
-
