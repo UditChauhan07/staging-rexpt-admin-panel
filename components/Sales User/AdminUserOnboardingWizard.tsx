@@ -127,7 +127,8 @@
 
 // export default AdminUserOnboardingWizard;
 "use client";
-
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import React, { useState, useEffect } from "react";
 import UserCreationStep from "./components/UserCreationStep";
 import BusinessDetailsStep from "./components/BusinessDetailsStep";
@@ -333,7 +334,14 @@ const AdminUserOnboardingWizard: React.FC = () => {
       localStorage.removeItem("country_code");
       localStorage.removeItem("coupen");
       localStorage.removeItem("state");
+
       localStorage.removeItem("phoneNumber")
+
+      localStorage.removeItem("businessType");
+      localStorage.removeItem("customServices");
+      localStorage.removeItem("businessServices");
+
+
       setStep(1);
       setFormData({});
     }
@@ -362,6 +370,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
     // fetchUsers();
     // fetchBusinesses();
   }, []);
+
   const handleFreeAgent = () => {
     localStorage.removeItem("currentStep");
     localStorage.removeItem("formData");
@@ -385,8 +394,59 @@ const AdminUserOnboardingWizard: React.FC = () => {
     setStep(1);
     setFormData({});
   }
+
+   const handleExit = () => {
+    // Optionally, you can add logic here to redirect or reset the form
+          localStorage.removeItem("currentStep");
+      localStorage.removeItem("formData");
+      localStorage.removeItem("BusinessId");
+      localStorage.removeItem("agentCode");
+      localStorage.removeItem("knowledgebaseName");
+      localStorage.removeItem("knowledgeBaseId");
+      localStorage.removeItem("businessType");
+      localStorage.removeItem("businessUrl");
+      localStorage.removeItem("isVerified");
+      localStorage.removeItem("selectedSitemapUrls");
+      localStorage.removeItem("sitemapUrls");
+      localStorage.removeItem("addressComponents");
+      localStorage.removeItem("agentName");
+      localStorage.removeItem("agent_id");
+      localStorage.removeItem("city");
+      localStorage.removeItem("country_code");
+      localStorage.removeItem("coupen");
+      localStorage.removeItem("state");
+      localStorage.removeItem("AgentForUserId");
+      localStorage.removeItem("client_id");
+      localStorage.removeItem("currentStep");
+      localStorage.removeItem("isVerified");
+      localStorage.removeItem("phoneNumber")
+     setStep(1);
+      setFormData({});
+  };
+
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        <div className="flex justify-end mb-4">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive">Exit</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Exiting will discard any unsaved progress in the onboarding process. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleExit}>Exit</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       {step === 1 && (
         <UserCreationStep
           data={formData}
@@ -453,6 +513,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
 
         />
       )}
+       </div>
     </div>
   );
 };
