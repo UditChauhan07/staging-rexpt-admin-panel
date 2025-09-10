@@ -1065,7 +1065,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [selectedCountry, setSelectedCountry] = useState("US");
   const [googlelisting, setGoogleListing] = useState()
   const [loading, setLoading] = useState(false)
-  console.log('dsadasas', addressComponents)
+  
   const HTTPS_PREFIX = "https://";
   const PREFIX_LEN = HTTPS_PREFIX.length;
   useEffect(() => {
@@ -1079,7 +1079,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   useEffect(() => {
     if (data.business || editingBusiness) {
       const business = businessDetails.business || editingBusiness;
-      console.log(business.type, "businessbusinessbusiness")
+      
       setFormData(business);
       setSelectedType(business.type);
       setAddressComponents(business.addressComponents || []);
@@ -1361,7 +1361,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
-    console.log('errors', newErrors)
+    
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -1569,7 +1569,6 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     e.preventDefault();
     await handleSaveBusiness();
   };
-  console.log('as', selectedType, newBusinessType)
   return (
     <StepWrapper step={2} totalSteps={7} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">

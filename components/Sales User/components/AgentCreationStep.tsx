@@ -884,6 +884,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               "The user's phone number in numeric format. If digits are spoken in words (e.g., 'seven eight seven six one two'), convert them to digits (e.g., '787612'). Ensure it's a valid number when possible.",
           },
         ],
+        createdFlag:true
       };
 
       const saveRes = await createAgent(dbPayload);
@@ -1162,51 +1163,54 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                     <SelectItem
                       key={index}
                       value={voice.voice_id}
-                      className="py-2"
+                      className="py-2  pointer-events-none"
                     >
-                      <div
-                        className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${formData.voice === voice.voice_id
-                            ? "border-purple-500 bg-purple-50"
-                            : "border-gray-200 hover:border-purple-400"
-                          }`}
-                      >
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">
-                            {voice.voice_name}
-                          </p>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {voice.accent
-                              ? `${voice.accent} Accent`
-                              : voice.provider}
-                          </p>
+                      <>
+                        <div
+                          className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${formData.voice === voice.voice_id
+                              ? "border-purple-500 bg-purple-50"
+                              : "border-gray-200 hover:border-purple-400"
+                            }`}
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {voice.voice_name}
+                            </p>
+                            <p className="text-xs text-gray-500 capitalize">
+                              {voice.accent
+                                ? `${voice.accent} Accent`
+                                : voice.provider}
+                            </p>
+                          </div>
+
+                          <Button
+                            type="button"
+                            size="icon"
+                            className="pointer-events-auto"
+                            variant="ghost"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              togglePlay(index);
+                            }}
+                          >
+                            {playingIdx === index ? (
+                              <Pause className="w-4 h-4 text-gray-500" />
+                            ) : (
+                              <Play className="w-4 h-4 text-gray-500" />
+                            )}
+                          </Button>
+
+                          <audio
+                            ref={(el) => (audioRefs.current[index] = el)}
+                            style={{ display: "none" }}
+                          >
+                            <source
+                              src={voice.preview_audio_url}
+                              type="audio/mpeg"
+                            />
+                          </audio>
                         </div>
-
-                        <Button
-                          type="button"
-                          size="icon"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            togglePlay(index);
-                          }}
-                        >
-                          {playingIdx === index ? (
-                            <Pause className="w-4 h-4 text-gray-500" />
-                          ) : (
-                            <Play className="w-4 h-4 text-gray-500" />
-                          )}
-                        </Button>
-
-                        <audio
-                          ref={(el) => (audioRefs.current[index] = el)}
-                          style={{ display: "none" }}
-                        >
-                          <source
-                            src={voice.preview_audio_url}
-                            type="audio/mpeg"
-                          />
-                        </audio>
-                      </div>
+                      </>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1266,8 +1270,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                     key={index}
                     onClick={() => setFormData({ ...formData, avatar: av.img })}
                     className={`cursor-pointer flex flex-col items-center rounded-2xl border p-2 shadow-sm transition-all duration-200 ${formData.avatar === av.img
-                        ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
-                        : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                      : "border-gray-200 hover:border-purple-400 hover:shadow-md"
                       }`}
                   >
                     <img
@@ -1303,8 +1307,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                   key={index}
                   onClick={() => setFormData({ ...formData, role: role.title })}
                   className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${formData.role === role.title
-                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
-                      : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                    ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                    : "border-gray-200 hover:border-purple-400 hover:shadow-md"
                     }`}
                 >
                   <div className="flex items-start justify-between">
@@ -1422,8 +1426,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                     })
                   }
                   className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${formData.planType === plan.value
-                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
-                      : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                    ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                    : "border-gray-200 hover:border-purple-400 hover:shadow-md"
                     }`}
                 >
                   <div className="flex items-start justify-between">
