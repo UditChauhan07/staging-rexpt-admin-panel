@@ -39,6 +39,33 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const URL = process.env.NEXT_PUBLIC_API_URL;
+  let agentId = localStorage.getItem("agent_id")
+  console.log("agentId", agentId)
+
+
+  const createCheckout = async () => {
+    const origin = window.location.origin;
+    console.log("origin",origin)
+    try {
+      let userId = data?.user?.id
+      const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
+        customerId: localStorage.getItem("customerId"),
+        priceId: data?.payment?.raw?.price?.id,
+        promotionCode: localStorage.getItem("coupen"),
+        userId: userId,
+        url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+        // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
+        // cancelUrl: "http://admin.rexpt.in/", // Live 
+        cancelUrl: "http://localhost:4000/", // local
+      });
+
+      console.log("Checkout session created:", res.data);
+    } catch (err) {
+      console.error("Failed to create checkout session:", err);
+      throw new Error("Checkout session creation failed");
+    }
+  };
+
 
   const handleSubmit = async () => {
     if (!selectedMethod) {
@@ -143,9 +170,8 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         <div className="flex w-full gap-6">
           <Button
             type="button"
-            className={`flex-1 h-32 text-xl font-semibold ${
-              selectedMethod === "instant" ? "ring-4 ring-blue-500" : ""
-            }`}
+            className={`flex-1 h-32 text-xl font-semibold ${selectedMethod === "instant" ? "ring-4 ring-blue-500" : ""
+              }`}
             onClick={() => setSelectedMethod("instant")}
           >
             💳 Instant Payment
@@ -154,9 +180,8 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
           <Button
             type="button"
             variant="outline"
-            className={`flex-1 h-32 text-xl font-semibold ${
-              selectedMethod === "defer" ? "ring-4 ring-blue-500" : ""
-            }`}
+            className={`flex-1 h-32 text-xl font-semibold ${selectedMethod === "defer" ? "ring-4 ring-blue-500" : ""
+              }`}
             onClick={() => setSelectedMethod("defer")}
           >
             ⏳ Defer Payment
