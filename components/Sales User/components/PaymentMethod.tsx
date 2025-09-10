@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import StepWrapper from "./StepWrapper";
 import axios from "axios";
-import { ClimbingBoxLoader } from "react-spinners";
+import Swal from "sweetalert2";
 
 interface FormData {
   payment?: {
@@ -12,10 +12,11 @@ interface FormData {
     discount?: number;
     method?: "instant" | "defer";
     deferDays?: number;
+    raw?: any;
+    product?: { name?: string };
   };
+  user?: { id?: string; email?: string; name?: string };
 }
-
-
 
 interface PaymentMethodProps {
   data: FormData;
@@ -30,17 +31,17 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
   onSubmit,
   onPrevious,
 }) => {
-
-  console.log(data?.payment?.raw?.price?.id)
   const [selectedMethod, setSelectedMethod] = useState<"instant" | "defer" | null>(
     data.payment?.method ?? null
   );
   const [deferDays, setDeferDays] = useState<number>(data.payment?.deferDays || 0);
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const URL = process.env.NEXT_PUBLIC_API_URL;
   let agentId = localStorage.getItem("agent_id")
   console.log("agentId", agentId)
+
 
   const createCheckout = async () => {
     // const origin = window.location.origin;
@@ -56,12 +57,12 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
         userId: userId,
-        // url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`, // live
-        // url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,// Vercel
-        url: `http://localhost:3000/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+
         // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
         // cancelUrl: "http://admin.rexpt.in/", // Live 
-        cancelUrl: "http://localhost:4000/", // local
+        // cancelUrl: "http://localhost:4000/", // local
+    url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+    cancelUrl: "`https://rexptin.vercel.app/cancel"
       });
 
       console.log("Checkout session created:", res.data);
@@ -70,6 +71,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       throw new Error("Checkout session creation failed");
     }
   };
+
 
   const handleSubmit = async () => {
     if (!selectedMethod) {
@@ -82,7 +84,12 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       return;
     }
 
+    if (!data?.user?.email) {
+      return alert("User email not found");
+    }
+
     setError("");
+    setIsLoading(true);
 
     const updatedPayment = {
       ...data.payment,
@@ -90,16 +97,74 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       deferDays: selectedMethod === "defer" ? deferDays : undefined,
     };
 
-    // If Instant Payment, call checkout API before proceeding
+    onUpdate({ payment: updatedPayment });
+
     if (selectedMethod === "instant") {
+      const agentId = localStorage.getItem("agent_Id");
+      const userId = data?.user?.id;
+
       try {
-        await createCheckout();
+        let checkoutUrl = "";
+
+        if (data?.payment?.plan === "prod_SueeevC1qiAArq") {
+          const res = await axios.post(`${URL}/api/tier/checkout-admin`, {
+            customerId: localStorage.getItem("customerId"),
+            presetUnits: data?.payment?.raw?.derived?.mins,
+            minUnits: 0,
+            maxUnits: 1000,
+            // successUrl: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
+            // cancelUrl:
+            //   "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+            userId,
+            priceId: data?.payment?.raw?.price?.id,
+            promoCode: localStorage.getItem("coupen"),
+            successUrl: `https://rexptin.vercel.app//thankyou/update?agentId=${agentId}&userId=${userId}`,
+            cancelUrl:
+              "https://rexptin.vercel.app/cancel",
+            
+          });
+
+          checkoutUrl = res?.data?.url;
+        } else {
+          const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
+            customerId: localStorage.getItem("customerId"),
+            priceId: data?.payment?.raw?.price?.id,
+            promotionCode: localStorage.getItem("coupen"),
+            userId,
+            url: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
+            cancelUrl:
+              "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+          });
+
+          checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
+        }
+
+        if (checkoutUrl) {
+          await axios.post(`${URL}/api/sendCheckoutMail`, {
+            email: data.user.email,
+            checkoutUrl,
+            Name: data?.user?.name,
+            Plan: data?.payment?.raw?.product?.name,
+            Price: data?.payment?.amount,
+            agent_name: localStorage.getItem("agentName"),
+            Minutes: data?.payment?.raw?.derived?.mins,
+          });
+
+          Swal.fire({
+            icon: "success",
+            title: "Email Sent",
+            text: "Checkout URL has been sent successfully to your email.",
+          });
+        } else {
+          throw new Error("Checkout URL missing in response");
+        }
       } catch (error) {
-        return alert("Failed to create checkout session. Please try again.");
+        console.error(error);
+        alert("Failed to process checkout. Please try again.");
       }
     }
 
-    onUpdate({ payment: updatedPayment });
+    setIsLoading(false);
     onSubmit({ ...data, payment: updatedPayment });
   };
 
@@ -152,11 +217,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
         {/* Action Buttons */}
         <div className="flex justify-between w-full mt-6">
-          <Button type="button" onClick={onPrevious}>
+          <Button type="button" onClick={onPrevious} disabled={isLoading}>
             Previous
           </Button>
-          <Button type="button" onClick={handleSubmit}>
-            Submit
+          <Button type="button" onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Sending..." : "Submit"}
           </Button>
         </div>
       </div>

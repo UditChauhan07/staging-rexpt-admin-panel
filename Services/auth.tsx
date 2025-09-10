@@ -284,9 +284,9 @@ export const createNumberOrder = async (token,phoneNumbers,agent_id) => {
   }
 }
 
-export const importPhoneToAgentFromAdmin = async (token,phone_number, inbound_agent_id, outbound_agent_id) => {
+export const importPhoneToAgentFromAdmin = async (token,customPhoneInput, agentId) => {
   try {
-    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/importPhoneToAgentFromAdmin`, { phoneNumbers: phone_number ,inbound_agent_id:inbound_agent_id} , {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/importPhoneToAgentFromAdmin`, { phone_number: customPhoneInput ,inbound_agent_id:agentId} , {
        headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
