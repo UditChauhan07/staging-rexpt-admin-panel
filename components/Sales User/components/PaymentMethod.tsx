@@ -42,12 +42,14 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
   const createCheckout = async () => {
     try {
+        let agentId = localStorage.getItem("agent_Id")
+        let userId = data?.user?.id
       const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
         customerId: localStorage.getItem("customerId"),
         priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
-        userId: localStorage.getItem("userId"),
-        url: "http://localhost:3001/thankyou/update?agentId=agent_f2228a557e38e4a249de98f021&userId=RXX3SY1757416196",
+        userId: userId , 
+        url: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
         cancelUrl: "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
       });
 

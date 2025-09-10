@@ -365,7 +365,15 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       setLoading(false);
     }
   };
+const handleNext = (e: React.FormEvent) => {
+  e.preventDefault();
 
+  
+  onUpdate({ phone: phoneData });
+
+  // Move to next step
+  onNext();
+};
   const filteredNumbers = availableNumbers.filter((num) => num.includes(search.trim()));
 useEffect(()=>{
   if (phoneData.countryCode ) {
@@ -610,12 +618,13 @@ useEffect(()=>{
             {!isCustomPhone && (
               <Button
                 type="button"
-                onClick={() => {
-                  if (validate()) {
-                    handleNumberClick(phoneData.selectedNumber);
-                  }
-                }}
-                disabled={loading || !phoneData.selectedNumber}
+                // onClick={() => {
+                //   if (validate()) {
+                //     handleNumberClick(phoneData.selectedNumber);
+                //   }
+                // }}
+                // disabled={loading || !phoneData.selectedNumber}
+                onClick={handleNext}
                 className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
               >
                 Next: Payment <ChevronRight className="w-4 h-4 ml-2" />
