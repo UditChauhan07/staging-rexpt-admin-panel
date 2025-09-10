@@ -53,10 +53,12 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
         userId: userId,
-        url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+        // url: `${origin}/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
         // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
         // cancelUrl: "http://admin.rexpt.in/", // Live 
-        cancelUrl: "http://localhost:4000/", // local
+        // cancelUrl: "http://localhost:4000/", // local
+    url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+    cancelUrl: "`https://rexptin.vercel.app/cancel"
       });
 
       console.log("Checkout session created:", res.data);
@@ -106,12 +108,16 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             presetUnits: data?.payment?.raw?.derived?.mins,
             minUnits: 0,
             maxUnits: 1000,
-            successUrl: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
-            cancelUrl:
-              "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
+            // successUrl: `http://localhost:3001/thankyou/update?agentId=${agentId}&userId=${userId}`,
+            // cancelUrl:
+            //   "http://localhost/phpmyadmin/index.php?route=/sql&pos=0&db=rexpt&table=endusers",
             userId,
             priceId: data?.payment?.raw?.price?.id,
             promoCode: localStorage.getItem("coupen"),
+            successUrl: `https://rexptin.vercel.app//thankyou/update?agentId=${agentId}&userId=${userId}`,
+            cancelUrl:
+              "https://rexptin.vercel.app/cancel",
+            
           });
 
           checkoutUrl = res?.data?.url;
