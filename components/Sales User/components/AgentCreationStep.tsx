@@ -65,6 +65,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   const [voiceError, setVoiceError] = useState("");
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
+   const [callRecording, setCallRecording] = useState(  );
   const [loading, setLoading] = useState(false)
   useEffect(() => {
     setLoadingVoices(true);
@@ -239,7 +240,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       const plan = "free";
       const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
         ? "multi"
-        : formData.language;
+        : formData.agentLanguage;
       const currentState = bssinessDetails?.state || "";
       localStorage.setItem("state", bssinessDetails?.state)
       localStorage.setItem("country_code", bssinessDetails?.country_code)
@@ -265,7 +266,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         "Connecticut",
         "California",
       ];
-      const CallRecording = statesRequiringCallRecording.includes(currentState)
+      const initialCallRecording  = statesRequiringCallRecording.includes(currentState)
         ? true
         : false;
       const filledPrompt = getAgentPrompt({
@@ -289,7 +290,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         currentTime,
         languageAccToPlan,
         plan,
-        CallRecording,
+        initialCallRecording,
       });
       console.log('filledPrompt',filledPrompt);
       
@@ -666,7 +667,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         additionalNote: "",
         responsiveness: 1,
         enable_backchannel: true,
-        CallRecording: CallRecording,
+        CallRecording: initialCallRecording,
         interruption_sensitivity: 0.7,
         backchannel_frequency: 0.7,
         backchannel_words: [
@@ -936,6 +937,18 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
             ))}
             {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
           </div>
+         <div className="flex items-center space-x-2">
+      <label htmlFor="callRecordingToggle" className="font-medium">
+        Call Recording:
+      </label>
+      <input
+        type="checkbox"
+        id="callRecordingToggle"
+        checked={callRecording}
+        onChange={(e) => setCallRecording(e.target.checked)}
+        className="w-5 h-5"
+      />
+    </div>
           <div className="space-y-2">
             <Label>Plan Type <span className="text-red-500">*</span></Label>
             <select
