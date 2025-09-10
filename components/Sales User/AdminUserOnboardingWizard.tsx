@@ -301,11 +301,11 @@ const AdminUserOnboardingWizard: React.FC = () => {
       }
 
       if (ok) {
-        alert(
-          deferDays > 0
-            ? `Onboarding completed! ✅ Subscription created with ${deferDays} defer day(s).`
-            : "Onboarding completed! ✅ Subscription created."
-        );
+        // alert(
+        //   deferDays > 0
+        //     ? `Onboarding completed! ✅ Subscription created with ${deferDays} defer day(s).`
+        //     : "Onboarding completed! ✅ Subscription created."
+        // );
       } else {
         alert("⚠️ Onboarding finished, but subscription creation failed.");
       }
