@@ -202,14 +202,17 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         address,
         email,
         about,
-        businessType,
+        // businessType,
         services,
         customBuisness,
         role,
       } = formData;
+      const businessType=localStorage.getItem('businessType')
+      console.log()
       setLoading(true)
       const form = extractedDetails
-      localStorage.setItem("agentName",form.agentName)
+      console.log('form',form)
+      localStorage.setItem("agentName",formData?.name)
       const selectedRole = form.role || "General Receptionist"
       const addressFields = JSON.parse(localStorage.getItem('addressComponents'));
       const bssinessDetails = extractAddressFields(addressFields?.addressComponents)
@@ -267,10 +270,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         : false;
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
-        roleTitle: form.role
+        roleTitle: formData.role
         ,
-        agentName: form.agentName,
-        agentGender: form.gender,
+        agentName: formData.name,
+        agentGender: formData.gender,
         business: {
           businessName: form.businessName || "Your Business",
           email: form.email || "",
@@ -288,6 +291,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         plan,
         CallRecording,
       });
+      console.log('filledPrompt',filledPrompt);
+      
       const filledPrompt2 = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: selectedRole,
@@ -612,7 +617,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         ],
         end_call_after_silence_ms: 30000,
         normalize_for_speech: true,
-        webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/agent/updateAgentCall_And_Mins_WebHook`,
+        webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgentCall_And_Mins_WebHook`,
       };
       //CREATE AGENT 
       const agentRes = await axios.post(
@@ -647,7 +652,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
         agentAccent: form.selectedVoice?.voice_accent || "American",
         agentRole: selectedRole,
-        agentName: form.agentName || form.selectedVoice?.voice_name || "Virtual Assistant",
+        agentName: formData.name || form.selectedVoice?.voice_name || "Virtual Assistant",
         agentLanguageCode: languages.find((l) => l.name === languageAccToPlan)?.locale || "multi",
         agentLanguage: agentLanguage,
         dynamicPromptTemplate: filledPrompt,
