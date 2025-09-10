@@ -353,11 +353,9 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       if (!agentId) {
         throw new Error("Agent ID is missing");
       }
-
       // const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
       // await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
       // onUpdate({ phone: phoneData });
-
       localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: stateNameFull }));
       setModalOpen(false);
       setCustomPhoneInput("");
@@ -368,9 +366,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         timer: 1500,
         showConfirmButton: false,
       });
-
       setHasPhoneNumber(true)
-
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
       onNext();
@@ -655,4 +651,3 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
 };
 
 export default AssignNumberStep;
-

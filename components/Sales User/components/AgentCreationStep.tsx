@@ -939,6 +939,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
           loading ? "pointer-events-none opacity-50" : ""
         }`}
       >
+
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="agentName">
