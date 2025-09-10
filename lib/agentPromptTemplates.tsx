@@ -2157,7 +2157,7 @@ ${["Scaler", "Starter", "Growth", "Corporate","paid"].includes(plan) ? "":ifFree
 `,
   },
   //Salon
-  Saloon: {
+  Salon: {
     "General Receptionist": ({
       agentName,
       business,
