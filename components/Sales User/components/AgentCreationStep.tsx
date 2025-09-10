@@ -251,6 +251,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   const savedDataAgentAndBusinessDetails = JSON.parse(
     localStorage.getItem("formData") || "{}"
   );
+  localStorage.setItem("planType", formData.planType)
   const extractedDetails = {
     // From agent
     language: savedDataAgentAndBusinessDetails?.agent?.language || "",
@@ -329,7 +330,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
       };
       // return
       const plan = formData.planType;
-      const languageAccToPlan = ["Scaler", "Growth", "Corporate","paid"].includes(plan)
+      const languageAccToPlan = ["Scaler", "Growth", "Corporate", "paid"].includes(plan)
         ? "multi"
         : formData.agentLanguage;
       const currentState = bssinessDetails?.state || "";
@@ -739,14 +740,14 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
         console.error("updateAgentWidgetDomain failed:", e);
       }
       localStorage.setItem("agent_id", agentId);
-     const avatarValue =
-  avatar && avatar.startsWith("/") ? avatar.split("/").slice(1).join("/") : avatar;
+      const avatarValue =
+        avatar && avatar.startsWith("/") ? avatar.split("/").slice(1).join("/") : avatar;
       const dbPayload = {
         userId: localStorage.getItem("AgentForUserId") || "",
         agent_id: agentId,
         llmId,
         agentCreatedBy: "admin",
-        avatar:avatarValue,
+        avatar: avatarValue,
         agentVoice: voice,
         knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
         agentAccent: form.selectedVoice?.voice_accent || "American",
@@ -935,9 +936,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
     >
       <form
         onSubmit={handleNext}
-        className={`space-y-6 ${
-          loading ? "pointer-events-none opacity-50" : ""
-        }`}
+        className={`space-y-6 ${loading ? "pointer-events-none opacity-50" : ""
+          }`}
       >
 
         <div className="space-y-4">
@@ -980,9 +980,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                   <SelectItem key={lang.locale} value={lang.locale}>
                     <span className="flex items-center gap-2">
                       <img
-                        src={`https://flagcdn.com/w20/${
-                          lang.locale.split("-")[1]?.toLowerCase() || "us"
-                        }.png`}
+                        src={`https://flagcdn.com/w20/${lang.locale.split("-")[1]?.toLowerCase() || "us"
+                          }.png`}
                         alt="flag"
                         className="w-5 h-5"
                         onError={(e) => {
@@ -1166,11 +1165,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                       className="py-2"
                     >
                       <div
-                        className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${
-                          formData.voice === voice.voice_id
+                        className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${formData.voice === voice.voice_id
                             ? "border-purple-500 bg-purple-50"
                             : "border-gray-200 hover:border-purple-400"
-                        }`}
+                          }`}
                       >
                         <div>
                           <p className="text-sm font-medium text-gray-900">
@@ -1267,11 +1265,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                   <div
                     key={index}
                     onClick={() => setFormData({ ...formData, avatar: av.img })}
-                    className={`cursor-pointer flex flex-col items-center rounded-2xl border p-2 shadow-sm transition-all duration-200 ${
-                      formData.avatar === av.img
+                    className={`cursor-pointer flex flex-col items-center rounded-2xl border p-2 shadow-sm transition-all duration-200 ${formData.avatar === av.img
                         ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
                         : "border-gray-200 hover:border-purple-400 hover:shadow-md"
-                    }`}
+                      }`}
                   >
                     <img
                       src={av.img}
@@ -1305,11 +1302,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                 <div
                   key={index}
                   onClick={() => setFormData({ ...formData, role: role.title })}
-                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${
-                    formData.role === role.title
+                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${formData.role === role.title
                       ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
                       : "border-gray-200 hover:border-purple-400 hover:shadow-md"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>
@@ -1363,14 +1359,12 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
             <button
               type="button"
               onClick={() => setCallRecording(!callRecording)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
-                callRecording ? "bg-purple-600" : "bg-gray-300"
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${callRecording ? "bg-purple-600" : "bg-gray-300"
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
-                  callRecording ? "translate-x-6" : "translate-x-1"
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${callRecording ? "translate-x-6" : "translate-x-1"
+                  }`}
               />
             </button>
           </div>
@@ -1427,11 +1421,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                         plan.value === "free" ? formData.freeMinutes : "",
                     })
                   }
-                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${
-                    formData.planType === plan.value
+                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${formData.planType === plan.value
                       ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
                       : "border-gray-200 hover:border-purple-400 hover:shadow-md"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div>

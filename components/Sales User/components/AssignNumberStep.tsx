@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import 'react-phone-input-2/lib/style.css'
 import PhoneInput from 'react-phone-input-2'
-import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, updateAgent } from "@/Services/auth";
+import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, sendAgentCreationEmail, updateAgent } from "@/Services/auth";
 import { User, Building2 } from "lucide-react";
 import { checkDomainOfScale } from "recharts/types/util/ChartUtils";
 
@@ -50,6 +50,7 @@ interface AssignNumberStepProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onNext: () => void;
   onPrevious: () => void;
+  onFreeAgent: () => void;
 }
 
 const languages = [
@@ -68,7 +69,7 @@ const languages = [
     flag: "/images/fr-CA.png",
   },
 ];
-const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onNext, onPrevious }) => {
+const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onNext, onPrevious, onFreeAgent }) => {
   const [phoneData, setPhoneData] = useState<FormData["phone"]>({
     countryCode: data.business?.countryCode || localStorage.getItem("phoneFormData") ? JSON.parse(localStorage.getItem("phoneFormData")!).countryCode : "US",
     stateCode: data.business?.stateCode || localStorage.getItem("phoneFormData") ? JSON.parse(localStorage.getItem("phoneFormData")!).stateCode : "",
@@ -97,7 +98,10 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   const state = localStorage.getItem("state")
   const agentId = localStorage.getItem("agent_id");
   const [hasPhoneNumber, setHasPhoneNumber] = useState(false);
-  const [customNoBtnLoading,setCustomNoBtnLoading]=useState(false)
+  const [customNoBtnLoading, setCustomNoBtnLoading] = useState(false)
+
+  const planType1 = localStorage.getItem("planType")
+  console.log(planType1)
   useEffect(() => {
     const savedPhone = localStorage.getItem("phoneNumber");
     if (savedPhone) {
@@ -330,9 +334,16 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         showConfirmButton: false,
       });
       setCustomNoBtnLoading(false)
+      sendAgentCreationEmail(agentId)
+      if (planType1 === "paid") {
+        onNext();
+      }
+      else {
+        onFreeAgent()
+      }
     }
     else {
-       setCustomNoBtnLoading(false)
+      setCustomNoBtnLoading(false)
       Swal.fire({
         icon: "error",
         title: "Wrong Number",
@@ -358,8 +369,6 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
       await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
       onUpdate({ phone: phoneData });
-
-
       localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: stateNameFull }));
       setModalOpen(false);
       setCustomPhoneInput("");
@@ -373,7 +382,13 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       setHasPhoneNumber(true)
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
-      onNext();
+      sendAgentCreationEmail(agentId)
+      if (planType1 === "paid") {
+        onNext();
+      }
+      else {
+        onFreeAgent()
+      }
     } catch (error: any) {
       console.error("Error assigning number:", error);
       let errorMsg = "Failed to assign number.";
