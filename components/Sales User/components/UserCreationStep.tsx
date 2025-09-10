@@ -61,6 +61,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   const [showReferralInput, setShowReferralInput] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [emailExists, setEmailExists] = useState(false);
+  const [userCheck, setuserCheck] = useState({name:'',phone:''});
 
   const checkReferralAvailability = useCallback(
     debounce(async (referalName: string) => {
@@ -304,6 +305,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
     
         setErrors((prev) => ({ ...prev, email: "User already exists.Create agent direct" }));
         setFormData({ ...formData, name: response?.user?.name ,phone: response?.user?.phone });
+        setuserCheck({name:response?.user?.name,phone:response?.user?.phone})
         if (typeof window !== "undefined") {
 
           localStorage.setItem("AgentForUserId", response?.user?.userId );
@@ -365,15 +367,15 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Full Name <span className="text-red-500">*</span></Label>
-            <Input id="name" value={formData.name}  readOnly={emailExists} 
- onChange={handleNameChange} placeholder="Enter full name" />
+            <Input id="name" value={formData.name}  readOnly={emailExists && !!userCheck.name} 
+             onChange={handleNameChange} placeholder="Enter full name" />
             {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
           </div>
        
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number <span className="text-red-500">*</span></Label>
             <PhoneInput
-             disabled={emailExists}
+             disabled={emailExists && !!userCheck.phone}
               country="in"
               value={formData.phone}
               onChange={(phone) => {
