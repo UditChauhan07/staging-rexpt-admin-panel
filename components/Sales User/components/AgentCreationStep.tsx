@@ -2,7 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
 import StepWrapper from "./StepWrapper";
 import {
@@ -19,10 +25,10 @@ import dynamic from "next/dynamic";
 import Swal from "sweetalert2";
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 import getTimezoneFromState from "@/lib/getTimezone";
-import languages from "@/lib/languages"
-import avatars from "@/lib/avatars"
-import roles from "@/lib/roles"
-import extractAddressFields from "@/lib/extractAddressFields"
+import languages from "@/lib/languages";
+import avatars from "@/lib/avatars";
+import roles from "@/lib/roles";
+import extractAddressFields from "@/lib/extractAddressFields";
 interface FormData {
   business?: any;
   agent?: {
@@ -44,7 +50,12 @@ interface AgentCreationStepProps {
   onNext: () => void;
   onPrevious: () => void;
 }
-const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, onNext, onPrevious }) => {
+const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
+  data,
+  onUpdate,
+  onNext,
+  onPrevious,
+}) => {
   const defaultAgent: AgentForm = {
     name: "",
     language: "",
@@ -64,29 +75,56 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        return parsed.agent || {
-          name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "", planType: "",
-          freeMinutes: "",
-        };
+        return (
+          parsed.agent || {
+            name: "",
+            language: "",
+            agentLanguage: "",
+            gender: "",
+            voice: "",
+            avatar: "",
+            role: "",
+            planType: "",
+            freeMinutes: "",
+          }
+        );
       } catch (e) {
         console.error("Invalid JSON in localStorage:", e);
       }
     }
     // If nothing in localStorage, fallback to data.agent
-    return data.agent || {
-      name: "", language: "", agentLanguage: "", gender: "", voice: "", avatar: "", role: "", planType: "",
-      freeMinutes: "",
-    };
+    return (
+      data.agent || {
+        name: "",
+        language: "",
+        agentLanguage: "",
+        gender: "",
+        voice: "",
+        avatar: "",
+        role: "",
+        planType: "",
+        freeMinutes: "",
+      }
+    );
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [retellVoices, setRetellVoices] = useState<{ voice_id: string; voice_name: string; gender: string; accent?: string; provider: string; preview_audio_url: string }[]>([]);
+  const [retellVoices, setRetellVoices] = useState<
+    {
+      voice_id: string;
+      voice_name: string;
+      gender: string;
+      accent?: string;
+      provider: string;
+      preview_audio_url: string;
+    }[]
+  >([]);
   const [filteredVoices, setFilteredVoices] = useState<any[]>([]);
   const [loadingVoices, setLoadingVoices] = useState(false);
   const [voiceError, setVoiceError] = useState("");
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
-   const [callRecording, setCallRecording] = useState(  );
-  const [loading, setLoading] = useState(false)
+  const [callRecording, setCallRecording] = useState();
+  const [loading, setLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
@@ -103,7 +141,9 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   useEffect(() => {
     if (retellVoices && formData.gender) {
       const filtered = retellVoices.filter(
-        (v) => v.provider === "elevenlabs" && v.gender?.toLowerCase() === formData.gender.toLowerCase()
+        (v) =>
+          v.provider === "elevenlabs" &&
+          v.gender?.toLowerCase() === formData.gender.toLowerCase()
       );
       setFilteredVoices(filtered);
     } else {
@@ -147,8 +187,15 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     if (formData.planType === "free") {
       const val = formData.freeMinutes;
       // treat empty, zero, non-number as invalid
-      if (val === "" || val === undefined || val === null || isNaN(Number(val)) || Number(val) <= 0) {
-        newErrors.freeMinutes = "Free minutes are required and must be a positive number";
+      if (
+        val === "" ||
+        val === undefined ||
+        val === null ||
+        isNaN(Number(val)) ||
+        Number(val) <= 0
+      ) {
+        newErrors.freeMinutes =
+          "Free minutes are required and must be a positive number";
       }
     }
 
@@ -195,12 +242,15 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     e.preventDefault();
     if (!validate()) return;
 
-    const selectedVoice = filteredVoices.find((voice) => voice.voice_id === formData.voice);
+    const selectedVoice = filteredVoices.find(
+      (voice) => voice.voice_id === formData.voice
+    );
     onUpdate({ agent: { ...formData, selectedVoice } });
-
   };
   //extractAddressFields
-  const savedDataAgentAndBusinessDetails = JSON.parse(localStorage.getItem("formData") || "{}");
+  const savedDataAgentAndBusinessDetails = JSON.parse(
+    localStorage.getItem("formData") || "{}"
+  );
   const extractedDetails = {
     // From agent
     language: savedDataAgentAndBusinessDetails?.agent?.language || "",
@@ -221,7 +271,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
     about: savedDataAgentAndBusinessDetails?.business?.about || "",
     businessType: savedDataAgentAndBusinessDetails?.business?.type || "",
     services: savedDataAgentAndBusinessDetails?.business?.services || [],
-    customBusiness: savedDataAgentAndBusinessDetails?.business?.customServices || []
+    customBusiness:
+      savedDataAgentAndBusinessDetails?.business?.customServices || [],
   };
   const handleSubmit = async () => {
     try {
@@ -242,16 +293,22 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         customBuisness,
         role,
       } = formData;
-      const businessType = localStorage.getItem('businessType')
+      const businessType = localStorage.getItem("businessType");
 
-      setLoading(true)
-      const form = extractedDetails
-      console.log('form', form)
-      localStorage.setItem("agentName", formData?.name)
-      const selectedRole = form.role || "General Receptionist"
-      const addressFields = JSON.parse(localStorage.getItem('addressComponents'));
-      const bssinessDetails = extractAddressFields(addressFields?.addressComponents)
-      const services1 = addressFields?.services
+      setLoading(true);
+      const form = extractedDetails;
+      console.log("form", form);
+      localStorage.setItem("agentName", formData?.name);
+      const selectedRole = form.role || "General Receptionist";
+      const addressFields = JSON.parse(
+        localStorage.getItem("addressComponents")
+      );
+      const bssinessDetails = extractAddressFields(
+        addressFields?.addressComponents
+      );
+      const services1 = addressFields?.services;
+      console.log(services1, "services");
+
       const getLeadTypeChoices = () => {
         const fixedChoices = [
           "Spam Caller",
@@ -271,18 +328,19 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         return combinedChoices;
       };
       // return
-      const plan = "free";
-      const languageAccToPlan = ["Scaler", "Growth", "Corporate"].includes(plan)
+      const plan = formData.planType;
+      const languageAccToPlan = ["Scaler", "Growth", "Corporate","paid"].includes(plan)
         ? "multi"
         : formData.agentLanguage;
       const currentState = bssinessDetails?.state || "";
-      localStorage.setItem("state", bssinessDetails?.state)
-      localStorage.setItem("country_code", bssinessDetails?.country_code)
-      localStorage.setItem("city", bssinessDetails?.city)
+      localStorage.setItem("state", bssinessDetails?.state);
+      localStorage.setItem("country_code", bssinessDetails?.country_code);
+      localStorage.setItem("city", bssinessDetails?.city);
       const timeZoneGet = await getTimezoneFromState(currentState);
-      const timeZone = timeZoneGet?.timezoneId || "Asia/Calcutta"
-      const aboutBusinessForm = localStorage.getItem("businessonline") || formData.about || "";
-      const currentTime = ""
+      const timeZone = timeZoneGet?.timezoneId || "Asia/Calcutta";
+      const aboutBusinessForm =
+        localStorage.getItem("businessonline") || formData.about || "";
+      const currentTime = "";
       const statesRequiringCallRecording = [
         "Washington",
         "Vermont",
@@ -300,13 +358,14 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         "Connecticut",
         "California",
       ];
-      const initialCallRecording  = statesRequiringCallRecording.includes(currentState)
+      const initialCallRecording = statesRequiringCallRecording.includes(
+        currentState
+      )
         ? true
         : false;
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
-        roleTitle: formData.role
-        ,
+        roleTitle: formData.role,
         agentName: formData.name,
         agentGender: formData.gender,
         business: {
@@ -318,15 +377,16 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         languageSelect: languageAccToPlan,
         businessType,
         aboutBusinessForm, // this will now work fine
-        commaSeparatedServices: services?.join(", ") || "",
+        commaSeparatedServices: services1?.join(", ") || "",
         agentNote: "",
-        timeZone: timeZone?.timezoneId,
+        timeZone: timeZone,
         currentTime,
         languageAccToPlan,
         plan,
         initialCallRecording,
       });
-      console.log('filledPrompt', filledPrompt);
+
+      console.log("filledPrompt", filledPrompt);
 
       const filledPrompt2 = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
@@ -352,7 +412,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       const promptVariablesList = extractPromptVariables(filledPrompt2, {
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: sessionStorage.getItem("agentRole"),
-        agentName: { key: "AGENT NAME", value: form?.agentName || "" },
+        agentName: { key: "AGENT NAME", value: formData?.agentName || "" },
         agentGender: { key: "AGENT GENDER", value: gender || "" },
         business: {
           businessName: {
@@ -549,14 +609,15 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         default_dynamic_variables: {
           customer_name: "John Doe",
           timeZone: timeZone,
-          business_Phone: `${form.phone}` || "",
+          business_Phone:
+            `${data?.business?.internationalPhoneNumber} || ${data?.business?.phone} ` ||
+            "",
           business_email: `${form.email}` || "",
-
         },
       };
       const knowledgeBaseId = localStorage.getItem("knowledgeBaseId");
       agentConfig.knowledge_base_ids = [knowledgeBaseId];
-      ///LLM CREATION API 
+      ///LLM CREATION API
       const llmRes = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/api/agent/createAdmin/llm`,
         agentConfig,
@@ -568,7 +629,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         }
       );
       const llmId = llmRes.data.data.llm_id;
-      const knowledgebaseName = localStorage.getItem("knowledgebaseName")
+      const knowledgebaseName = localStorage.getItem("knowledgebaseName");
       const finalAgentData = {
         response_engine: { type: "retell-llm", llm_id: llmId },
         voice_id: voice,
@@ -654,7 +715,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         normalize_for_speech: true,
         webhook_url: `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateAgentCall_And_Mins_WebHook`,
       };
-      //CREATE AGENT 
+      //CREATE AGENT
       const agentRes = await axios.post(
         "https://api.retellai.com/create-agent",
         finalAgentData,
@@ -677,18 +738,26 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
       } catch (e) {
         console.error("updateAgentWidgetDomain failed:", e);
       }
-      localStorage.setItem("agent_id", agentId)
+      localStorage.setItem("agent_id", agentId);
+     const avatarValue =
+  avatar && avatar.startsWith("/") ? avatar.split("/").slice(1).join("/") : avatar;
       const dbPayload = {
         userId: localStorage.getItem("AgentForUserId") || "",
         agent_id: agentId,
         llmId,
-        avatar,
+        agentCreatedBy: "admin",
+        avatar:avatarValue,
         agentVoice: voice,
         knowledgeBaseId: localStorage.getItem("knowledgeBaseId"),
         agentAccent: form.selectedVoice?.voice_accent || "American",
         agentRole: selectedRole,
-        agentName: formData.name || form.selectedVoice?.voice_name || "Virtual Assistant",
-        agentLanguageCode: languages.find((l) => l.name === languageAccToPlan)?.locale || "multi",
+        agentName:
+          formData.name ||
+          form.selectedVoice?.voice_name ||
+          "Virtual Assistant",
+        agentLanguageCode:
+          languages.find((l) => l.name === languageAccToPlan)?.locale ||
+          "multi",
         agentLanguage: agentLanguage,
         dynamicPromptTemplate: filledPrompt,
         rawPromptTemplate: filledPrompt2,
@@ -704,6 +773,49 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         CallRecording: initialCallRecording,
         interruption_sensitivity: 0.7,
         backchannel_frequency: 0.7,
+        general_tools: [
+          {
+            type: "end_call",
+            name: "end_call",
+            description: "End the call with user.",
+          },
+          {
+            type: "extract_dynamic_variable",
+            name: "extract_user_details",
+            description:
+              "Extract the user's details like name, email, phone number, address, and reason for calling from the conversation",
+            variables: [
+              {
+                type: "string",
+                name: "email",
+                description:
+                  "Extract the user's email address from the conversation",
+              },
+              {
+                type: "number",
+                name: "phone",
+                description:
+                  "Extract the user's phone number from the conversation",
+              },
+              {
+                type: "string",
+                name: "address",
+                description: "Extract the user's address from the conversation",
+              },
+              {
+                type: "string",
+                name: "reason",
+                description:
+                  "Extract the user's reason for calling from the conversation",
+              },
+              {
+                type: "string",
+                name: "name",
+                description: "Extract the user's name from the conversation\"",
+              },
+            ],
+          },
+        ],
         backchannel_words: [
           "Got it",
           "Yeah",
@@ -775,7 +887,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
 
       const saveRes = await createAgent(dbPayload);
       if (saveRes.status === 200 || saveRes.status === 201) {
-
         Swal.fire({
           icon: "success",
           title: "Created",
@@ -783,20 +894,24 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           timer: 1500,
           showConfirmButton: false,
         });
-        setLoading(false)
+        setLoading(false);
         setTimeout(() => {
           onNext();
         }, 2000);
 
-        if (formData.planType == 'free') {
+        if (formData.planType == "free") {
           try {
-            const res = await axios.put(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`, { agentId: saveRes?.data?.agent_id, mins: formData?.freeMinutes }, {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-              },
-            });
+            const res = await axios.put(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`,
+              { agentId: saveRes?.data?.agent_id, mins: formData?.freeMinutes },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
           } catch (error) {
-            console.log('error while adding free minutes', error)
+            console.log("error while adding free minutes", error);
           }
         }
       } else {
@@ -812,26 +927,48 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
   }, [formData]);
 
   return (
-    <StepWrapper step={3} totalSteps={4} title="Agent Creation" description="Configure the agent for the business.">
-      <form onSubmit={handleNext} className="space-y-6">
+    <StepWrapper
+      step={3}
+      totalSteps={4}
+      title="Agent Creation"
+      description="Configure the agent for the business."
+    >
+      <form
+        onSubmit={handleNext}
+        className={`space-y-6 ${
+          loading ? "pointer-events-none opacity-50" : ""
+        }`}
+      >
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="agentName">Agent Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="agentName">
+              Agent Name <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="agentName"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Enter agent name"
             />
-            {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="language">Language <span className="text-red-500">*</span></Label>
+            <Label htmlFor="language">
+              Language <span className="text-red-500">*</span>
+            </Label>
             <Select
               value={formData.language}
               onValueChange={(v) => {
                 const lang = languages.find((l) => l.locale === v);
-                setFormData({ ...formData, language: v, agentLanguage: lang?.name || v });
+                setFormData({
+                  ...formData,
+                  language: v,
+                  agentLanguage: lang?.name || v,
+                });
               }}
             >
               <SelectTrigger>
@@ -842,7 +979,9 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                   <SelectItem key={lang.locale} value={lang.locale}>
                     <span className="flex items-center gap-2">
                       <img
-                        src={`https://flagcdn.com/w20/${lang.locale.split("-")[1]?.toLowerCase() || "us"}.png`}
+                        src={`https://flagcdn.com/w20/${
+                          lang.locale.split("-")[1]?.toLowerCase() || "us"
+                        }.png`}
                         alt="flag"
                         className="w-5 h-5"
                         onError={(e) => {
@@ -858,13 +997,55 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 ))}
               </SelectContent>
             </Select>
-            {errors.language && <p className="text-sm text-red-600">{errors.language}</p>}
+            {errors.language && (
+              <p className="text-sm text-red-600">{errors.language}</p>
+            )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="gender">Gender <span className="text-red-500">*</span></Label>
+            <Label htmlFor="gender">
+              Gender <span className="text-red-500">*</span>
+            </Label>
+
             <Select
               value={formData.gender}
-              onValueChange={(v) => setFormData({ ...formData, gender: v, avatar: "", voice: "" })}
+              onValueChange={(v) =>
+                setFormData({ ...formData, gender: v, avatar: "", voice: "" })
+              }
+            >
+              <SelectTrigger className="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-purple-500">
+                <SelectValue placeholder="Choose gender" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="Male">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-500"></span>
+                    <span>Male</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Female">
+                  <div className="flex items-center gap-2">
+                    <span className="text-pink-500"></span>
+                    <span>Female</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            {errors.gender && (
+              <p className="text-sm text-red-600">{errors.gender}</p>
+            )}
+          </div>
+
+          {/* <div className="space-y-2">
+            <Label htmlFor="gender">
+              Gender <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={formData.gender}
+              onValueChange={(v) =>
+                setFormData({ ...formData, gender: v, avatar: "", voice: "" })
+              }
             >
               <SelectTrigger>
                 <SelectValue placeholder="Choose gender" />
@@ -874,16 +1055,22 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 <SelectItem value="Female">Female</SelectItem>
               </SelectContent>
             </Select>
-            {errors.gender && <p className="text-sm text-red-600">{errors.gender}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="voice">Voice <span className="text-red-500">*</span></Label>
+            {errors.gender && (
+              <p className="text-sm text-red-600">{errors.gender}</p>
+            )}
+          </div> */}
+          {/* <div className="space-y-2">
+            <Label htmlFor="voice">
+              Voice <span className="text-red-500">*</span>
+            </Label>
             {loadingVoices ? (
               <p className="text-sm text-gray-500">Loading voices...</p>
             ) : voiceError ? (
               <p className="text-sm text-red-600">{voiceError}</p>
             ) : filteredVoices.length === 0 ? (
-              <p className="text-sm text-gray-500">No voices found for selected gender</p>
+              <p className="text-sm text-gray-500">
+                No voices found for selected gender
+              </p>
             ) : (
               <Select
                 value={formData.voice}
@@ -896,11 +1083,21 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px] overflow-y-auto">
                   {filteredVoices.map((voice, index) => (
-                    <SelectItem key={index} value={voice.voice_id} className="py-2">
+                    <SelectItem
+                      key={index}
+                      value={voice.voice_id}
+                      className="py-2"
+                    >
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="text-sm font-medium">{voice.voice_name}</p>
-                          <p className="text-xs text-gray-500 capitalize">{voice.accent ? `${voice.accent} Accent` : voice.provider}</p>
+                          <p className="text-sm font-medium">
+                            {voice.voice_name}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">
+                            {voice.accent
+                              ? `${voice.accent} Accent`
+                              : voice.provider}
+                          </p>
                         </div>
                         <Button
                           type="button"
@@ -917,8 +1114,14 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                             <Play className="w-4 h-4 text-gray-500" />
                           )}
                         </Button>
-                        <audio ref={(el) => (audioRefs.current[index] = el)} style={{ display: "none" }}>
-                          <source src={voice.preview_audio_url} type="audio/mpeg" />
+                        <audio
+                          ref={(el) => (audioRefs.current[index] = el)}
+                          style={{ display: "none" }}
+                        >
+                          <source
+                            src={voice.preview_audio_url}
+                            type="audio/mpeg"
+                          />
                         </audio>
                       </div>
                     </SelectItem>
@@ -926,10 +1129,100 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 </SelectContent>
               </Select>
             )}
-            {errors.voice && <p className="text-sm text-red-600">{errors.voice}</p>}
-          </div>
+            {errors.voice && (
+              <p className="text-sm text-red-600">{errors.voice}</p>
+            )}
+          </div> */}
           <div className="space-y-2">
-            <Label htmlFor="avatar">Avatar <span className="text-red-500">*</span></Label>
+            <Label htmlFor="voice">
+              Voice <span className="text-red-500">*</span>
+            </Label>
+
+            {loadingVoices ? (
+              <p className="text-sm text-gray-500">Loading voices...</p>
+            ) : voiceError ? (
+              <p className="text-sm text-red-600">{voiceError}</p>
+            ) : filteredVoices.length === 0 ? (
+              <p className="text-sm text-gray-500">
+                No voices found for selected gender
+              </p>
+            ) : (
+              <Select
+                value={formData.voice}
+                onValueChange={(v) => {
+                  setFormData({ ...formData, voice: v });
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose voice" />
+                </SelectTrigger>
+
+                <SelectContent className="max-h-[300px] overflow-y-auto">
+                  {filteredVoices.map((voice, index) => (
+                    <SelectItem
+                      key={index}
+                      value={voice.voice_id}
+                      className="py-2"
+                    >
+                      <div
+                        className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${
+                          formData.voice === voice.voice_id
+                            ? "border-purple-500 bg-purple-50"
+                            : "border-gray-200 hover:border-purple-400"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {voice.voice_name}
+                          </p>
+                          <p className="text-xs text-gray-500 capitalize">
+                            {voice.accent
+                              ? `${voice.accent} Accent`
+                              : voice.provider}
+                          </p>
+                        </div>
+
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            togglePlay(index);
+                          }}
+                        >
+                          {playingIdx === index ? (
+                            <Pause className="w-4 h-4 text-gray-500" />
+                          ) : (
+                            <Play className="w-4 h-4 text-gray-500" />
+                          )}
+                        </Button>
+
+                        <audio
+                          ref={(el) => (audioRefs.current[index] = el)}
+                          style={{ display: "none" }}
+                        >
+                          <source
+                            src={voice.preview_audio_url}
+                            type="audio/mpeg"
+                          />
+                        </audio>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {errors.voice && (
+              <p className="text-sm text-red-600">{errors.voice}</p>
+            )}
+          </div>
+
+          {/* <div className="space-y-2">
+            <Label htmlFor="avatar">
+              Avatar <span className="text-red-500">*</span>
+            </Label>
             {formData.gender ? (
               <Select
                 value={formData.avatar}
@@ -942,7 +1235,11 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                   {avatars[formData.gender]?.map((av, index) => (
                     <SelectItem key={index} value={av.img}>
                       <span className="flex items-center gap-2">
-                        <img src={av.img} alt={`Avatar ${index + 1}`} className="w-6 h-6 rounded-full" />
+                        <img
+                          src={av.img}
+                          alt={`Avatar ${index + 1}`}
+                          className="w-6 h-6 rounded-full"
+                        />
                         Avatar {index + 1}
                       </span>
                     </SelectItem>
@@ -950,43 +1247,137 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 </SelectContent>
               </Select>
             ) : (
-              <p className="text-sm text-gray-500">Select gender to choose avatar</p>
+              <p className="text-sm text-gray-500">
+                Select gender to choose avatar
+              </p>
             )}
-            {errors.avatar && <p className="text-sm text-red-600">{errors.avatar}</p>}
-          </div>
+            {errors.avatar && (
+              <p className="text-sm text-red-600">{errors.avatar}</p>
+            )}
+          </div> */}
           <div className="space-y-2">
-            <Label>Agent Role <span className="text-red-500">*</span></Label>
-            {roles.map((role, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name="agentRole"
-                  value={role.title}
-                  checked={formData.role === role.title}
-                  onChange={() => setFormData({ ...formData, role: role.title })}
-                />
-                <div>
-                  <p className="font-medium">{role.title}</p>
-                  <p className="text-sm text-gray-500">{role.description}</p>
-                </div>
+            <Label htmlFor="avatar">
+              Avatar <span className="text-red-500">*</span>
+            </Label>
+
+            {formData.gender ? (
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                {avatars[formData.gender]?.map((av, index) => (
+                  <div
+                    key={index}
+                    onClick={() => setFormData({ ...formData, avatar: av.img })}
+                    className={`cursor-pointer flex flex-col items-center rounded-2xl border p-2 shadow-sm transition-all duration-200 ${
+                      formData.avatar === av.img
+                        ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                        : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                    }`}
+                  >
+                    <img
+                      src={av.img}
+                      alt={`Avatar ${index + 1}`}
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <span className="mt-1 text-xs text-gray-700">
+                      Avatar {index + 1}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-            {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
+            ) : (
+              <p className="text-sm text-gray-500">
+                Select gender to choose avatar
+              </p>
+            )}
+
+            {errors.avatar && (
+              <p className="text-sm text-red-600">{errors.avatar}</p>
+            )}
           </div>
-         <div className="flex items-center space-x-2">
-      <label htmlFor="callRecordingToggle" className="font-medium">
-        Call Recording:
-      </label>
-      <input
-        type="checkbox"
-        id="callRecordingToggle"
-        checked={callRecording}
-        onChange={(e) => setCallRecording(e.target.checked)}
-        className="w-5 h-5"
-      />
-    </div>
+
           <div className="space-y-2">
-            <Label>Plan Type <span className="text-red-500">*</span></Label>
+            <Label>
+              Agent Role <span className="text-red-500">*</span>
+            </Label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {roles.map((role, index) => (
+                <div
+                  key={index}
+                  onClick={() => setFormData({ ...formData, role: role.title })}
+                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${
+                    formData.role === role.title
+                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                      : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {role.title}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {role.description}
+                      </p>
+                    </div>
+                    <input
+                      type="radio"
+                      name="agentRole"
+                      value={role.title}
+                      checked={formData.role === role.title}
+                      onChange={() =>
+                        setFormData({ ...formData, role: role.title })
+                      }
+                      className="mt-1 accent-purple-600"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {errors.role && (
+              <p className="text-sm text-red-600">{errors.role}</p>
+            )}
+          </div>
+
+          {/* <div className="flex items-center space-x-2">
+            <label htmlFor="callRecordingToggle" className="font-medium">
+              Call Recording:
+            </label>
+            <input
+              type="checkbox"
+              id="callRecordingToggle"
+              checked={callRecording}
+              onChange={(e) => setCallRecording(e.target.checked)}
+              className="w-5 h-5"
+            />
+          </div> */}
+          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+            <label
+              htmlFor="callRecordingToggle"
+              className="font-medium text-gray-800"
+            >
+              Call Recording
+            </label>
+
+            <button
+              type="button"
+              onClick={() => setCallRecording(!callRecording)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${
+                callRecording ? "bg-purple-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+                  callRecording ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* <div className="space-y-2">
+            <Label>
+              Plan Type <span className="text-red-500">*</span>
+            </Label>
             <select
               className="border rounded px-2 py-1"
               value={formData.planType}
@@ -994,7 +1385,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                 setFormData({
                   ...formData,
                   planType: e.target.value,
-                  freeMinutes: e.target.value === "free" ? formData.freeMinutes : "", // clear freeMinutes if paid
+                  freeMinutes:
+                    e.target.value === "free" ? formData.freeMinutes : "", // clear freeMinutes if paid
                 })
               }
             >
@@ -1005,12 +1397,81 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
             {errors.planType && (
               <p className="text-sm text-red-600">{errors.planType}</p>
             )}
+          </div> */}
+          <div className="space-y-2">
+            <Label>
+              Plan Type <span className="text-red-500">*</span>
+            </Label>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                {
+                  value: "free",
+                  label: "Free",
+                  description: "Includes limited free minutes",
+                },
+                {
+                  value: "paid",
+                  label: "Paid",
+                  description: "Premium features & unlimited usage",
+                },
+              ].map((plan) => (
+                <div
+                  key={plan.value}
+                  onClick={() =>
+                    setFormData({
+                      ...formData,
+                      planType: plan.value,
+                      freeMinutes:
+                        plan.value === "free" ? formData.freeMinutes : "",
+                    })
+                  }
+                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${
+                    formData.planType === plan.value
+                      ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
+                      : "border-gray-200 hover:border-purple-400 hover:shadow-md"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="font-semibold text-gray-900">
+                        {plan.label}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {plan.description}
+                      </p>
+                    </div>
+                    <input
+                      type="radio"
+                      name="planType"
+                      value={plan.value}
+                      checked={formData.planType === plan.value}
+                      onChange={() =>
+                        setFormData({
+                          ...formData,
+                          planType: plan.value,
+                          freeMinutes:
+                            plan.value === "free" ? formData.freeMinutes : "",
+                        })
+                      }
+                      className="mt-1 accent-purple-600"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {errors.planType && (
+              <p className="text-sm text-red-600">{errors.planType}</p>
+            )}
           </div>
 
           {/* Free Minutes Input (shown only if "Free" is selected) */}
-          {formData.planType === 'free' && (
+          {/* {formData.planType === "free" && (
             <div className="space-y-2">
-              <Label>Free Minutes <span className="text-red-500">*</span></Label>
+              <Label>
+                Free Minutes <span className="text-red-500">*</span>
+              </Label>
               <input
                 type="number"
                 min={1}
@@ -1020,17 +1481,51 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
                   setFormData({
                     ...formData,
                     // keep empty string for blank; otherwise convert to number
-                    freeMinutes: e.target.value === "" ? "" : Number(e.target.value),
+                    freeMinutes:
+                      e.target.value === "" ? "" : Number(e.target.value),
                   })
                 }
                 placeholder="Enter number of free minutes"
               />
-              {errors.freeMinutes && <p className="text-sm text-red-600">{errors.freeMinutes}</p>}
+              {errors.freeMinutes && (
+                <p className="text-sm text-red-600">{errors.freeMinutes}</p>
+              )}
+            </div>
+          )} */}
+          {formData.planType === "free" && (
+            <div className="mt-4 rounded-2xl border p-4 shadow-sm">
+              <Label className="block mb-2 font-medium text-gray-800">
+                Free Minutes <span className="text-red-500">*</span>
+              </Label>
+              <input
+                type="number"
+                min={1}
+                className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
+                value={formData.freeMinutes ?? ""}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    freeMinutes:
+                      e.target.value === "" ? "" : Number(e.target.value),
+                  })
+                }
+                placeholder="Enter number of free minutes"
+              />
+              {errors.freeMinutes && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.freeMinutes}
+                </p>
+              )}
             </div>
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
-          <Button type="button" variant="outline" onClick={onPrevious} className="w-full sm:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onPrevious}
+            className="w-full sm:w-auto"
+          >
             <ChevronLeft className="w-4 h-4 mr-2" /> Previous
           </Button>
 
@@ -1042,7 +1537,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
           >
             {loading ? "Loading..." : "Next: Assign Number "}
           </Button>
-
         </div>
       </form>
     </StepWrapper>
