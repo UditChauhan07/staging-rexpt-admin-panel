@@ -242,7 +242,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({ data, onUpdate, o
         role,
       } = formData;
       const businessType = localStorage.getItem('businessType')
-      console.log()
+      
       setLoading(true)
       const form = extractedDetails
       console.log('form', form)
