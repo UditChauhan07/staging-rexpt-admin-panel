@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import axios from "axios";
 import 'react-phone-input-2/lib/style.css'
 import PhoneInput from 'react-phone-input-2'
-import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, updateAgent} from "@/Services/auth";
+import { createNumberOrder, fetchAvailablePhoneNumberByCountry, importPhoneToAgentFromAdmin, updateAgent } from "@/Services/auth";
 import { User, Building2 } from "lucide-react";
 
 // Debug imports
@@ -94,11 +94,11 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   const requestVersion = useRef(0);
   const token = localStorage.getItem("token") || "";
   const [googlePlacesLoaded, setGooglePlacesLoaded] = useState(false);
-  const details=JSON.parse(localStorage.getItem("formData"))
-  const businessName=details?.business?.name
-  const agentName=localStorage.getItem("agentName")
-   const state=localStorage.getItem("state")
-      const agentId =  localStorage.getItem("agent_id");
+  const details = JSON.parse(localStorage.getItem("formData"))
+  const businessName = details?.business?.name
+  const agentName = localStorage.getItem("agentName")
+  const state = localStorage.getItem("state")
+  const agentId = localStorage.getItem("agent_id");
   useEffect(() => {
     if (window.google?.maps?.places) {
       setGooglePlacesLoaded(true);
@@ -127,7 +127,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         city: data.business.city || "",
         selectedNumber: "",
       });
-      setStateNameFull(state|| "");
+      setStateNameFull(state || "");
     }
 
     if (phoneData.countryCode && phoneData.stateCode && token && !isCustomPhone) {
@@ -147,7 +147,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
   }, [data.business, isCustomPhone]);
 
   useEffect(() => {
-    localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state:state }));
+    localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: state }));
   }, [phoneData, state]);
 
   useEffect(() => {
@@ -213,7 +213,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
         setAvailableNumbers(res.data.map((item: any) => item.phone_number));
       } else {
         const fallbackRes = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, "", phoneData.stateCode);
-        
+
         if (requestVersion.current !== currentVersion) return;
         if (fallbackRes?.success && fallbackRes?.data?.length > 0) {
           setPhoneData((prev) => ({ ...prev, city: "" }));
@@ -308,13 +308,13 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     setErrors((prev) => ({ ...prev, selectedNumber: "" }));
   };
 
-  const handleCustomPhoneSubmit = async() => {
+  const handleCustomPhoneSubmit = async () => {
     alert("ok")
-    console.log(customPhoneInput,"ureutretretre")
+    console.log(customPhoneInput, "ureutretretre")
     return
     if (validate()) {
-   
-      const response=await importPhoneToAgentFromAdmin(token,phone_number,agentId,agentId)
+
+      const response = await importPhoneToAgentFromAdmin(token, phone_number, agentId, agentId)
 
       setPhoneData((prev) => ({ ...prev, selectedNumber: customPhoneInput }));
       setModalOpen(true);
@@ -329,11 +329,11 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     }
     setLoading(true);
     try {
-   
+
       if (!agentId) {
         throw new Error("Agent ID is missing");
       }
-    const a=  await createNumberOrder(token,phoneData.selectedNumber, agentId);
+      const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
       await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
       onUpdate({ phone: phoneData });
       localStorage.setItem("phoneFormData", JSON.stringify({ ...phoneData, state: stateNameFull }));
@@ -375,11 +375,11 @@ const handleNext = (e: React.FormEvent) => {
   onNext();
 };
   const filteredNumbers = availableNumbers.filter((num) => num.includes(search.trim()));
-useEffect(()=>{
-  if (phoneData.countryCode ) {
+  useEffect(() => {
+    if (phoneData.countryCode) {
       fetchNumbersWithFallback();
     }
-},[])
+  }, [])
   return (
     <StepWrapper step={4} totalSteps={7} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
       {initialLoading && !isCustomPhone ? (
@@ -417,23 +417,23 @@ useEffect(()=>{
                   placeholder="Enter phone number (e.g., +1234567890)"
                   className="w-full"
                 /> */}
-                  <PhoneInput
-                    country={'in'} // default country
-                //     value={formData.phone}
-                //     onChange={(phone) => {
-                //   setFormData({ ...formData, phone });
-                //   setErrors({ ...errors, phone: "" });
-                // }}
-                
-                    inputClass="!w-full  !text-sm !rounded !border !border-gray-300"
-                    containerClass="!w-full"
-                    inputProps={{
-                      name: 'phone',
-                      required: true,
-                      id: 'contactNumber',
-                    }}
-                    specialLabel={''}
-                  />
+                <PhoneInput
+                  country={'in'} // default country
+                  //     value={formData.phone}
+                  //     onChange={(phone) => {
+                  //   setFormData({ ...formData, phone });
+                  //   setErrors({ ...errors, phone: "" });
+                  // }}
+
+                  inputClass="!w-full  !text-sm !rounded !border !border-gray-300"
+                  containerClass="!w-full"
+                  inputProps={{
+                    name: 'phone',
+                    required: true,
+                    id: 'contactNumber',
+                  }}
+                  specialLabel={''}
+                />
                 {errors.customPhone && <p className="text-sm text-red-600">{errors.customPhone}</p>}
               </div>
               <Button
@@ -574,21 +574,21 @@ useEffect(()=>{
                 </Dialog.Description>
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                       <User className="w-5 h-5 text-blue-500" />
+                    <User className="w-5 h-5 text-blue-500" />
 
                     <span>
-                    
+
                       <strong>Agent Name:</strong> {agentName || "Unknown"}
                     </span>
                   </div>
-                 
+
                   <div className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-indigo-500" />
                     <span>
                       <strong>Business:</strong> {businessName || "Unknown"}
                     </span>
                   </div>
-                 
+
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
                   <Button variant="outline" onClick={() => setModalOpen(false)}>
@@ -624,7 +624,9 @@ useEffect(()=>{
                 //   }
                 // }}
                 // disabled={loading || !phoneData.selectedNumber}
+
                 onClick={handleNext}
+
                 className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
               >
                 Next: Payment <ChevronRight className="w-4 h-4 ml-2" />
