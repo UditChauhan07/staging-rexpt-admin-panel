@@ -299,8 +299,8 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    if (!phoneData.countryCode) newErrors.countryCode = "Country is required";
-    if (!isCustomPhone && !phoneData.stateCode) newErrors.stateCode = "State is required";
+    // if (!phoneData.countryCode) newErrors.countryCode = "Country is required";
+    // if (!isCustomPhone && !phoneData.stateCode) newErrors.stateCode = "State is required";
     if (!phoneData.selectedNumber) newErrors.selectedNumber = "Please select or enter a phone number";
     if (isCustomPhone && !customPhoneInput.match(/^\+?\d{10,15}$/)) {
       newErrors.customPhone = "Please enter a valid phone number (10-15 digits)";
