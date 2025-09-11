@@ -1317,7 +1317,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               <p className="text-sm text-red-600">{errors.role}</p>
             )}
           </div>
-          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+          {/* <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
               className="font-medium text-gray-800"
@@ -1336,7 +1336,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                   }`}
               />
             </button>
-          </div>
+          </div> */}
           <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
