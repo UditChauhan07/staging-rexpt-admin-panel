@@ -114,7 +114,7 @@ export const deleteAgent = async (id) => {
 export const deactivateAgent = async (id) => {
     try {
         const response = await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/delete-user-agent/${id}`)
-        console.log(response, "backend response")
+       
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -127,7 +127,7 @@ export const deactivateAgent = async (id) => {
 
 export const getRetellVoices=async()=>{
     const res=await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/voicelist/api`)
-       console.log(res)
+       
         return res.data.voices;
      
     
@@ -177,7 +177,7 @@ export const validateWebsite = async (websiteUrl) => {
 export const countAgentsbyUserId = async (userId) => {
   try {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/listAgents?userId=${userId}`);
-    console.log('res',res)
+   
     return res.data.length  || 0;
   } catch (error) {
     console.error("Error fetching agent count:", error);
@@ -188,7 +188,7 @@ export const countAgentsbyUserId = async (userId) => {
 export const check_Referral_Name_Exsitence = async (referalName) => {
   try {
     const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/endusers/checkReferralNameExsitence?referalName=${encodeURIComponent(referalName)}`);
-    console.log('redsdsds',res)
+    
     return res.data  
   } catch (error) {
     console.error("Error fetching agent count:", error);
@@ -245,3 +245,67 @@ export const updateAgentWidgetDomain = async (id, url) => {
   );
   return res.data;
 };
+export const fetchAvailablePhoneNumberByCountry = async (token , country_code, locality, administrative_area, startsWith, endsWith) => {
+  let t = token
+  
+  try {
+   const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/available-numbers`, {
+  params: {
+    country_code,
+    locality,
+    administrative_area,
+    starts_with: startsWith,
+    ends_with: endsWith
+  },
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${t}`,
+  }
+});
+    return res.data;
+  } catch (error) {
+    console.log('error',error)
+   return error.response?.data 
+   
+  }
+}
+
+export const createNumberOrder = async (token,phoneNumbers,agent_id) => {
+  try {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/create-number-order`, { phoneNumbers: phoneNumbers ,agent_id:agent_id} , {
+       headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+    })
+    return res.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const importPhoneToAgentFromAdmin = async (token,customPhoneInput, agentId) => {
+  try {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/telnyx/importPhoneToAgentFromAdmin`, { phone_number: customPhoneInput ,inbound_agent_id:agentId} , {
+       headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+    })
+    return res.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const sendAgentCreationEmail=async(agentId)=>{
+    try {
+    const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/agent/salesagentemail`, {agentId:agentId} , {
+    })
+    return res.data;
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+

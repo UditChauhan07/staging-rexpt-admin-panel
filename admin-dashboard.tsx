@@ -22,6 +22,7 @@ import HelpusQueries from "./components/HelpusQueries";
 import RaiseComment from "./components/RaiseComment";
 import PartnerResources from "./components/PartnerResources/PartnerResources";
 import DemoApp from "./components/DemoApp/DemoApp";
+import AdminUserOnboardingWizard from "./components/Sales User/AdminUserOnboardingWizard";
 interface User {
   id: string;
   name: string;
@@ -166,6 +167,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         return <PartnerResources />;
       case "Demo":
         return <DemoApp />;
+      case "Sales":
+        return <AdminUserOnboardingWizard />;
       // case "products":
       //   return <DataTable onViewKnowledge={handleViewKnowledgeBase}/>;
       case "settings":
