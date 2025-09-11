@@ -151,8 +151,10 @@ let discount = localStorage.getItem("discount")
             checkoutUrl,
             Name: data?.user?.name,
             Plan: data?.payment?.raw?.product?.name,
-           Price: data?.payment?.amount * (1 - discount / 100) ,
+           Price: data?.payment?.amount  ,
             agent_name: localStorage.getItem("agentName"),
+            payable : data?.payment?.amount * (1 - discount / 100) ,
+            discount :`${discount}%`
         
           });
 
