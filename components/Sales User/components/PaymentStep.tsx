@@ -60,6 +60,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onSubmit,
   onNext,
   onPrevious,
+  onFreeAgent
 }) => {
   const [activeTab, setActiveTab] = useState<"free" | "paid">("paid");
   const [products, setProducts] = useState<Product[]>([]);
@@ -70,13 +71,18 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   const [customMinutes, setCustomMinutes] = useState<number>(
     data.payment?.raw?.derived?.mins ?? 20
   );
-  const [loading, setLoading] = useState(false);
+
   const [discount, setDiscount] = useState<number>(data.payment?.discount || 0);
   const [interval, setInterval] = useState<string>(data.payment?.interval || "once");
   const [generateDisabled, setGenerateDisabled] = useState(false);
   const URL = process.env.NEXT_PUBLIC_API_URL;
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-
+  const agentId = localStorage.getItem("agent_id")
+  const [formData, setFormData] = useState({
+    freeMinutes: "",
+    planType: "free", // ya jo aapko default dena ho
+  });
+  const [loading, setLoading] = useState(false);
   const getProducts = async () => {
     setLoading(true);
     try {
@@ -186,8 +192,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     const mins = custom
       ? customMinutes
       : selPrice?.metadata
-      ? Number(selPrice.metadata)
-      : undefined;
+        ? Number(selPrice.metadata)
+        : undefined;
 
     onUpdate({
       payment: {
@@ -209,6 +215,56 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       },
     });
   };
+  const handleSubmit = async () => {
+    if (formData.planType === "free" && formData.freeMinutes) {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: `You are about to update free minutes to ${formData.freeMinutes}.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#6D28D9", // purple
+        cancelButtonColor: "#6B7280", // gray
+        confirmButtonText: "Yes, update it!",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          setLoading(true);
+          const res = await axios.put(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`,
+            {
+              agentId,
+              mins: Number(formData.freeMinutes),
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          console.log("API response:", res.data);
+          Swal.fire({
+            icon: "success",
+            title: "Success!",
+            text: "Free minutes updated successfully ",
+            confirmButtonColor: "#6D28D9",
+          });
+          onFreeAgent()
+        } catch (error) {
+          console.error("error while adding free minutes", error);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Something went wrong ❌",
+            confirmButtonColor: "#EF4444",
+          });
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+  };
 
   return (
     <StepWrapper
@@ -220,17 +276,15 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       {/* Tabs */}
       <div className="flex mb-4">
         <button
-          className={`flex-1 py-2 rounded-t ${
-            activeTab === "free" ? "bg-black text-white" : "bg-gray-200"
-          }`}
+          className={`flex-1 py-2 rounded-t ${activeTab === "free" ? "bg-black text-white" : "bg-gray-200"
+            }`}
           onClick={() => setActiveTab("free")}
         >
           Free
         </button>
         <button
-          className={`flex-1 py-2 rounded-t ${
-            activeTab === "paid" ? "bg-black text-white" : "bg-gray-200"
-          }`}
+          className={`flex-1 py-2 rounded-t ${activeTab === "paid" ? "bg-black text-white" : "bg-gray-200"
+            }`}
           onClick={() => setActiveTab("paid")}
         >
           Paid
@@ -238,7 +292,43 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       </div>
 
       {activeTab === "free" ? (
-        <div className="text-gray-500 p-4 border rounded">Free plan logic coming soon...</div>
+
+        <div className="mt-4 rounded-2xl border p-4 shadow-sm">
+          <label className="block mb-2 font-medium text-gray-800">
+            Free Minutes <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="number"
+            min={1}
+            value={formData.freeMinutes}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                freeMinutes: e.target.value,
+              })
+            }
+            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
+            placeholder="Enter number of free minutes"
+          />
+
+          <button
+            onClick={handleSubmit}
+            disabled={!formData.freeMinutes || loading}
+            className={`mt-4 w-full rounded-xl px-4 py-2 font-medium text-white transition ${!formData.freeMinutes || loading
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700"
+              }`}
+          >
+            {loading ? "Saving..." : "Save Free Minutes"}
+          </button>
+        </div>
+
+
+
+
+
+
+
       ) : (
         <>
           {loading ? (
@@ -285,9 +375,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
                 return (
                   <div
                     key={product.id}
-                    className={`flex flex-col p-4 border rounded-lg ${
-                      selected ? "ring-2 ring-blue-500" : ""
-                    }`}
+                    className={`flex flex-col p-4 border rounded-lg ${selected ? "ring-2 ring-blue-500" : ""
+                      }`}
                   >
                     <label className="flex items-start space-x-3 cursor-pointer flex-1">
                       <input
