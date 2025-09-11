@@ -1360,9 +1360,9 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     }
     if (!formData.name) newErrors.name = "Business name is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.internationalPhoneNumber) {
-      newErrors.internationalPhoneNumber = "Please enter a valid phone number with country code";
-    } 
+    // if (!formData.internationalPhoneNumber) {
+    //   newErrors.internationalPhoneNumber = "Please enter a valid phone number with country code";
+    // } 
     // if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
     //   newErrors.email = "Valid email is required";
     // }
@@ -1527,7 +1527,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             }
           );
         }
-
+console.log(formData.internationalPhoneNumber)
       const savedBusiness: Business = {
         id: businessId,
         type: formData.type,
@@ -2087,7 +2087,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="internationalPhone"> Phone Number <span className="text-red-500">*</span></Label>
-                    {/* <PhoneInput
+                    <PhoneInput
                           // id="internationalPhone"
                           country="in"
                           value={formData.internationalPhoneNumber || ""} 
@@ -2101,9 +2101,9 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                           containerClass="!w-full"
                           inputProps={{ name: "internationalPhoneNumber", id: "internationalPhoneNumber", required: true }}
                           specialLabel="+91"
-                        /> */}
+                        />
                         
-            <Input
+            {/* <Input
               id="internationalPhone"
               value={formData.internationalPhoneNumber || ""}
                  onChange={(phoneNumber) => {
@@ -2111,7 +2111,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                           setFormData({ ...formData, internationalPhoneNumber: formattedNumber });
                         }}
               placeholder="Enter  phone number"
-            /> 
+            />  */}
             {errors.internationalPhoneNumber && <p className="text-sm text-red-600">{errors.internationalPhoneNumber}</p>}
 
           </div>
