@@ -83,9 +83,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
             gender: "",
             voice: "",
             avatar: "",
-            role: "",
-            planType: "",
-            freeMinutes: "",
+            role: ""
           }
         );
       } catch (e) {
@@ -102,8 +100,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
         voice: "",
         avatar: "",
         role: "",
-        planType: "",
-        freeMinutes: "",
       }
     );
   });
@@ -124,9 +120,10 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const [callRecording, setCallRecording] = useState();
+    const [branding, setBranding] = useState()
   const [loading, setLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-
+console.log(branding,"brandingbranding")
   useEffect(() => {
     setLoadingVoices(true);
     getRetellVoices()
@@ -180,24 +177,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
     if (!formData.voice) newErrors.voice = "Voice is required";
     if (!formData.avatar) newErrors.avatar = "Avatar is required";
     if (!formData.role) newErrors.role = "Role is required";
-    if (!formData.planType) {
-      newErrors.planType = "Plan type is required";
-    }
 
-    if (formData.planType === "free") {
-      const val = formData.freeMinutes;
-      // treat empty, zero, non-number as invalid
-      if (
-        val === "" ||
-        val === undefined ||
-        val === null ||
-        isNaN(Number(val)) ||
-        Number(val) <= 0
-      ) {
-        newErrors.freeMinutes =
-          "Free minutes are required and must be a positive number";
-      }
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -884,7 +864,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               "The user's phone number in numeric format. If digits are spoken in words (e.g., 'seven eight seven six one two'), convert them to digits (e.g., '787612'). Ensure it's a valid number when possible.",
           },
         ],
-        createdFlag:true
+        createdFlag: true
       };
 
       const saveRes = await createAgent(dbPayload);
@@ -1168,8 +1148,8 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                       <>
                         <div
                           className={`flex items-center justify-between gap-3 rounded-lg border p-2 transition ${formData.voice === voice.voice_id
-                              ? "border-purple-500 bg-purple-50"
-                              : "border-gray-200 hover:border-purple-400"
+                            ? "border-purple-500 bg-purple-50"
+                            : "border-gray-200 hover:border-purple-400"
                             }`}
                         >
                           <div>
@@ -1339,19 +1319,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               <p className="text-sm text-red-600">{errors.role}</p>
             )}
           </div>
-
-          {/* <div className="flex items-center space-x-2">
-            <label htmlFor="callRecordingToggle" className="font-medium">
-              Call Recording:
-            </label>
-            <input
-              type="checkbox"
-              id="callRecordingToggle"
-              checked={callRecording}
-              onChange={(e) => setCallRecording(e.target.checked)}
-              className="w-5 h-5"
-            />
-          </div> */}
           <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
@@ -1372,150 +1339,26 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               />
             </button>
           </div>
-
-          {/* <div className="space-y-2">
-            <Label>
-              Plan Type <span className="text-red-500">*</span>
-            </Label>
-            <select
-              className="border rounded px-2 py-1"
-              value={formData.planType}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  planType: e.target.value,
-                  freeMinutes:
-                    e.target.value === "free" ? formData.freeMinutes : "", // clear freeMinutes if paid
-                })
-              }
+          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+            <label
+              htmlFor="callRecordingToggle"
+              className="font-medium text-gray-800"
             >
-              <option value="">Select Plan Type</option>
-              <option value="free">Free</option>
-              <option value="paid">Paid</option>
-            </select>
-            {errors.planType && (
-              <p className="text-sm text-red-600">{errors.planType}</p>
-            )}
-          </div> */}
-          <div className="space-y-2">
-            <Label>
-              Plan Type <span className="text-red-500">*</span>
-            </Label>
+              Rexpt Branding
+            </label>
 
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                {
-                  value: "free",
-                  label: "Free",
-                  description: "Includes limited free minutes",
-                },
-                {
-                  value: "paid",
-                  label: "Paid",
-                  description: "Premium features & unlimited usage",
-                },
-              ].map((plan) => (
-                <div
-                  key={plan.value}
-                  onClick={() =>
-                    setFormData({
-                      ...formData,
-                      planType: plan.value,
-                      freeMinutes:
-                        plan.value === "free" ? formData.freeMinutes : "",
-                    })
-                  }
-                  className={`cursor-pointer rounded-2xl border p-4 shadow-sm transition-all duration-200 ${formData.planType === plan.value
-                    ? "border-purple-600 bg-purple-50 ring-2 ring-purple-500"
-                    : "border-gray-200 hover:border-purple-400 hover:shadow-md"
-                    }`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        {plan.label}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {plan.description}
-                      </p>
-                    </div>
-                    <input
-                      type="radio"
-                      name="planType"
-                      value={plan.value}
-                      checked={formData.planType === plan.value}
-                      onChange={() =>
-                        setFormData({
-                          ...formData,
-                          planType: plan.value,
-                          freeMinutes:
-                            plan.value === "free" ? formData.freeMinutes : "",
-                        })
-                      }
-                      className="mt-1 accent-purple-600"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {errors.planType && (
-              <p className="text-sm text-red-600">{errors.planType}</p>
-            )}
+            <button
+              type="button"
+              onClick={() => setBranding(!branding)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${branding ? "bg-purple-600" : "bg-gray-300"
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${branding ? "translate-x-6" : "translate-x-1"
+                  }`}
+              />
+            </button>
           </div>
-
-          {/* Free Minutes Input (shown only if "Free" is selected) */}
-          {/* {formData.planType === "free" && (
-            <div className="space-y-2">
-              <Label>
-                Free Minutes <span className="text-red-500">*</span>
-              </Label>
-              <input
-                type="number"
-                min={1}
-                className="border rounded px-2 py-1 w-full"
-                value={formData.freeMinutes ?? ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    // keep empty string for blank; otherwise convert to number
-                    freeMinutes:
-                      e.target.value === "" ? "" : Number(e.target.value),
-                  })
-                }
-                placeholder="Enter number of free minutes"
-              />
-              {errors.freeMinutes && (
-                <p className="text-sm text-red-600">{errors.freeMinutes}</p>
-              )}
-            </div>
-          )} */}
-          {formData.planType === "free" && (
-            <div className="mt-4 rounded-2xl border p-4 shadow-sm">
-              <Label className="block mb-2 font-medium text-gray-800">
-                Free Minutes <span className="text-red-500">*</span>
-              </Label>
-              <input
-                type="number"
-                min={1}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
-                value={formData.freeMinutes ?? ""}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    freeMinutes:
-                      e.target.value === "" ? "" : Number(e.target.value),
-                  })
-                }
-                placeholder="Enter number of free minutes"
-              />
-              {errors.freeMinutes && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.freeMinutes}
-                </p>
-              )}
-            </div>
-          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
           <Button

@@ -335,12 +335,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       });
       setCustomNoBtnLoading(false)
       sendAgentCreationEmail(agentId)
-      if (planType1 === "paid") {
-        onNext();
-      }
-      else {
-        onFreeAgent()
-      }
+     onNext();
     }
     else {
       setCustomNoBtnLoading(false)
@@ -383,12 +378,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
       sendAgentCreationEmail(agentId)
-      if (planType1 === "paid") {
-        onNext();
-      }
-      else {
-        onFreeAgent()
-      }
+       onNext();
     } catch (error: any) {
       console.error("Error assigning number:", error);
       let errorMsg = "Failed to assign number.";

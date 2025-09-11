@@ -340,8 +340,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
       localStorage.removeItem("businessType");
       localStorage.removeItem("customServices");
       localStorage.removeItem("businessServices");
-
-
+      localStorage.removeItem("planType");
+ localStorage.removeItem("phoneFormData");
       setStep(1);
       setFormData({});
     }
@@ -391,112 +391,117 @@ const AdminUserOnboardingWizard: React.FC = () => {
     localStorage.removeItem("coupen");
     localStorage.removeItem("state");
     localStorage.removeItem("phoneNumber")
+     localStorage.removeItem("planType");
+      localStorage.removeItem("phoneFormData");
     setStep(1);
     setFormData({});
   }
 
-   const handleExit = () => {
+  const handleExit = () => {
     // Optionally, you can add logic here to redirect or reset the form
-          localStorage.removeItem("currentStep");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("BusinessId");
-      localStorage.removeItem("agentCode");
-      localStorage.removeItem("knowledgebaseName");
-      localStorage.removeItem("knowledgeBaseId");
-      localStorage.removeItem("businessType");
-      localStorage.removeItem("businessUrl");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("selectedSitemapUrls");
-      localStorage.removeItem("sitemapUrls");
-      localStorage.removeItem("addressComponents");
-      localStorage.removeItem("agentName");
-      localStorage.removeItem("agent_id");
-      localStorage.removeItem("city");
-      localStorage.removeItem("country_code");
-      localStorage.removeItem("coupen");
-      localStorage.removeItem("state");
-      localStorage.removeItem("AgentForUserId");
-      localStorage.removeItem("client_id");
-      localStorage.removeItem("currentStep");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("phoneNumber")
-     setStep(1);
-      setFormData({});
+    localStorage.removeItem("currentStep");
+    localStorage.removeItem("formData");
+    localStorage.removeItem("BusinessId");
+    localStorage.removeItem("agentCode");
+    localStorage.removeItem("knowledgebaseName");
+    localStorage.removeItem("knowledgeBaseId");
+    localStorage.removeItem("businessType");
+    localStorage.removeItem("businessUrl");
+    localStorage.removeItem("isVerified");
+    localStorage.removeItem("selectedSitemapUrls");
+    localStorage.removeItem("sitemapUrls");
+    localStorage.removeItem("addressComponents");
+    localStorage.removeItem("agentName");
+    localStorage.removeItem("agent_id");
+    localStorage.removeItem("city");
+    localStorage.removeItem("country_code");
+    localStorage.removeItem("coupen");
+    localStorage.removeItem("state");
+    localStorage.removeItem("AgentForUserId");
+    localStorage.removeItem("client_id");
+    localStorage.removeItem("currentStep");
+    localStorage.removeItem("isVerified");
+    localStorage.removeItem("phoneNumber")
+     localStorage.removeItem("planType");
+      localStorage.removeItem("phoneFormData");
+    setStep(1);
+    setFormData({});
   };
 
 
   return (
-     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-       { step != 1 &&
-        <div className="flex justify-end mb-4">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Exit</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Exiting will discard any unsaved progress in the onboarding process. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleExit}>Exit</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      }
-      {step === 1 && (
-        <UserCreationStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          editingUser={editingUser}
-          fetchUsers={fetchUsers}
-        />
-      )}
-      {step === 2 && (
-        <BusinessDetailsStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          editingBusiness={editingBusiness}
-          fetchBusinesses={fetchBusinesses}
-        />
-      )}
-      {step === 3 && (
-        <AgentCreationStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
-      )}
-      {step === 4 && (
-        <AssignNumberStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onFreeAgent={handleFreeAgent}
+        {step != 1 &&
+          <div className="flex justify-end mb-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Exit</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Exiting will discard any unsaved progress in the onboarding process. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleExit}>Exit</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        }
+        {step === 1 && (
+          <UserCreationStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            editingUser={editingUser}
+            fetchUsers={fetchUsers}
+          />
+        )}
+        {step === 2 && (
+          <BusinessDetailsStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            editingBusiness={editingBusiness}
+            fetchBusinesses={fetchBusinesses}
+          />
+        )}
+        {step === 3 && (
+          <AgentCreationStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )}
+        {step === 4 && (
+          <AssignNumberStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onFreeAgent={handleFreeAgent}
 
-        />
-      )}
-      {step === 5 && (
-        <PaymentStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onSubmit={handleSubmit}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
-      )}
+          />
+        )}
+        {step === 5 && (
+          <PaymentStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onSubmit={handleSubmit}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onFreeAgent={handleFreeAgent}
+          />
+        )}
 
-      {/* {step === 6 && (
+        {/* {step === 6 && (
         <DiscountForm
           data={formData}
           onUpdate={handleUpdate}
@@ -506,16 +511,16 @@ const AdminUserOnboardingWizard: React.FC = () => {
 
         />
       )} */}
-      {step === 6 && (
-        <PaymentMethod
-          data={formData}
-          onUpdate={handleUpdate}
-          onSubmit={handleSubmit}
-          onPrevious={handlePrevious}
+        {step === 6 && (
+          <PaymentMethod
+            data={formData}
+            onUpdate={handleUpdate}
+            onSubmit={handleSubmit}
+            onPrevious={handlePrevious}
 
-        />
-      )}
-       </div>
+          />
+        )}
+      </div>
     </div>
   );
 };
