@@ -359,8 +359,6 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       if (!agentId) {
         throw new Error("Agent ID is missing");
       }
-
-
       const a = await createNumberOrder(token, phoneData.selectedNumber, agentId);
       await updateAgent(agentId, { voip_numbers: [phoneData.selectedNumber] });
       onUpdate({ phone: phoneData });

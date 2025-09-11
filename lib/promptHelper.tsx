@@ -52,3 +52,30 @@ export  const ifFreePlanAddBrandingWhenUserSuccessfullyCollectedDetails = () => 
 `;
   return message.trim();
 }
+export const ifCallRecordingAndBra = ({
+  callRecordingEnabled,
+  languageSelect,
+  freePlanBranding,
+  agentName,
+  businessName
+}) => {
+  let greeting = `Hi, I'm ${agentName} from ${businessName}`;
+  
+  // Branding add karein
+  if (freePlanBranding) {
+    greeting += `, powered by Recept`;
+  }
+
+  let prompts = [
+    `- ALWAYS introduce yourself as: "${greeting}"`,
+  ];
+
+  // Call recording disclaimer add karein
+  if (callRecordingEnabled) {
+    prompts.push(
+      `- Immediately after greeting, state ONLY in ${languageSelect}: "This call is being recorded for quality and training purposes."`
+    );
+  }
+
+  return prompts.join("\n\n").trim();
+};
