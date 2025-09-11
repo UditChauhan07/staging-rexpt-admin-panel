@@ -1360,9 +1360,9 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     }
     if (!formData.name) newErrors.name = "Business name is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.internationalPhoneNumber) {
-      newErrors.internationalPhoneNumber = "Please enter a valid phone number with country code";
-    } 
+    // if (!formData.internationalPhoneNumber) {
+    //   newErrors.internationalPhoneNumber = "Please enter a valid phone number with country code";
+    // } 
     // if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
     //   newErrors.email = "Valid email is required";
     // }
