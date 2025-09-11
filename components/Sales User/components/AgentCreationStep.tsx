@@ -29,6 +29,7 @@ import languages from "@/lib/languages";
 import avatars from "@/lib/avatars";
 import roles from "@/lib/roles";
 import extractAddressFields from "@/lib/extractAddressFields";
+import { appointmentBooking, getBusinessSpecificFields } from "@/lib/postCallAnalysis";
 interface FormData {
   business?: any;
   agent?: {
@@ -120,10 +121,9 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const [callRecording, setCallRecording] = useState();
-    const [branding, setBranding] = useState()
+  const [branding, setBranding] = useState()
   const [loading, setLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
-console.log(branding,"brandingbranding")
   useEffect(() => {
     setLoadingVoices(true);
     getRetellVoices()
@@ -278,7 +278,6 @@ console.log(branding,"brandingbranding")
 
       setLoading(true);
       const form = extractedDetails;
-      console.log("form", form);
       localStorage.setItem("agentName", formData?.name);
       const selectedRole = form.role || "General Receptionist";
       const addressFields = JSON.parse(
@@ -288,7 +287,6 @@ console.log(branding,"brandingbranding")
         addressFields?.addressComponents
       );
       const services1 = addressFields?.services;
-      console.log(services1, "services");
 
       const getLeadTypeChoices = () => {
         const fixedChoices = [
@@ -365,10 +363,8 @@ console.log(branding,"brandingbranding")
         languageAccToPlan,
         plan,
         initialCallRecording,
+        branding
       });
-
-      console.log("filledPrompt", filledPrompt);
-
       const filledPrompt2 = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: selectedRole,
@@ -691,6 +687,8 @@ console.log(branding,"brandingbranding")
             description:
               "The user's phone number in numeric format. If digits are spoken in words (e.g., 'seven eight seven six one two'), convert them to digits (e.g., '787612'). Ensure it's a valid number when possible.",
           },
+          ...appointmentBooking(businessType),
+          ...getBusinessSpecificFields(businessType)
         ],
         end_call_after_silence_ms: 30000,
         normalize_for_speech: true,
@@ -1319,7 +1317,7 @@ console.log(branding,"brandingbranding")
               <p className="text-sm text-red-600">{errors.role}</p>
             )}
           </div>
-          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+          {/* <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
               className="font-medium text-gray-800"
@@ -1338,7 +1336,7 @@ console.log(branding,"brandingbranding")
                   }`}
               />
             </button>
-          </div>
+          </div> */}
           <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
