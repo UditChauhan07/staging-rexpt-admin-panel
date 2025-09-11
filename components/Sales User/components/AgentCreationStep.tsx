@@ -931,7 +931,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   return (
     <StepWrapper
       step={3}
-      totalSteps={4}
+      totalSteps={6}
       title="Agent Creation"
       description="Configure the agent for the business."
     >

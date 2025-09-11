@@ -181,8 +181,8 @@ let discount = localStorage.getItem("discount")
 
   return (
     <StepWrapper
-      step={7}
-      totalSteps={7}
+      step={5}
+      totalSteps={6}
       title="Select Payment Method"
       description="Choose how you would like to pay."
     >

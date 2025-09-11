@@ -1570,7 +1570,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     await handleSaveBusiness();
   };
   return (
-    <StepWrapper step={2} totalSteps={7} title="Business Details" description="Provide details about the business.">
+    <StepWrapper step={2} totalSteps={6} title="Business Details" description="Provide details about the business.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className={`space-y-4 ${loading ? "pointer-events-none opacity-50" : ""
           }`}>

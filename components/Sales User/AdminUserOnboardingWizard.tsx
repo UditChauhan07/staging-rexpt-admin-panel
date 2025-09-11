@@ -496,7 +496,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
         />
       )}
 
-      {step === 6 && (
+      {/* {step === 6 && (
         <DiscountForm
           data={formData}
           onUpdate={handleUpdate}
@@ -505,8 +505,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
           onPrevious={handlePrevious}
 
         />
-      )}
-      {step === 7 && (
+      )} */}
+      {step === 6 && (
         <PaymentMethod
           data={formData}
           onUpdate={handleUpdate}
