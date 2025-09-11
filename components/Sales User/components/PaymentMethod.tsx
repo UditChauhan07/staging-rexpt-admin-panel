@@ -145,6 +145,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
           checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
         }
 let discount = localStorage.getItem("discount")
+let payableAmount = data?.payment?.amount * (1 - discount / 100)
         if (checkoutUrl) {
           await axios.post(`${URL}/api/sendCheckoutMail`, {
             email: data.user.email,
@@ -153,8 +154,8 @@ let discount = localStorage.getItem("discount")
             Plan: data?.payment?.raw?.product?.name,
            Price: data?.payment?.amount  ,
             agent_name: localStorage.getItem("agentName"),
-            payable : data?.payment?.amount * (1 - discount / 100) ,
-            discount :`${discount}%`
+            payable : payableAmount.toFixed(2) ,
+            discount :`${discount}`
         
           });
 
