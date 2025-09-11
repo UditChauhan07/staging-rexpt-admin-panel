@@ -335,12 +335,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       });
       setCustomNoBtnLoading(false)
       sendAgentCreationEmail(agentId)
-      if (planType1 === "paid") {
-        onNext();
-      }
-      else {
-        onFreeAgent()
-      }
+     onNext();
     }
     else {
       setCustomNoBtnLoading(false)
@@ -383,12 +378,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
       sendAgentCreationEmail(agentId)
-      if (planType1 === "paid") {
-        onNext();
-      }
-      else {
-        onFreeAgent()
-      }
+       onNext();
     } catch (error: any) {
       console.error("Error assigning number:", error);
       let errorMsg = "Failed to assign number.";
@@ -415,7 +405,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     }
   }, [])
   return (
-    <StepWrapper step={4} totalSteps={5} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
+    <StepWrapper step={4} totalSteps={6} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
       {initialLoading && !isCustomPhone ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="w-8 h-8 animate-spin" />

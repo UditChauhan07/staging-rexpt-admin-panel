@@ -349,7 +349,7 @@ const UserCreationStep: React.FC<UserCreationStepProps> = ({ data, onUpdate, onN
   }
 
   return (
-    <StepWrapper step={1} totalSteps={7} title="User Creation" description="Create or edit a user account.">
+    <StepWrapper step={1} totalSteps={6} title="User Creation" description="Create or edit a user account.">
       <form onSubmit={handleNext} className="space-y-6">
         <div className="space-y-4">
              <div className="space-y-2">

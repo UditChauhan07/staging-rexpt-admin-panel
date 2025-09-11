@@ -153,7 +153,7 @@ let discount = localStorage.getItem("discount")
             Plan: data?.payment?.raw?.product?.name,
            Price: data?.payment?.amount * (1 - discount / 100) ,
             agent_name: localStorage.getItem("agentName"),
-            Minutes: data?.payment?.raw?.derived?.mins,
+        
           });
 
           Swal.fire({
@@ -181,8 +181,8 @@ let discount = localStorage.getItem("discount")
 
   return (
     <StepWrapper
-      step={7}
-      totalSteps={7}
+      step={5}
+      totalSteps={6}
       title="Select Payment Method"
       description="Choose how you would like to pay."
     >
