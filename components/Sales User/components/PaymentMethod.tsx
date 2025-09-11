@@ -61,8 +61,8 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
         // cancelUrl: "https://staging-rexpt-admin-panel.vercel.app/", // vercel
         // cancelUrl: "http://admin.rexpt.in/", // Live 
         // cancelUrl: "http://localhost:4000/", // local
-        url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
-        cancelUrl: "`https://rexptin.vercel.app/cancel"
+        url: `https://app.rexpt.in/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true`,
+        cancelUrl: "https://app.rexpt.in/cancel"
       });
 
       console.log("Checkout session created:", res.data);
@@ -121,10 +121,10 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             userId,
             priceId: data?.payment?.raw?.price?.id,
             promoCode: localStorage.getItem("coupen"),
-            successUrl: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+            successUrl: `https://app.rexpt.in/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
             // successUrl: `http://localhost:3000/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
             cancelUrl:
-              "https://rexptin.vercel.app/cancel",
+              "https://app.rexpt.in/cancel",
 
           });
 
@@ -136,23 +136,26 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             promotionCode: localStorage.getItem("coupen"),
             userId,
             // url: `http://localhost:3000/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
-            url: `https://rexptin.vercel.app/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
+            url: `https://app.rexpt.in/thankyou/update?agentId=${agentId}&userId=${userId}&isAdmin=true&agentName=${agentName1}&agentCode=${agentCode1}&businessName=${businessName}`,
 
             cancelUrl:
-              "https://rexptin.vercel.app/cancel",
+              "https://app.rexpt.in/cancel",
           });
 
           checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
         }
 let discount = localStorage.getItem("discount")
+let payableAmount = data?.payment?.amount * (1 - discount / 100)
         if (checkoutUrl) {
           await axios.post(`${URL}/api/sendCheckoutMail`, {
             email: data.user.email,
             checkoutUrl,
             Name: data?.user?.name,
             Plan: data?.payment?.raw?.product?.name,
-           Price: data?.payment?.amount * (1 - discount / 100) ,
+           Price: data?.payment?.amount  ,
             agent_name: localStorage.getItem("agentName"),
+            payable : payableAmount.toFixed(2) ,
+            discount :`${discount}`
         
           });
 
