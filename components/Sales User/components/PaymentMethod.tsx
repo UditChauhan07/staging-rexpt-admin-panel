@@ -153,7 +153,7 @@ let discount = localStorage.getItem("discount")
             Plan: data?.payment?.raw?.product?.name,
            Price: data?.payment?.amount * (1 - discount / 100) ,
             agent_name: localStorage.getItem("agentName"),
-            Minutes: data?.payment?.raw?.derived?.mins,
+        
           });
 
           Swal.fire({
