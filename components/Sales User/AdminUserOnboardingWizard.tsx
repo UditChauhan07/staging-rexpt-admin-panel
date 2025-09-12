@@ -216,12 +216,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
     const savedData = localStorage.getItem("formData");
     return savedData ? JSON.parse(savedData) : {};
   });
-  const [formData1, setFormData1] = useState(() => {
-    // Load form data from local storage on mount
-    const savedData = localStorage.getItem("agentDetails");
-    return savedData ? JSON.parse(savedData) : {};
-  });
-  console.log(formData1, "ROLE")
+  
   const [users, setUsers] = useState<FormData["user"][]>([]);
   const branding = formData?.onBranding?.onbranding
   const [businesses, setBusinesses] = useState<FormData["business"][]>([]);
@@ -511,6 +506,8 @@ const AdminUserOnboardingWizard: React.FC = () => {
         customBuisness,
         role,
       } = formData;
+       const formData1 = JSON.parse(localStorage.getItem("agentDetails"));
+       console.log(formData1,"formData1formData1")
       const businessType = localStorage.getItem("businessType");
       const form = extractedDetails;
       const selectedRole = form.role || "General Receptionist";
