@@ -863,9 +863,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
           },
         ],
         createdFlag: true
-      };
-
-      const saveRes = await createAgent(dbPayload);
+      };      const saveRes = await createAgent(dbPayload);
       if (saveRes.status === 200 || saveRes.status === 201) {
         Swal.fire({
           icon: "success",
@@ -878,22 +876,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
         setTimeout(() => {
           onNext();
         }, 2000);
-
-        if (formData.planType == "free") {
-          try {
-            const res = await axios.put(
-              `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`,
-              { agentId: saveRes?.data?.agent_id, mins: formData?.freeMinutes },
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              }
-            );
-          } catch (error) {
-            console.log("error while adding free minutes", error);
-          }
-        }
       } else {
         throw new Error("Agent creation failed.");
       }
@@ -1199,43 +1181,6 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               <p className="text-sm text-red-600">{errors.voice}</p>
             )}
           </div>
-
-          {/* <div className="space-y-2">
-            <Label htmlFor="avatar">
-              Avatar <span className="text-red-500">*</span>
-            </Label>
-            {formData.gender ? (
-              <Select
-                value={formData.avatar}
-                onValueChange={(v) => setFormData({ ...formData, avatar: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose avatar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {avatars[formData.gender]?.map((av, index) => (
-                    <SelectItem key={index} value={av.img}>
-                      <span className="flex items-center gap-2">
-                        <img
-                          src={av.img}
-                          alt={`Avatar ${index + 1}`}
-                          className="w-6 h-6 rounded-full"
-                        />
-                        Avatar {index + 1}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <p className="text-sm text-gray-500">
-                Select gender to choose avatar
-              </p>
-            )}
-            {errors.avatar && (
-              <p className="text-sm text-red-600">{errors.avatar}</p>
-            )}
-          </div> */}
           <div className="space-y-2">
             <Label htmlFor="avatar">
               Avatar <span className="text-red-500">*</span>
@@ -1337,7 +1282,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
               />
             </button>
           </div> */}
-          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+          {/* <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
               className="font-medium text-gray-800"
@@ -1356,7 +1301,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
                   }`}
               />
             </button>
-          </div>
+          </div> */}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 pt-4 justify-between">
           <Button
