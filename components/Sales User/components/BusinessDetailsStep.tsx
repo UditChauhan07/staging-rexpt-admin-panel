@@ -1330,7 +1330,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const validatePhoneNumber = (phone: string) => {
        try {
         const parsed = parsePhoneNumberFromString("+" + phone);
-        console.log('dsds',parsed?.isValid(),parsed)
+        
         return parsed?.isValid() || false;
       } catch (e) {
         return false;
@@ -1373,7 +1373,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
-    console.log(newErrors)
+    
     
     setErrors(newErrors);
 

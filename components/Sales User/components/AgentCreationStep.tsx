@@ -1319,7 +1319,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
             onClick={handleSubmit}
             disabled={loading || !isFormValid} // 👈 yeh line add karo
           >
-            {loading ? "Loading..." : "Next: Assign Number "}
+            {loading ? "Loading..." : "Next: Payment "}
           </Button>
         </div>
       </form>

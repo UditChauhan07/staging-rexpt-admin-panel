@@ -52,7 +52,8 @@ interface PaymentStepProps {
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
   onNext: () => void;
-  onFreeAgent: () => void;
+  onAgentPaymentStatus: () => void;
+  onSuccess: () => void;
 }
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
@@ -61,13 +62,14 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onSubmit,
   onNext,
   onPrevious,
-  onFreeAgent,
+  onAgentPaymentStatus,
+  onSuccess
 }) => {
   const [activeTab, setActiveTab] = useState<"free" | "paid">("paid");
-  
+  console.log(activeTab)
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
-    const [branding, setBranding] = useState()
+  const [branding, setBranding] = useState()
   const [billingInterval, setBillingInterval] = useState<Interval>(
     (data.payment?.raw?.derived?.interval as Interval) || "month"
   );
@@ -271,10 +273,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             text: "Free minutes updated successfully ",
             confirmButtonColor: "#6D28D9",
           });
-
-          onNext()
-
-
+          onAgentPaymentStatus()
+          onSuccess()
         } catch (error) {
           console.error("Error while adding free minutes", error);
           Swal.fire({
@@ -289,7 +289,14 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       }
     }
   };
+  useEffect(() => {
 
+    onUpdate({
+      paymentType: {
+        planType: activeTab
+      },
+    });
+  }, [activeTab])
   return (
     <StepWrapper
       step={4}
@@ -330,8 +337,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             className="w-full rounded-xl border border-gray-300 px-3 py-4 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
             placeholder="Enter number of free minutes"
           />
-          <br/><br/>
-          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+          <br /><br />
+          {/* <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
               className="font-medium text-gray-800"
@@ -350,13 +357,12 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
                   }`}
               />
             </button>
-          </div>
+          </div> */}
           <button
             onClick={handleSubmit}
             disabled={!formData.freeMinutes || loading}
-            className={`mt-4 w-full rounded-xl px-4 py-2 font-medium text-white transition ${
-              !formData.freeMinutes || loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
-            }`}
+            className={`mt-4 w-full rounded-xl px-4 py-2 font-medium text-white transition ${!formData.freeMinutes || loading ? "bg-gray-400 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-700"
+              }`}
           >
             {loading ? "Saving..." : "Save Free Minutes"}
           </button>
@@ -404,9 +410,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             return (
               <div
                 key={product.id}
-                className={`flex flex-col p-4 border rounded-lg ${
-                  selected ? "ring-2 ring-blue-500" : ""
-                }`}
+                className={`flex flex-col p-4 border rounded-lg ${selected ? "ring-2 ring-blue-500" : ""
+                  }`}
               >
                 <label className="flex items-start space-x-3 cursor-pointer flex-1">
                   <input

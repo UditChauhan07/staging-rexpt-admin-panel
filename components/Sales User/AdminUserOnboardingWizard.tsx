@@ -164,6 +164,7 @@ interface FormData {
     googleBusiness: string;
     about: string;
     addressComponents: any[];
+
   };
   agent?: {
     agentId?: string;
@@ -191,6 +192,9 @@ interface FormData {
     expiry: string;
     cvv: string;
   };
+  paymentType?: {
+    planType: string;
+  }
 }
 
 const AdminUserOnboardingWizard: React.FC = () => {
@@ -204,12 +208,14 @@ const AdminUserOnboardingWizard: React.FC = () => {
     const savedData = localStorage.getItem("formData");
     return savedData ? JSON.parse(savedData) : {};
   });
+  console.log(formData, "formData")
   const [users, setUsers] = useState<FormData["user"][]>([]);
   const [businesses, setBusinesses] = useState<FormData["business"][]>([]);
   const [editingUser, setEditingUser] = useState<FormData["user"] | null>(null);
   const [editingBusiness, setEditingBusiness] = useState<FormData["business"] | null>(null);
 
   const customerId = localStorage.getItem("customerId") || "";
+const [paymentDone, setPaymentDone] = useState(false);
 
   const URL = process.env.NEXT_PUBLIC_API_URL;
   const token = localStorage.getItem("token");
@@ -341,9 +347,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
       localStorage.removeItem("customServices");
       localStorage.removeItem("businessServices");
       localStorage.removeItem("planType");
- localStorage.removeItem("phoneFormData");
-      setStep(1);
-      setFormData({});
+      localStorage.removeItem("phoneFormData");
     }
   };
 
@@ -372,17 +376,13 @@ const AdminUserOnboardingWizard: React.FC = () => {
   }, []);
 
   const handlePaymentStatus = () => {
-    localStorage.get()
-    if(true){
-
+    if (formData?.paymentType?.planType == "free") {
+      setStep(6);
     }
-    else{
- setStep(5);
+    else {
+      setStep(5);
     }
-   
-
   }
-
   const handleExit = () => {
     // Optionally, you can add logic here to redirect or reset the form
     localStorage.removeItem("currentStep");
@@ -408,13 +408,23 @@ const AdminUserOnboardingWizard: React.FC = () => {
     localStorage.removeItem("currentStep");
     localStorage.removeItem("isVerified");
     localStorage.removeItem("phoneNumber")
-     localStorage.removeItem("planType");
-      localStorage.removeItem("phoneFormData");
+    localStorage.removeItem("planType");
+    localStorage.removeItem("phoneFormData");
     setStep(1);
     setFormData({});
   };
-
-
+ 
+ const handleNavigation=()=>{
+     setStep(6);
+ }
+useEffect(() => {
+  if (paymentDone) {
+    console.log("✅ Payment done, trigger Agent Creation step logic");
+    console.log(paymentDone)
+    // hit your function or change step here
+    // setStep(3)  <-- if you want to go to AgentCreationStep automatically
+  }
+}, [paymentDone]);
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
@@ -474,6 +484,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
             onNext={handleNext}
             onPrevious={handlePrevious}
             onAgentPaymentStatus={handlePaymentStatus}
+          onSuccess={() => setPaymentDone(true)}
           />
         )}
         {step === 5 && (
@@ -482,6 +493,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
             onUpdate={handleUpdate}
             onSubmit={handleSubmit}
             onPrevious={handlePrevious}
+             onNavigation={handleNavigation}
 
           />
         )}
@@ -502,7 +514,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
             onUpdate={handleUpdate}
             onNext={handleNext}
             onPrevious={handlePrevious}
-            onFreeAgent={handleFreeAgent}
+            onExit={handleExit}
 
           />
         )}
