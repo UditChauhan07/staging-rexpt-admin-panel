@@ -63,8 +63,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onFreeAgent
 }) => {
   const [activeTab, setActiveTab] = useState<"free" | "paid">("paid");
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
+    const [branding, setBranding] = useState()
   const [billingInterval, setBillingInterval] = useState<Interval>(
     (data.payment?.raw?.derived?.interval as Interval) || "month"
   );
@@ -250,7 +252,8 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             text: "Free minutes updated successfully ",
             confirmButtonColor: "#6D28D9",
           });
-          onFreeAgent()
+          onNext()
+
         } catch (error) {
           console.error("error while adding free minutes", error);
           Swal.fire({
@@ -307,10 +310,30 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
                 freeMinutes: e.target.value,
               })
             }
-            className="w-full rounded-xl border border-gray-300 px-3 py-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
+            className="w-full rounded-xl border border-gray-300 px-3 py-4 focus:border-purple-500 focus:ring-2 focus:ring-purple-400 outline-none transition"
             placeholder="Enter number of free minutes"
           />
+          <br/><br/>
+          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+            <label
+              htmlFor="callRecordingToggle"
+              className="font-medium text-gray-800"
+            >
+              Rexpt Branding
+            </label>
 
+            <button
+              type="button"
+              onClick={() => setBranding(!branding)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ${branding ? "bg-purple-600" : "bg-gray-300"
+                }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${branding ? "translate-x-6" : "translate-x-1"
+                  }`}
+              />
+            </button>
+          </div>
           <button
             onClick={handleSubmit}
             disabled={!formData.freeMinutes || loading}

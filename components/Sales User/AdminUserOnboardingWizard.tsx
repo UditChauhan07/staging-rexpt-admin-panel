@@ -371,30 +371,16 @@ const AdminUserOnboardingWizard: React.FC = () => {
     // fetchBusinesses();
   }, []);
 
-  const handleFreeAgent = () => {
-    localStorage.removeItem("currentStep");
-    localStorage.removeItem("formData");
-    localStorage.removeItem("BusinessId");
-    localStorage.removeItem("agentCode");
-    localStorage.removeItem("knowledgebaseName");
-    localStorage.removeItem("knowledgeBaseId");
-    localStorage.removeItem("businessType");
-    localStorage.removeItem("businessUrl");
-    localStorage.removeItem("isVerified");
-    localStorage.removeItem("selectedSitemapUrls");
-    localStorage.removeItem("sitemapUrls");
-    localStorage.removeItem("addressComponents");
-    localStorage.removeItem("agentName");
-    localStorage.removeItem("agent_id");
-    localStorage.removeItem("city");
-    localStorage.removeItem("country_code");
-    localStorage.removeItem("coupen");
-    localStorage.removeItem("state");
-    localStorage.removeItem("phoneNumber")
-     localStorage.removeItem("planType");
-      localStorage.removeItem("phoneFormData");
-    setStep(1);
-    setFormData({});
+  const handlePaymentStatus = () => {
+    localStorage.get()
+    if(true){
+
+    }
+    else{
+ setStep(5);
+    }
+   
+
   }
 
   const handleExit = () => {
@@ -481,23 +467,22 @@ const AdminUserOnboardingWizard: React.FC = () => {
           />
         )}
         {step === 4 && (
-          <AssignNumberStep
-            data={formData}
-            onUpdate={handleUpdate}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onFreeAgent={handleFreeAgent}
-
-          />
-        )}
-        {step === 5 && (
           <PaymentStep
             data={formData}
             onUpdate={handleUpdate}
             onSubmit={handleSubmit}
             onNext={handleNext}
             onPrevious={handlePrevious}
-            onFreeAgent={handleFreeAgent}
+            onAgentPaymentStatus={handlePaymentStatus}
+          />
+        )}
+        {step === 5 && (
+          <PaymentMethod
+            data={formData}
+            onUpdate={handleUpdate}
+            onSubmit={handleSubmit}
+            onPrevious={handlePrevious}
+
           />
         )}
 
@@ -512,11 +497,12 @@ const AdminUserOnboardingWizard: React.FC = () => {
         />
       )} */}
         {step === 6 && (
-          <PaymentMethod
+          <AssignNumberStep
             data={formData}
             onUpdate={handleUpdate}
-            onSubmit={handleSubmit}
+            onNext={handleNext}
             onPrevious={handlePrevious}
+            onFreeAgent={handleFreeAgent}
 
           />
         )}
