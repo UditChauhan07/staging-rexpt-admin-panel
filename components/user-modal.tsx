@@ -133,7 +133,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     // { label: "SuperAdmin", value: "1" },
     { label: "PartnerPlus", value: "2" },
     { label: "Junior Partner", value: "3" },
-    { label: "Affiliate", value: "4" },
+  
   ]
 
   const validate = () => {
@@ -168,9 +168,16 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
     if (!formData.role) {
       newErrors.role = "Role is required"
     }
-    if (!(formData.role==="0") && !formData.password?.trim()) {
-      newErrors.password = "Password is required"
-    } else if (formData.password) {
+     if (formData.role !== "0") {
+    if (!user) {
+      // ➡️ Create user → password is required
+      if (!formData.password?.trim()) {
+        newErrors.password = "Password is required"
+      }
+    }
+
+    // ➡️ Both Create + Edit → if password is provided, validate strength
+    if (formData.password?.trim()) {
       const strongPasswordRegex =
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/
 
@@ -179,6 +186,7 @@ export function UserModal({ isOpen, onClose, onSave, user }: UserModalProps) {
           "Password must be at least 8 characters, include uppercase, lowercase, number, and special character"
       }
     }
+  }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0

@@ -23,6 +23,7 @@ interface PaymentMethodProps {
   onUpdate: (updates: Partial<FormData>) => void;
   onSubmit: (data: FormData) => void;
   onPrevious: () => void;
+  onNavigation: () => void
 }
 
 const PaymentMethod: React.FC<PaymentMethodProps> = ({
@@ -30,6 +31,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
   onUpdate,
   onSubmit,
   onPrevious,
+  onNavigation
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<"instant" | "defer" | null>(
     data.payment?.method ?? null
@@ -54,7 +56,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       let agentCode1 = localStorage.getItem("agentCode")
       const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
         customerId: localStorage.getItem("customerId"),
-        priceId: data?.payment?.raw?.price?.id ,
+        priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
         userId: userId,
 
@@ -101,7 +103,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
     if (selectedMethod === "instant") {
       const agentId = localStorage.getItem("agent_id");
-      const userId = data?.user?.id ||localStorage.getItem("AgentForUserId");
+      const userId = data?.user?.id || localStorage.getItem("AgentForUserId");
       let businessName = data?.business?.name
       let agentName1 = localStorage.getItem("agentName")
       let agentCode1 = localStorage.getItem("agentCode")
@@ -144,16 +146,16 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
           checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
         }
-let discount = localStorage.getItem("discount")
+        let discount = localStorage.getItem("discount")
         if (checkoutUrl) {
           await axios.post(`${URL}/api/sendCheckoutMail`, {
             email: data.user.email,
             checkoutUrl,
             Name: data?.user?.name,
             Plan: data?.payment?.raw?.product?.name,
-           Price: data?.payment?.amount * (1 - discount / 100) ,
+            Price: data?.payment?.amount * (1 - discount / 100),
             agent_name: localStorage.getItem("agentName"),
-        
+
           });
 
           Swal.fire({
@@ -161,6 +163,7 @@ let discount = localStorage.getItem("discount")
             title: "Email Sent",
             text: "Checkout URL has been sent successfully to your email.",
           });
+
         } else {
           throw new Error("Checkout URL missing in response");
         }
@@ -170,6 +173,7 @@ let discount = localStorage.getItem("discount")
       }
     }
 
+
     if (selectedMethod === "defer") {
       alert("Coming Soon")
       return
@@ -177,6 +181,7 @@ let discount = localStorage.getItem("discount")
 
     setIsLoading(false);
     onSubmit({ ...data, payment: updatedPayment });
+    onNavigation()
   };
 
   return (
