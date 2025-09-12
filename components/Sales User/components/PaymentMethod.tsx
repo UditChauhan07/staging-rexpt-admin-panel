@@ -54,7 +54,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
       let agentCode1 = localStorage.getItem("agentCode")
       const res = await axios.post(`${URL}/api/create-checkout-session-admin`, {
         customerId: localStorage.getItem("customerId"),
-        priceId: data?.payment?.raw?.price?.id ,
+        priceId: data?.payment?.raw?.price?.id,
         promotionCode: localStorage.getItem("coupen"),
         userId: userId,
 
@@ -101,7 +101,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
     if (selectedMethod === "instant") {
       const agentId = localStorage.getItem("agent_id");
-      const userId = data?.user?.id ||localStorage.getItem("AgentForUserId");
+      const userId = data?.user?.id || localStorage.getItem("AgentForUserId");
       let businessName = data?.business?.name
       let agentName1 = localStorage.getItem("agentName")
       let agentCode1 = localStorage.getItem("agentCode")
@@ -144,15 +144,19 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
 
           checkoutUrl = res?.data?.url || res?.data?.checkoutUrl;
         }
+
 let discount = localStorage.getItem("discount")
 let payableAmount = data?.payment?.amount * (1 - discount / 100)
+
         if (checkoutUrl) {
           await axios.post(`${URL}/api/sendCheckoutMail`, {
             email: data.user.email,
             checkoutUrl,
             Name: data?.user?.name,
             Plan: data?.payment?.raw?.product?.name,
+
            Price: data?.payment?.amount  ,
+
             agent_name: localStorage.getItem("agentName"),
             payable : payableAmount.toFixed(2) ,
             discount :`${discount}`
@@ -174,8 +178,9 @@ let payableAmount = data?.payment?.amount * (1 - discount / 100)
     }
 
     if (selectedMethod === "defer") {
-      alert("Coming Soon")
-      return
+      // alert("Coming Soon")
+      setIsLoading(false);
+      // return
     }
 
     setIsLoading(false);
@@ -201,7 +206,7 @@ let payableAmount = data?.payment?.amount * (1 - discount / 100)
             💳 Instant Payment
           </Button>
 
-          {/* <Button
+          <Button
             type="button"
             variant="outline"
             className={`flex-1 h-32 text-xl font-semibold ${selectedMethod === "defer" ? "ring-4 ring-blue-500" : ""
@@ -209,7 +214,7 @@ let payableAmount = data?.payment?.amount * (1 - discount / 100)
             onClick={() => setSelectedMethod("defer")}
           >
             ⏳ Defer Payment
-          </Button> */}
+          </Button> 
         </div>
 
         {/* Defer Days Input */}
