@@ -574,7 +574,7 @@ const AdminUserOnboardingWizard: React.FC = () => {
         ? true
         : false;
 
-      const filledPrompt = getAgentPrompt({
+      const filledPrompt =await getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: localStorage.getItem("role"),
         agentName: formData1.name,
