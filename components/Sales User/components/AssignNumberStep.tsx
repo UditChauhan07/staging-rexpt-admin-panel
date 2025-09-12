@@ -214,54 +214,223 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
     }
   }, [phoneData]);
 
+  // const fetchNumbersWithFallback = async () => {
+  //   const currentVersion = ++requestVersion.current;
+  //   setLoading(true);
+  //   try {
+  //     const res = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, phoneData.city, phoneData.stateCode);
+  //     if (requestVersion.current !== currentVersion) return;
+  //     if (res?.success && res?.data?.length > 0) {
+  //       setAvailableNumbers(res.data.map((item: any) => item.phone_number));
+  //     } else {
+  //       const fallbackRes = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, "", phoneData.stateCode);
+
+  //       if (requestVersion.current !== currentVersion) return;
+  //       if (fallbackRes?.success && fallbackRes?.data?.length > 0) {
+  //         setPhoneData((prev) => ({ ...prev, city: "" }));
+  //         setAvailableNumbers(fallbackRes.data.map((item: any) => item.phone_number));
+  //       } else {
+  //         setAvailableNumbers([]);
+  //         Swal.fire({
+  //           icon: "error",
+  //           title: "No Numbers Found",
+  //           text: "No numbers found for the selected location. Please try a different country or state.",
+  //           confirmButtonText: "OK",
+  //         });
+  //       }
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Error fetching numbers:", err);
+  //     if (requestVersion.current === currentVersion) {
+  //       setAvailableNumbers([]);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Error",
+  //         text: err.response?.data?.error || err.message || "Failed to fetch available numbers. Please try again.",
+  //         showCancelButton: true,
+  //         confirmButtonText: "Retry",
+  //         cancelButtonText: "Cancel",
+  //       }).then((result) => {
+  //         if (result.isConfirmed) {
+  //           fetchNumbersWithFallback();
+  //         }
+  //       });
+  //     }
+  //   } finally {
+  //     if (requestVersion.current === currentVersion) {
+  //       setLoading(false);
+  //       setInitialLoading(false);
+  //     }
+  //   }
+  // };
+  // const fetchNumbersWithFallback = async () => {
+  //   const currentVersion = ++requestVersion.current;
+  //   setLoading(true);
+  //   try {
+  //     // 🔹 Try with city
+  //     const res = await fetchAvailablePhoneNumberByCountry(
+  //       token,
+  //       phoneData.countryCode,
+  //       phoneData.city,
+  //       phoneData.stateCode
+  //     );
+
+  //     if (requestVersion.current !== currentVersion) return;
+
+  //     if (res?.success && res?.data?.length > 0) {
+  //       setAvailableNumbers(res.data.map((item: any) => item.phone_number));
+  //     } else {
+  //       // 🔹 Fallback: try without city
+  //       await tryFallback(currentVersion);
+  //     }
+  //   } catch (err: any) {
+  //     console.error("Error fetching numbers:", err);
+
+  //     if (requestVersion.current !== currentVersion) return;
+
+  //     // 🔹 Attempt fallback if city was used
+  //     if (phoneData.city) {
+  //       await tryFallback(currentVersion);
+  //     } else {
+  //       // 🔹 Final error (no fallback available)
+  //       setAvailableNumbers([]);
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Error",
+  //         text:
+  //           err.response?.data?.error ||
+  //           err.message ||
+  //           "Failed to fetch available numbers. Please try again.",
+  //         showCancelButton: true,
+  //         confirmButtonText: "Retry",
+  //         cancelButtonText: "Cancel",
+  //       }).then((result) => {
+  //         if (result.isConfirmed) {
+  //           fetchNumbersWithFallback();
+  //         }
+  //       });
+  //     }
+  //   } finally {
+  //     if (requestVersion.current === currentVersion) {
+  //       setLoading(false);
+  //       setInitialLoading(false);
+  //     }
+  //   }
+  // };
+
+  // 🔹 helper for fallback
+  // const tryFallback = async (currentVersion: number) => {
+  //   try {
+  //     const fallbackRes = await fetchAvailablePhoneNumberByCountry(
+  //       token,
+  //       phoneData.countryCode,
+  //       "",
+  //       phoneData.stateCode
+  //     );
+
+  //     if (requestVersion.current !== currentVersion) return;
+
+  //     if (fallbackRes?.success && fallbackRes?.data?.length > 0) {
+  //       setPhoneData((prev) => ({ ...prev, city: "" }));
+  //       setAvailableNumbers(fallbackRes.data.map((item: any) => item.phone_number));
+  //     } else {
+  //       setAvailableNumbers([]);
+  //       // Swal.fire({
+  //       //   icon: "error",
+  //       //   title: "No Numbers Found",
+  //       //   text: "No numbers found for the selected location. Please try a different country or state.",
+  //       //   confirmButtonText: "OK",
+  //       // });
+  //     }
+  //   } catch (err) {
+  //     console.error("Fallback error:", err);
+  //     setAvailableNumbers([]);
+  //     Swal.fire({
+  //       icon: "error",
+  //       title: "Error",
+  //       text: "Failed to fetch numbers, even with fallback. Please try again.",
+  //       confirmButtonText: "Retry",
+  //     }).then((result) => {
+  //       if (result.isConfirmed) {
+  //         fetchNumbersWithFallback();
+  //       }
+  //     });
+  //   }
+  // };
   const fetchNumbersWithFallback = async () => {
     const currentVersion = ++requestVersion.current;
     setLoading(true);
-    try {
-      const res = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, phoneData.city, phoneData.stateCode);
-      if (requestVersion.current !== currentVersion) return;
-      if (res?.success && res?.data?.length > 0) {
-        setAvailableNumbers(res.data.map((item: any) => item.phone_number));
-      } else {
-        const fallbackRes = await fetchAvailablePhoneNumberByCountry(token, phoneData.countryCode, "", phoneData.stateCode);
 
-        if (requestVersion.current !== currentVersion) return;
-        if (fallbackRes?.success && fallbackRes?.data?.length > 0) {
-          setPhoneData((prev) => ({ ...prev, city: "" }));
-          setAvailableNumbers(fallbackRes.data.map((item: any) => item.phone_number));
-        } else {
-          setAvailableNumbers([]);
-          Swal.fire({
-            icon: "error",
-            title: "No Numbers Found",
-            text: "No numbers found for the selected location. Please try a different country or state.",
-            confirmButtonText: "OK",
-          });
-        }
-      }
+    try {
+      await tryWithLevels(currentVersion);
     } catch (err: any) {
       console.error("Error fetching numbers:", err);
-      if (requestVersion.current === currentVersion) {
-        setAvailableNumbers([]);
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: err.response?.data?.error || err.message || "Failed to fetch available numbers. Please try again.",
-          showCancelButton: true,
-          confirmButtonText: "Retry",
-          cancelButtonText: "Cancel",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetchNumbersWithFallback();
-          }
-        });
-      }
+
+      if (requestVersion.current !== currentVersion) return;
+
+      setAvailableNumbers([]);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          err.response?.data?.error ||
+          err.message ||
+          "Failed to fetch available numbers. Please try again.",
+        showCancelButton: true,
+        confirmButtonText: "Retry",
+        cancelButtonText: "Cancel",
+      }).then((result) => {
+        if (result.isConfirmed) {
+          fetchNumbersWithFallback();
+        }
+      });
     } finally {
       if (requestVersion.current === currentVersion) {
         setLoading(false);
         setInitialLoading(false);
       }
     }
+  };
+
+  // 🔹 Core Fallback Logic
+  const tryWithLevels = async (currentVersion: number) => {
+    const levels = [
+      { city: phoneData.city, state: phoneData.stateCode }, // Level 1: city + state
+      { city: "", state: phoneData.stateCode },             // Level 2: state only
+      { city: "", state: "" },                              // Level 3: country only
+    ];
+
+    for (let i = 0; i < levels.length; i++) {
+      const { city, state } = levels[i];
+      try {
+        const res = await fetchAvailablePhoneNumberByCountry(
+          token,
+          phoneData.countryCode,
+          city,
+          state
+        );
+
+        if (requestVersion.current !== currentVersion) return;
+
+        if (res?.success && res?.data?.length > 0) {
+          // update phoneData if fallback was used
+          setPhoneData((prev) => ({ ...prev, city, stateCode: state }));
+          setAvailableNumbers(res.data.map((item: any) => item.phone_number));
+          return; // ✅ success → stop loop
+        }
+      } catch (err) {
+        console.error(`Error at level ${i + 1}:`, err);
+      }
+    }
+
+    // If no numbers found in any level
+    setAvailableNumbers([]);
+    Swal.fire({
+      icon: "warning",
+      title: "No Numbers Found",
+      text: "No numbers found for the selected location. Please try a different country or state.",
+      confirmButtonText: "OK",
+    });
   };
 
   const handleRefresh = async () => {
@@ -335,7 +504,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       });
       setCustomNoBtnLoading(false)
       sendAgentCreationEmail(agentId)
-     onNext();
+      onNext();
     }
     else {
       setCustomNoBtnLoading(false)
@@ -376,7 +545,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       localStorage.setItem("phoneNumber", phoneData.selectedNumber);
       onUpdate({ phone: phoneData });
       sendAgentCreationEmail(agentId)
-       onNext();
+      onNext();
     } catch (error: any) {
       console.error("Error assigning number:", error);
       let errorMsg = "Failed to assign number.";
@@ -402,6 +571,26 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       fetchNumbersWithFallback();
     }
   }, [])
+  const handleSkipPhoneNumber = () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to skip phone number selection?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, Skip",
+      cancelButtonText: "Cancel",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // 👉 Your skip logic here
+        setPhoneData((prev) => ({ ...prev, selectedNumber: "" }));
+        setAvailableNumbers([]);
+        setCustomPhoneInput("");
+        onNext();
+        console.log("Phone number skipped ");
+      }
+    });
+  };
+
   return (
     <StepWrapper step={4} totalSteps={6} title="Assign Phone Number" description="Select a phone number for your agent or enter a custom number.">
       {initialLoading && !isCustomPhone ? (
@@ -411,7 +600,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
       ) : (
         <div className="space-y-6"  >
 
-          <div className="flex justify-start">
+          <div className="flex justify-between">
             <Button
               variant="outline"
               onClick={() => {
@@ -424,6 +613,13 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
               className="mb-4"
             >
               {isCustomPhone ? "Select from Available Numbers" : "Use Custom Phone Number"}
+            </Button>
+            <Button
+              variant="destructive"
+              className="mb-4"
+              onClick={handleSkipPhoneNumber}
+            >
+              Skip
             </Button>
           </div>
           <div className={`space-y-4 ${hasPhoneNumber ? "opacity-50 pointer-events-none" : ""}`}>
@@ -514,6 +710,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
                           setPhoneData((prev) => ({ ...prev, stateCode: e.target.value }));
                         }
                       }}
+                      autoComplete="off"
                       placeholder="Enter state"
                       onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
                     />
@@ -529,6 +726,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
                         setPhoneData((prev) => ({ ...prev, city: e.target.value }));
                         setErrors((prev) => ({ ...prev, city: "" }));
                       }}
+                      autoComplete="off"
                       placeholder="Enter city"
                       onBlur={() => phoneData.countryCode && phoneData.stateCode && fetchNumbersWithFallback()}
                     />
@@ -546,7 +744,7 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
                     <Button
                       variant="outline"
                       onClick={handleRefresh}
-                      disabled={isRotating || loading || !phoneData.countryCode || !phoneData.stateCode}
+                      disabled={isRotating || loading}
                       className={isRotating ? "animate-spin" : ""}
                     >
                       <RefreshCw className="w-4 h-4" />
