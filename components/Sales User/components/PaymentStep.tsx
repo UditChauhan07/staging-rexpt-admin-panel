@@ -53,7 +53,7 @@ interface PaymentStepProps {
   onPrevious: () => void;
   onNext: () => void;
   onAgentPaymentStatus: () => void;
-  onSuccess: () => void;
+  onUpdateAgent: () => void;
 }
 
 const PaymentStep: React.FC<PaymentStepProps> = ({
@@ -63,10 +63,10 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
   onNext,
   onPrevious,
   onAgentPaymentStatus,
-  onSuccess
+  onUpdateAgent
 }) => {
   const [activeTab, setActiveTab] = useState<"free" | "paid">("paid");
-  console.log(activeTab)
+
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<string>(data.payment?.plan || "");
   const [branding, setBranding] = useState()
@@ -86,7 +86,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
     planType: "free",
   });
   const [loading, setLoading] = useState(false);
-
   const getProducts = async () => {
     setLoading(true);
     try {
@@ -114,7 +113,6 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       setLoading(false);
     }
   };
-
   useEffect(() => {
     getProducts();
   }, []);
@@ -253,6 +251,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
 
       if (result.isConfirmed) {
         try {
+
           setLoading(true);
           const res = await axios.put(
             `${process.env.NEXT_PUBLIC_API_URL}/api/agent/updateSalesUserAgentMinutes`,
@@ -272,9 +271,11 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             title: "Success!",
             text: "Free minutes updated successfully ",
             confirmButtonColor: "#6D28D9",
-          });
-          onAgentPaymentStatus()
-          onSuccess()
+          })
+           if (branding) {
+            onUpdateAgent()
+          }
+          onAgentPaymentStatus(); 
         } catch (error) {
           console.error("Error while adding free minutes", error);
           Swal.fire({
@@ -297,6 +298,13 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
       },
     });
   }, [activeTab])
+   useEffect(() => {
+    onUpdate({
+      onBranding: {
+        onbranding: branding
+      },
+    });
+  }, [branding])
   return (
     <StepWrapper
       step={4}
@@ -338,7 +346,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
             placeholder="Enter number of free minutes"
           />
           <br /><br />
-          {/* <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
+          <div className="flex items-center justify-between p-4 border rounded-2xl shadow-sm">
             <label
               htmlFor="callRecordingToggle"
               className="font-medium text-gray-800"
@@ -357,7 +365,7 @@ const PaymentStep: React.FC<PaymentStepProps> = ({
                   }`}
               />
             </button>
-          </div> */}
+          </div>
           <button
             onClick={handleSubmit}
             disabled={!formData.freeMinutes || loading}

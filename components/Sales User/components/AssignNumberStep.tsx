@@ -303,12 +303,12 @@ const AssignNumberStep: React.FC<AssignNumberStepProps> = ({ data, onUpdate, onN
 
     // Agar yahan bhi fail ho jaye
     setAvailableNumbers([]);
-    Swal.fire({
-      icon: "warning",
-      title: "No Numbers Found",
-      text: "No numbers found for the selected country. Please try again later.",
-      confirmButtonText: "OK",
-    });
+    // Swal.fire({
+    //   icon: "warning",
+    //   title: "No Numbers Found",
+    //   text: "No numbers found for the selected country. Please try again later.",
+    //   confirmButtonText: "OK",
+    // });
   };
 
   const handleRefresh = async () => {

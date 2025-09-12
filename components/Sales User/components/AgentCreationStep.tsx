@@ -30,6 +30,7 @@ import avatars from "@/lib/avatars";
 import roles from "@/lib/roles";
 import extractAddressFields from "@/lib/extractAddressFields";
 import { appointmentBooking, getBusinessSpecificFields } from "@/lib/postCallAnalysis";
+import { checkDomainOfScale } from "recharts/types/util/ChartUtils";
 interface FormData {
   business?: any;
   agent?: {
@@ -49,13 +50,13 @@ interface AgentCreationStepProps {
   data: FormData;
   onUpdate: (updates: Partial<FormData>) => void;
   onNext: () => void;
-  onPrevious: () => void;
+  onPrevious: () => void
 }
 const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   data,
   onUpdate,
   onNext,
-  onPrevious,
+  onPrevious
 }) => {
   const defaultAgent: AgentForm = {
     name: "",
@@ -121,7 +122,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   const audioRefs = useRef<any[]>([]);
   const [playingIdx, setPlayingIdx] = useState<number | null>(null);
   const [callRecording, setCallRecording] = useState();
-  const [branding, setBranding] = useState()
+  const [branding, setBranding] = useState(false)
   const [loading, setLoading] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
   useEffect(() => {
@@ -280,6 +281,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
       const form = extractedDetails;
       localStorage.setItem("agentName", formData?.name);
       const selectedRole = form.role || "General Receptionist";
+      localStorage.setItem("role",selectedRole)
       const addressFields = JSON.parse(
         localStorage.getItem("addressComponents")
       );
@@ -342,6 +344,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
       )
         ? true
         : false;
+        
       const filledPrompt = getAgentPrompt({
         industryKey: businessType === "Other" ? customBuisness : businessType,
         roleTitle: formData.role,
@@ -606,6 +609,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
         }
       );
       const llmId = llmRes.data.data.llm_id;
+      localStorage.setItem("llm_id", llmId)
       const knowledgebaseName = localStorage.getItem("knowledgebaseName");
       const finalAgentData = {
         response_engine: { type: "retell-llm", llm_id: llmId },
@@ -863,7 +867,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
           },
         ],
         createdFlag: true
-      };      const saveRes = await createAgent(dbPayload);
+      }; const saveRes = await createAgent(dbPayload);
       if (saveRes.status === 200 || saveRes.status === 201) {
         Swal.fire({
           icon: "success",
@@ -886,6 +890,7 @@ const AgentCreationStep: React.FC<AgentCreationStepProps> = ({
   };
   useEffect(() => {
     setIsFormValid(validate());
+      localStorage.setItem("agentDetails", JSON.stringify(formData));
   }, [formData]);
 
   return (
