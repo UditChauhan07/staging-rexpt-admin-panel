@@ -202,12 +202,13 @@ const filteredUsers = users
     const password = userData.password?.trim();
     const referalName = userData.referalName?.trim();
 
-    // Build payload conditionally
+   
     const finalPayload: any = {
-      email, // always required
+      email,
       ...(name ? { name } : {}),
       ...(phone ? { phone } : {}),
       ...(role ? { role } : {}),
+      // ...(isUserType? { role } : {}),
       ...(referralCode ? { referralCode } : {}),
       ...(referredByName ? { referredByName } : {}),
       ...(password ? { password } : {}),
@@ -222,10 +223,13 @@ const filteredUsers = users
 
     if (editingUser?.id) {
       finalPayload.id = editingUser.id;
+      
+      if(role) finalPayload.isUserType=role;  
+
     } else {
       const referredBy = typeof window !== "undefined" ? localStorage.getItem("referralCode") : null;
       const referredId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-      if(role) finalPayload.isUserType=role;
+      if(role) finalPayload.isUserType=role;    
       if (referredBy) finalPayload.referredBy = referredBy;
       if (referredId) finalPayload.referredId = referredId;
     }

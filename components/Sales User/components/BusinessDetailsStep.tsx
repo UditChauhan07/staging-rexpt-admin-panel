@@ -19,6 +19,9 @@ import axios from "axios";
 import { validateWebsite, listSiteMap } from "@/Services/auth";
 import StepWrapper from "./StepWrapper";
 import { getKnowledgeBaseName } from "@/lib/getKnowledgeBaseName";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+
 
 interface Business {
   id: string;
@@ -1058,6 +1061,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   const [isVerifying, setIsVerifying] = useState(false);
   const [isWebsiteValid, setIsWebsiteValid] = useState<boolean | null>(null);
   const [hasNoGoogle, setHasNoGoogle] = useState(false);
+  const [hasNoWebsite, setHasNoWebsite] = useState(false);
   const [sitemapUrls, setSitemapUrls] = useState<string[]>([]);
   const [showSitemap, setShowSitemap] = useState(false);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
@@ -1324,8 +1328,13 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
   };
 
   const validatePhoneNumber = (phone: string) => {
-    const phoneNumberObj = parsePhoneNumberFromString(phone, selectedCountry);
-    return phoneNumberObj && phoneNumberObj.isValid();
+       try {
+        const parsed = parsePhoneNumberFromString("+" + phone);
+        console.log('dsds',parsed?.isValid(),parsed)
+        return parsed?.isValid() || false;
+      } catch (e) {
+        return false;
+      }
   };
 
   // const fetchKnowledgeBaseName = async () => {
@@ -1340,17 +1349,20 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {};
-    // if (!formData.type) {
-    //   newErrors.type = "Business type is required";
-    // }
-    if (!formData.googleBusiness && !formData.website) {
-      newErrors.googleBusiness = "Please enter Google Business or Website URL";
+    if (!formData.type) {
+      newErrors.type = "Business type is required";
+    }
+    if (!formData.googleBusiness && !hasNoGoogle) {
+      newErrors.googleBusiness = "Please enter Google Business ";
+    }
+    if (!hasNoWebsite && !formData.website) {
+      newErrors.Website = "Please enter Website URL";
     }
     if (!formData.name) newErrors.name = "Business name is required";
     if (!formData.address) newErrors.address = "Address is required";
-    if (!formData.phone) {
-      newErrors.phone = "Valid phone number is required";
-    }
+    if (!formData.internationalPhoneNumber) {
+      newErrors.internationalPhoneNumber = "Please enter a valid phone number with country code";
+    } 
     // if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
     //   newErrors.email = "Valid email is required";
     // }
@@ -1361,6 +1373,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
     if (!userId) {
       newErrors.userId = "User ID is required";
     }
+    console.log(newErrors)
     
     setErrors(newErrors);
 
@@ -1514,7 +1527,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
             }
           );
         }
-
+console.log(formData.internationalPhoneNumber)
       const savedBusiness: Business = {
         id: businessId,
         type: formData.type,
@@ -1899,6 +1912,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                   setHasNoGoogle(e.target.checked);
                   if (e.target.checked) {
                     setFormData({ ...formData, googleBusiness: "" });
+                     setErrors((prev) => ({ ...prev, googleBusiness: "" }));
                   }
                 }}
               />
@@ -1916,7 +1930,8 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
               onChange={(e) => {
                 setFormData({ ...formData, website: e.target.value });
                 setIsWebsiteValid(null);
-                setErrors((prev) => ({ ...prev, googleBusiness: "" }));
+                setHasNoWebsite(false);
+                setErrors((prev) => ({ ...prev, Website: "" }));
               }}
               onKeyDown={(e) => {
                 const input = e.currentTarget;
@@ -1961,6 +1976,21 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
                 ) : null}
               </div>
             )}
+            <label className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={hasNoWebsite}
+                onChange={(e) => {
+                  setHasNoWebsite(e.target.checked);
+                  if (e.target.checked) {
+                    setFormData({ ...formData, website: "" });
+                    setErrors((prev) => ({ ...prev, Website: "" }));
+                  }
+                }}
+              />
+               I don’t have a business website
+            </label>
+            {errors.Website && <p className="text-sm text-red-600">{errors.Website}</p>}
             {/* <>
             {isWebsiteValid && sitemapUrls.length > 0 && (
               <div className="mt-3">
@@ -2056,15 +2086,34 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
           </div> */}
 
           <div className="space-y-2">
-            <Label htmlFor="internationalPhone"> Phone Number</Label>
-            <Input
+            <Label htmlFor="internationalPhone"> Phone Number <span className="text-red-500">*</span></Label>
+                    <PhoneInput
+                          // id="internationalPhone"
+                          country="in"
+                          value={formData.internationalPhoneNumber || ""} 
+                          onChange={(phoneNumber) => {
+                          // Ensure exactly one '+' at the start
+                          const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+                          setFormData({ ...formData, internationalPhoneNumber: formattedNumber });
+                        }}
+                         placeholder=" +91 99XX87XXXX21"
+                          inputClass="!w-full !text-sm !rounded-md !border !border-gray-300 focus:!border-purple-500"
+                          containerClass="!w-full"
+                          inputProps={{ name: "internationalPhoneNumber", id: "internationalPhoneNumber", required: true }}
+                          specialLabel="+91"
+                        />
+                        
+            {/* <Input
               id="internationalPhone"
               value={formData.internationalPhoneNumber || ""}
-              onChange={(e) => {
-                setFormData({ ...formData, internationalPhoneNumber: e.target.value });
-              }}
+                 onChange={(phoneNumber) => {
+                          const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber}`;
+                          setFormData({ ...formData, internationalPhoneNumber: formattedNumber });
+                        }}
               placeholder="Enter  phone number"
-            />
+            />  */}
+            {errors.internationalPhoneNumber && <p className="text-sm text-red-600">{errors.internationalPhoneNumber}</p>}
+
           </div>
 
           <div className="space-y-2">
@@ -2118,7 +2167,7 @@ const BusinessDetailsStep: React.FC<BusinessDetailsStepProps> = ({
           <Button
             type="submit"
             className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
-            disabled={isVerifying || loading}
+            disabled={isVerifying || loading ||(formData.website && !isWebsiteValid)}
           >
             {isVerifying ? (
               <span className="flex items-center">
