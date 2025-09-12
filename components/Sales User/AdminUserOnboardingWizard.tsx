@@ -138,6 +138,8 @@ import axios from "axios";
 import AssignNumberStep from "./components/AssignNumberStep";
 import DiscountForm from "./components/Discount";
 import PaymentMethod from "./components/PaymentMethod";
+import Swal from "sweetalert2";
+
 interface FormData {
   user?: {
     id: string;
@@ -260,92 +262,95 @@ const AdminUserOnboardingWizard: React.FC = () => {
 
 
   const handleSubmit = async (data: FormData) => {
-    const deferDays =
-      data?.payment?.method === "defer"
-        ? Number((data as any)?.payment?.deferDays) || 0
-        : 0;
-
-    const finalData = {
-      customer_id: customerId || "byAdmin",
-      plan_details: {
-        id: (data as any)?.payment?.raw?.price?.id || "price_static_001",
-        name: (data as any)?.payment?.raw?.product?.name || "Starter",
-        desc: (data as any)?.payment?.raw?.product?.description || "Basic plan",
-        amount:
-          (data as any)?.payment?.raw?.derived?.amountUsd ||
-          (data as any)?.payment?.amount ||
-          0,
-        currency: (data as any)?.payment?.raw?.derived?.currency || "USD",
-        interval: (data as any)?.payment?.raw?.derived?.interval || "month",
-        created: new Date().toISOString(),
-        end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        mins: (data as any)?.payment?.raw?.derived?.mins || 0,
-        original_plan_amount:
-          (data as any)?.payment?.raw?.derived?.amountUsd || 0,
-      },
-      agent_id: localStorage.getItem("agent_id") || "NA",
-      user_id: data?.user?.id || "user_static_id",
-      defer_days: deferDays,
-    };
-
-    // console.log("finalData", finalData);
     console.log("Final Form Data:", data);
 
     try {
-      let ok = false;
+      if (data.payment?.method === "defer") {
+        const deferDays = Number((data as any)?.payment?.deferDays) || 0;
 
-      try {
-        ok = await agentCreationFinal(finalData);
-      } catch (apiError) {
-        console.error("❌ agentCreationFinal threw an error:", apiError);
-        alert("Something went wrong while creating subscription.");
+        const finalData = {
+          customer_id: customerId || "byAdmin",
+          plan_details: {
+            id: (data as any)?.payment?.raw?.price?.id || "price_static_001",
+            name: (data as any)?.payment?.raw?.product?.name || "Starter",
+            desc:
+              (data as any)?.payment?.raw?.product?.description || "Basic plan",
+            amount:
+              (data as any)?.payment?.raw?.derived?.amountUsd ||
+              (data as any)?.payment?.amount ||
+              0,
+            currency: (data as any)?.payment?.raw?.derived?.currency || "USD",
+            interval: (data as any)?.payment?.raw?.derived?.interval || "month",
+            created: new Date().toISOString(),
+            end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            mins: (data as any)?.payment?.raw?.derived?.mins || 0,
+            original_plan_amount:
+              (data as any)?.payment?.raw?.derived?.amountUsd || 0,
+          },
+          agent_id: localStorage.getItem("agent_id") || "NA",
+          user_id: data?.user?.id || "user_static_id",
+          defer_days: deferDays,
+          promocode:localStorage.getItem("coupen")
+        };
+        // console.log("finalData",finalData)
+
+        try {
+          const ok = await agentCreationFinal(finalData);
+
+          if (ok) {
+            Swal.fire({
+              icon: "success",
+              title: "Created Successfully",
+              text: `Defer Payment set successfully for ${deferDays} days.`,
+            });
+          } else {
+            Swal.fire({
+              icon: "warning",
+              title: "Subscription Failed",
+              text: "Onboarding finished, but subscription creation failed.",
+            });
+          }
+        } catch (apiError) {
+          console.error("❌ agentCreationFinal threw an error:", apiError);
+          Swal.fire({
+            icon: "error",
+            title: "API Error",
+            text: "Something went wrong while creating subscription.",
+          });
+        }
       }
-
-      if (ok) {
-        // alert(
-        //   deferDays > 0
-        //     ? `Onboarding completed! ✅ Subscription created with ${deferDays} defer day(s).`
-        //     : "Onboarding completed! ✅ Subscription created."
-        // );
-      } else {
-        // alert("⚠️ Onboarding finished, but subscription creation failed.");
+      else if (data.payment?.method === "instant") {
+        console.log("Instant payment Submit");
+        // Swal.fire({
+        //   icon: "info",
+        //   title: "Instant Payment",
+        //   text: "Processing instant payment...",
+        // });
+        // TODO: Handle instant payment API here
       }
     } catch (err) {
       console.error("❌ Unexpected error in handleSubmit:", err);
-      alert("Failed to complete onboarding.");
+      // Swal.fire({
+      //   icon: "error",
+      //   title: "Unexpected Error",
+      //   text: "Failed to complete onboarding.",
+      // });
     } finally {
-      // ✅ Always clear/reset, no matter success or failure
-      console.log("Final Form Data:", data);
-      localStorage.removeItem("currentStep");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("BusinessId");
-      localStorage.removeItem("agentCode");
-      localStorage.removeItem("knowledgebaseName");
-      localStorage.removeItem("knowledgeBaseId");
-      localStorage.removeItem("businessType");
-      localStorage.removeItem("businessUrl");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("selectedSitemapUrls");
-      localStorage.removeItem("sitemapUrls");
-      localStorage.removeItem("addressComponents");
-      localStorage.removeItem("agentName");
-      localStorage.removeItem("agent_id");
-      localStorage.removeItem("city");
-      localStorage.removeItem("country_code");
-      localStorage.removeItem("coupen");
-      localStorage.removeItem("state");
-
-      localStorage.removeItem("phoneNumber")
-
-      localStorage.removeItem("businessType");
-      localStorage.removeItem("customServices");
-      localStorage.removeItem("businessServices");
-
+      // ✅ Always cleanup
+      const keysToRemove = [
+        "currentStep", "formData", "BusinessId", "agentCode", "knowledgebaseName",
+        "knowledgeBaseId", "businessType", "businessUrl", "isVerified",
+        "selectedSitemapUrls", "sitemapUrls", "addressComponents", "agentName",
+        "agent_id", "city", "country_code", "coupen", "state", "phoneNumber",
+        "customServices", "businessServices"
+      ];
+      keysToRemove.forEach(key => localStorage.removeItem(key));
 
       setStep(1);
       setFormData({});
     }
   };
+
 
 
   const fetchUsers = async () => {
@@ -395,127 +400,127 @@ const AdminUserOnboardingWizard: React.FC = () => {
     setFormData({});
   }
 
-   const handleExit = () => {
+  const handleExit = () => {
     // Optionally, you can add logic here to redirect or reset the form
-          localStorage.removeItem("currentStep");
-      localStorage.removeItem("formData");
-      localStorage.removeItem("BusinessId");
-      localStorage.removeItem("agentCode");
-      localStorage.removeItem("knowledgebaseName");
-      localStorage.removeItem("knowledgeBaseId");
-      localStorage.removeItem("businessType");
-      localStorage.removeItem("businessUrl");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("selectedSitemapUrls");
-      localStorage.removeItem("sitemapUrls");
-      localStorage.removeItem("addressComponents");
-      localStorage.removeItem("agentName");
-      localStorage.removeItem("agent_id");
-      localStorage.removeItem("city");
-      localStorage.removeItem("country_code");
-      localStorage.removeItem("coupen");
-      localStorage.removeItem("state");
-      localStorage.removeItem("AgentForUserId");
-      localStorage.removeItem("client_id");
-      localStorage.removeItem("currentStep");
-      localStorage.removeItem("isVerified");
-      localStorage.removeItem("phoneNumber")
-     setStep(1);
-      setFormData({});
+    localStorage.removeItem("currentStep");
+    localStorage.removeItem("formData");
+    localStorage.removeItem("BusinessId");
+    localStorage.removeItem("agentCode");
+    localStorage.removeItem("knowledgebaseName");
+    localStorage.removeItem("knowledgeBaseId");
+    localStorage.removeItem("businessType");
+    localStorage.removeItem("businessUrl");
+    localStorage.removeItem("isVerified");
+    localStorage.removeItem("selectedSitemapUrls");
+    localStorage.removeItem("sitemapUrls");
+    localStorage.removeItem("addressComponents");
+    localStorage.removeItem("agentName");
+    localStorage.removeItem("agent_id");
+    localStorage.removeItem("city");
+    localStorage.removeItem("country_code");
+    localStorage.removeItem("coupen");
+    localStorage.removeItem("state");
+    localStorage.removeItem("AgentForUserId");
+    localStorage.removeItem("client_id");
+    localStorage.removeItem("currentStep");
+    localStorage.removeItem("isVerified");
+    localStorage.removeItem("phoneNumber")
+    setStep(1);
+    setFormData({});
   };
 
 
   return (
-     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-2xl">
-       { step != 1 &&
-        <div className="flex justify-end mb-4">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Exit</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Exiting will discard any unsaved progress in the onboarding process. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleExit}>Exit</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      }
-      {step === 1 && (
-        <UserCreationStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          editingUser={editingUser}
-          fetchUsers={fetchUsers}
-        />
-      )}
-      {step === 2 && (
-        <BusinessDetailsStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          editingBusiness={editingBusiness}
-          fetchBusinesses={fetchBusinesses}
-        />
-      )}
-      {step === 3 && (
-        <AgentCreationStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
-      )}
-      {step === 4 && (
-        <AssignNumberStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onFreeAgent={handleFreeAgent}
+        {step != 1 &&
+          <div className="flex justify-end mb-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive">Exit</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure you want to exit?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Exiting will discard any unsaved progress in the onboarding process. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleExit}>Exit</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        }
+        {step === 1 && (
+          <UserCreationStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            editingUser={editingUser}
+            fetchUsers={fetchUsers}
+          />
+        )}
+        {step === 2 && (
+          <BusinessDetailsStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            editingBusiness={editingBusiness}
+            fetchBusinesses={fetchBusinesses}
+          />
+        )}
+        {step === 3 && (
+          <AgentCreationStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )}
+        {step === 4 && (
+          <AssignNumberStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onFreeAgent={handleFreeAgent}
 
-        />
-      )}
-      {step === 5 && (
-        <PaymentStep
-          data={formData}
-          onUpdate={handleUpdate}
-          onSubmit={handleSubmit}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
-      )}
+          />
+        )}
+        {step === 5 && (
+          <PaymentStep
+            data={formData}
+            onUpdate={handleUpdate}
+            onSubmit={handleSubmit}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+          />
+        )}
 
-      {step === 6 && (
-        <DiscountForm
-          data={formData}
-          onUpdate={handleUpdate}
-          // onSubmit={handleSubmit}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
+        {step === 6 && (
+          <DiscountForm
+            data={formData}
+            onUpdate={handleUpdate}
+            // onSubmit={handleSubmit}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
 
-        />
-      )}
-      {step === 7 && (
-        <PaymentMethod
-          data={formData}
-          onUpdate={handleUpdate}
-          onSubmit={handleSubmit}
-          onPrevious={handlePrevious}
+          />
+        )}
+        {step === 7 && (
+          <PaymentMethod
+            data={formData}
+            onUpdate={handleUpdate}
+            onSubmit={handleSubmit}
+            onPrevious={handlePrevious}
 
-        />
-      )}
-       </div>
+          />
+        )}
+      </div>
     </div>
   );
 };
